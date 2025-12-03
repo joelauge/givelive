@@ -1,4 +1,4 @@
-import logo from '../assets/givelivelogo.png';
+import logo from '../assets/givelivelogo2.png';
 
 export default function Logo({ className = "", size = "normal" }: { className?: string, size?: "normal" | "small" }) {
     const height = size === "small" ? "h-8" : "h-16";
