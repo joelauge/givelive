@@ -14,7 +14,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -87,6 +87,7 @@ export default function JourneyBuilder() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [saving, setSaving] = useState(false);
+    const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
 
     const nodeTypes = useMemo(() => ({ start: StartNode }), []);
 
@@ -162,78 +163,78 @@ export default function JourneyBuilder() {
                         <span>Flow Editor</span>
                     </button>
 
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
-                        <LayoutTemplate size={18} />
-                        <span>Templates</span>
+                    <button
+                        onClick={() => setIsTemplatesOpen(!isTemplatesOpen)}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left w-full"
+                    >
+                        <div className="flex items-center gap-3">
+                            <LayoutTemplate size={18} />
+                            <span>Templates</span>
+                        </div>
+                        {isTemplatesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </button>
+
+                    {isTemplatesOpen && (
+                        <div className="pl-4 flex flex-col gap-1 mb-2 animate-in slide-in-from-top-2 duration-200">
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-green-100 text-green-600 p-1.5 rounded-lg group-hover:bg-green-200 transition">
+                                    <Heart size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">Simple Donation</span>
+                                </div>
+                            </button>
+
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg group-hover:bg-blue-200 transition">
+                                    <MessageSquare size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">Feedback Survey</span>
+                                </div>
+                            </button>
+
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg group-hover:bg-purple-200 transition">
+                                    <Ticket size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">Raffle Entry</span>
+                                </div>
+                            </button>
+
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg group-hover:bg-orange-200 transition">
+                                    <Quote size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">Share Testimonial</span>
+                                </div>
+                            </button>
+
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg group-hover:bg-indigo-200 transition">
+                                    <UserPlus size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">New Member</span>
+                                </div>
+                            </button>
+
+                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                                <div className="bg-cyan-100 text-cyan-600 p-1.5 rounded-lg group-hover:bg-cyan-200 transition">
+                                    <Droplets size={14} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium">Get Baptised</span>
+                                </div>
+                            </button>
+                        </div>
+                    )}
 
                     <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
                         <Settings size={18} />
                         <span>Settings</span>
-                    </button>
-
-                    <div className="h-px bg-gray-100 my-2"></div>
-
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Common Templates</div>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-green-100 text-green-600 p-1.5 rounded-lg group-hover:bg-green-200 transition">
-                            <Heart size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">Simple Donation</span>
-                            <span className="text-[10px] text-gray-400">Scan → Donate → Thank You</span>
-                        </div>
-                    </button>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg group-hover:bg-blue-200 transition">
-                            <MessageSquare size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">Feedback Survey</span>
-                            <span className="text-[10px] text-gray-400">Scan → Poll → Results</span>
-                        </div>
-                    </button>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg group-hover:bg-purple-200 transition">
-                            <Ticket size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">Raffle Entry</span>
-                            <span className="text-[10px] text-gray-400">Scan → Form → Ticket</span>
-                        </div>
-                    </button>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg group-hover:bg-orange-200 transition">
-                            <Quote size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">Share Testimonial</span>
-                            <span className="text-[10px] text-gray-400">Scan → Video/Text → Submit</span>
-                        </div>
-                    </button>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg group-hover:bg-indigo-200 transition">
-                            <UserPlus size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">New Member</span>
-                            <span className="text-[10px] text-gray-400">Scan → Info Form → Welcome</span>
-                        </div>
-                    </button>
-
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
-                        <div className="bg-cyan-100 text-cyan-600 p-1.5 rounded-lg group-hover:bg-cyan-200 transition">
-                            <Droplets size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-sm font-medium">Get Baptised</span>
-                            <span className="text-[10px] text-gray-400">Scan → Info → Schedule</span>
-                        </div>
                     </button>
 
                     <div className="h-px bg-gray-100 my-2"></div>
