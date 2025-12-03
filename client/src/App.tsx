@@ -6,15 +6,42 @@ import Layout from './components/Layout';
 
 import Home from './pages/Home';
 
+import Home from './pages/Home';
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+
 function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/admin"
+          element={
+            <>
+              <SignedIn>
+                <AdminDashboard />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
         <Route path="/event/:eventId" element={<LandingPage />} />
       </Route>
-      <Route path="/admin/event/:eventId" element={<JourneyBuilder />} />
+      <Route
+        path="/admin/event/:eventId"
+        element={
+          <>
+            <SignedIn>
+              <JourneyBuilder />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
     </Routes>
   );
 }
