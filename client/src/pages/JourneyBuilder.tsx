@@ -104,6 +104,83 @@ export default function JourneyBuilder() {
         setNodes((nds) => nds.concat(newNode));
     };
 
+    const applyTemplate = (templateName: string) => {
+        const startNodeId = nodes.find(n => n.type === 'start')?.id || '1';
+        const baseId = nodes.length + 1;
+        const newNodes: any[] = [];
+        const newEdges: Edge[] = [];
+
+        switch (templateName) {
+            case 'simple-donation':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Donation Page' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Thank You Page' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+            case 'feedback-survey':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Survey Form' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Results Page' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+            case 'raffle-entry':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Entry Form' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Digital Ticket' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+            case 'share-testimonial':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Video/Text Upload' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Confirmation' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+            case 'new-member':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Member Info Form' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Welcome Video' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+            case 'get-baptised':
+                newNodes.push(
+                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Baptism Info' }, type: 'default' },
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Schedule Form' }, type: 'default' },
+                    { id: `${baseId + 2}`, position: { x: 250, y: 450 }, data: { label: 'Confirmation' }, type: 'output' }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+        }
+
+        // Clear existing edges from start node to avoid clutter if replacing? 
+        // For now, let's just add. User can delete.
+        setNodes((nds) => [...nds, ...newNodes]);
+        setEdges((eds) => [...eds, ...newEdges]);
+    };
+
     const handleSave = async () => {
         setSaving(true);
         console.log('Saving flow:', { nodes, edges });
@@ -176,7 +253,7 @@ export default function JourneyBuilder() {
 
                     {isTemplatesOpen && (
                         <div className="pl-4 flex flex-col gap-1 mb-2 animate-in slide-in-from-top-2 duration-200">
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('simple-donation')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-green-100 text-green-600 p-1.5 rounded-lg group-hover:bg-green-200 transition">
                                     <Heart size={14} />
                                 </div>
@@ -185,7 +262,7 @@ export default function JourneyBuilder() {
                                 </div>
                             </button>
 
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('feedback-survey')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg group-hover:bg-blue-200 transition">
                                     <MessageSquare size={14} />
                                 </div>
@@ -194,7 +271,7 @@ export default function JourneyBuilder() {
                                 </div>
                             </button>
 
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('raffle-entry')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg group-hover:bg-purple-200 transition">
                                     <Ticket size={14} />
                                 </div>
@@ -203,7 +280,7 @@ export default function JourneyBuilder() {
                                 </div>
                             </button>
 
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('share-testimonial')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg group-hover:bg-orange-200 transition">
                                     <Quote size={14} />
                                 </div>
@@ -212,7 +289,7 @@ export default function JourneyBuilder() {
                                 </div>
                             </button>
 
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('new-member')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg group-hover:bg-indigo-200 transition">
                                     <UserPlus size={14} />
                                 </div>
@@ -221,7 +298,7 @@ export default function JourneyBuilder() {
                                 </div>
                             </button>
 
-                            <button className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                            <button onClick={() => applyTemplate('get-baptised')} className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
                                 <div className="bg-cyan-100 text-cyan-600 p-1.5 rounded-lg group-hover:bg-cyan-200 transition">
                                     <Droplets size={14} />
                                 </div>
