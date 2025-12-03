@@ -16,7 +16,7 @@ interface Section {
 
 export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
     const [sections, setSections] = useState<Section[]>(data.sections || []);
-    const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
+    // const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor'); // Removed unused state
 
     useEffect(() => {
         onUpdate({ sections });
@@ -86,7 +86,7 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-xl z-20"></div>
 
                     {/* Screen Content */}
-                    <div className="h-full overflow-y-auto pt-8 pb-4 px-4 space-y-4">
+                    <div className="h-full overflow-y-auto overflow-x-hidden pt-8 pb-4 px-4 space-y-4">
                         {sections.length === 0 && (
                             <div className="text-center text-gray-400 mt-20 text-sm">
                                 Add sections to build your page
@@ -96,11 +96,11 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                         {sections.map((section) => (
                             <div key={section.id} className="relative group border border-transparent hover:border-primary/20 rounded-lg transition-all">
                                 {/* Edit Controls Overlay */}
-                                <div className="absolute -right-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-                                    <button onClick={() => removeSection(section.id)} className="p-1.5 bg-red-100 text-red-500 rounded-full hover:bg-red-200">
+                                <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-gray-100 z-10">
+                                    <button onClick={() => removeSection(section.id)} className="p-1.5 bg-red-100 text-red-500 rounded-md hover:bg-red-200">
                                         <Trash2 size={12} />
                                     </button>
-                                    <button className="p-1.5 bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200 cursor-move">
+                                    <button className="p-1.5 bg-gray-100 text-gray-500 rounded-md hover:bg-gray-200 cursor-move">
                                         <MoveVertical size={12} />
                                     </button>
                                 </div>
