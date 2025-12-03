@@ -1,0 +1,21 @@
+{
+    "name": "givelive-root",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "cd client && npm install && npm run build",
+        "postinstall": "cd server && npm install"
+    },
+    "dependencies": {
+        "fastify": "^4.26.1",
+        "@fastify/cors": "^9.0.1",
+        "pg": "^8.11.3",
+        "dotenv": "^16.4.5",
+        "twilio": "^4.23.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.3.3",
+        "@types/node": "^20.11.20",
+        "@types/pg": "^8.11.0"
+    }
+}
