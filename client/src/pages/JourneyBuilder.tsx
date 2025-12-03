@@ -69,17 +69,6 @@ export default function JourneyBuilder() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
-                        <button onClick={() => addNode('page')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
-                            <Plus size={14} /> Page
-                        </button>
-                        <button onClick={() => addNode('sms')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
-                            <Plus size={14} /> SMS
-                        </button>
-                        <button onClick={() => addNode('donation')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
-                            <Plus size={14} /> Donation
-                        </button>
-                    </div>
                     <button
                         onClick={handleSave}
                         disabled={saving}
@@ -90,20 +79,59 @@ export default function JourneyBuilder() {
                 </div>
             </div>
 
-            <div className="flex-1 bg-gray-50/50">
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    fitView
-                    className="bg-gray-50"
-                >
-                    <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden" />
-                    <MiniMap className="bg-white border-gray-100 shadow-card rounded-xl" />
-                    <Background gap={20} size={1} color="#E5E7EB" />
-                </ReactFlow>
+            <div className="flex-1 flex overflow-hidden">
+                {/* Sidebar */}
+                <div className="w-64 bg-surface border-r border-gray-100 flex flex-col">
+                    <div className="p-4">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Toolbox</h3>
+                        <div className="space-y-2">
+                            <button onClick={() => addNode('page')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-600 transition text-sm font-medium border border-transparent hover:border-gray-100">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center"><Plus size={16} /></div>
+                                Add Page
+                            </button>
+                            <button onClick={() => addNode('sms')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-600 transition text-sm font-medium border border-transparent hover:border-gray-100">
+                                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center"><Plus size={16} /></div>
+                                Add SMS
+                            </button>
+                            <button onClick={() => addNode('donation')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-600 transition text-sm font-medium border border-transparent hover:border-gray-100">
+                                <div className="w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center"><Plus size={16} /></div>
+                                Add Donation
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-gray-100">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Menu</h3>
+                        <div className="space-y-1">
+                            <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-50 text-gray-600 transition text-sm">
+                                <span>📋</span> Templates
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-50 text-gray-600 transition text-sm">
+                                <span>⚙️</span> Settings
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-50 text-gray-600 transition text-sm">
+                                <span>📊</span> Analytics
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Canvas */}
+                <div className="flex-1 bg-gray-50/50 relative">
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        fitView
+                        className="bg-gray-50"
+                    >
+                        <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden" />
+                        <MiniMap className="bg-white border-gray-100 shadow-card rounded-xl" />
+                        <Background gap={20} size={1} color="#E5E7EB" />
+                    </ReactFlow>
+                </div>
             </div>
         </div>
     );
