@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
 import QRCode from 'react-qr-code';
+import Modal from '../components/Modal';
 
 // Custom Start Node with QR Code
 const StartNode = () => {
@@ -89,6 +90,7 @@ export default function JourneyBuilder() {
     const [saving, setSaving] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [modal, setModal] = useState({ isOpen: false, title: '', content: '' });
 
     // Track unsaved changes
     useEffect(() => {
@@ -207,7 +209,7 @@ export default function JourneyBuilder() {
             setTimeout(() => {
                 setSaving(false);
                 setHasUnsavedChanges(false);
-                alert('Journey saved!');
+                setModal({ isOpen: true, title: 'Success', content: 'Journey saved successfully!' });
                 resolve();
             }, 1000);
         });
@@ -226,9 +228,9 @@ export default function JourneyBuilder() {
             setNodes(savedNodes);
             setEdges(savedEdges);
             setHasUnsavedChanges(false);
-            alert('Flow loaded successfully!');
+            setModal({ isOpen: true, title: 'Success', content: 'Flow loaded successfully!' });
         } else {
-            alert('No saved flow found for this event.');
+            setModal({ isOpen: true, title: 'No Saved Flow', content: 'No saved flow found for this event.' });
         }
     };
 
@@ -390,6 +392,24 @@ export default function JourneyBuilder() {
                     </ReactFlow>
                 </div>
             </div>
+
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={() => setModal({ ...modal, isOpen: false })}
+                title={modal.title}
+            >
+                <div className="text-gray-600">
+                    {modal.content}
+                </div>
+                <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={() => setModal({ ...modal, isOpen: false })}
+                        className="btn-primary py-2 px-4 text-sm"
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 }
