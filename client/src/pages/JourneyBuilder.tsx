@@ -257,6 +257,7 @@ export default function JourneyBuilder() {
                         nodeTypes={nodeTypes}
                         fitView
                         className="bg-gray-50"
+                        proOptions={{ hideAttribution: true }}
                     >
                         <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden" />
                         <MiniMap className="bg-white border-gray-100 shadow-card rounded-xl" />
