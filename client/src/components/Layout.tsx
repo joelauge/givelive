@@ -1,7 +1,10 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import Logo from './Logo';
 
 export default function Layout() {
+    const location = useLocation();
+    const isHomePage = location.pathname === '/';
+
     return (
         <div className="min-h-screen flex flex-col bg-background font-sans text-primary">
             {/* Header */}
@@ -9,8 +12,19 @@ export default function Layout() {
                 <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                     <Logo />
                     <div className="flex items-center gap-4">
-                        {/* Placeholder for nav items or user profile */}
-                        <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"></div>
+                        {isHomePage ? (
+                            <>
+                                <Link to="/login" className="px-5 py-2.5 rounded-xl font-bold text-primary border-2 border-primary/10 hover:border-primary hover:bg-gray-50 transition">
+                                    Log In
+                                </Link>
+                                <Link to="/demo" className="btn-secondary py-2.5 px-5 text-sm shadow-lg shadow-yellow-400/20 hover:shadow-yellow-400/30 hover:-translate-y-0.5 transition-all duration-300">
+                                    Request A Demo
+                                </Link>
+                            </>
+                        ) : (
+                            /* Placeholder for nav items or user profile */
+                            <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"></div>
+                        )}
                     </div>
                 </div>
             </header>
