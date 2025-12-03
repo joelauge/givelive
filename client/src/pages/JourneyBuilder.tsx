@@ -20,6 +20,7 @@ import Logo from '../components/Logo';
 
 import QRCode from 'react-qr-code';
 import Modal from '../components/Modal';
+import NodeEditor from '../components/flow-editor/NodeEditor';
 
 // Custom Start Node with QR Code
 const StartNode = () => {
@@ -91,6 +92,7 @@ export default function JourneyBuilder() {
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, title: '', content: '' });
+    const [selectedNode, setSelectedNode] = useState<any>(null);
 
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, templateName: '' });
 
@@ -105,12 +107,33 @@ export default function JourneyBuilder() {
 
     const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
 
+    const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+        // Ensure node has a type in data for the editor
+        const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
+            node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+
+        setSelectedNode({ ...node, data: { ...node.data, type } });
+    }, []);
+
+    const updateNodeData = (nodeId: string, newData: any) => {
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === nodeId) {
+                    return { ...node, data: newData };
+                }
+                return node;
+            })
+        );
+        // Also update selected node to reflect changes immediately in the editor if needed
+        // But usually local state in editor handles immediate feedback, this updates the flow
+    };
+
     const addNode = (type: string) => {
         const id = `${nodes.length + 1}`;
         const newNode = {
             id,
             position: { x: Math.random() * 400, y: Math.random() * 400 },
-            data: { label: `${type} Node` },
+            data: { label: `${type} Node`, type }, // Store type in data
             type: type === 'end' ? 'output' : 'default',
         };
         setNodes((nds) => nds.concat(newNode));
@@ -397,6 +420,7 @@ export default function JourneyBuilder() {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        onNodeClick={onNodeClick} // Add click handler
                         nodeTypes={nodeTypes}
                         fitView
                         className="bg-gray-50"
@@ -408,6 +432,13 @@ export default function JourneyBuilder() {
                     </ReactFlow>
                 </div>
             </div>
+
+            {/* Node Editor Drawer */}
+            <NodeEditor
+                node={selectedNode}
+                onClose={() => setSelectedNode(null)}
+                onUpdate={updateNodeData}
+            />
 
             <Modal
                 isOpen={modal.isOpen}
