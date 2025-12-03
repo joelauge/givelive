@@ -14,6 +14,7 @@ import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
 import { Save, Plus, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 const initialNodes = [
     { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)' }, type: 'input' },
@@ -58,9 +59,13 @@ export default function JourneyBuilder() {
                     <Link to="/admin" className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-50 text-gray-500 transition">
                         <ArrowLeft size={20} />
                     </Link>
-                    <div>
-                        <h1 className="text-lg font-bold text-primary">Journey Builder</h1>
-                        <p className="text-xs text-gray-400">Editing Flow</p>
+                    <div className="flex items-center gap-4">
+                        <Logo size="small" />
+                        <div className="h-6 w-px bg-gray-200"></div>
+                        <div>
+                            <h1 className="text-lg font-bold text-primary">Journey Builder</h1>
+                            <p className="text-xs text-gray-400">Editing Flow</p>
+                        </div>
                     </div>
                 </div>
                 <div className="flex gap-3">
