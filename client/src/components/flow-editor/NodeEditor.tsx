@@ -3,6 +3,7 @@ import type { Node } from 'reactflow';
 import PageBuilder from './PageBuilder';
 import SmsEditor from './SmsEditor';
 import DonationEditor from './DonationEditor';
+import StartNodeEditor from './StartNodeEditor';
 
 interface NodeEditorProps {
     node: Node | null;
@@ -33,6 +34,12 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
 
         // Let's assume we will update addNode to set data.type or use specific node types
         // For now, let's look at data.label or a new data.type field
+
+        // Check for start node type first
+        if (node.type === 'start') {
+            return <StartNodeEditor data={node.data} onUpdate={handleUpdate} />;
+        }
+
         const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
             node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
 
@@ -52,6 +59,8 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
         }
     };
 
+    const isStartNode = node.type === 'start';
+
     return (
         <div className="fixed inset-y-0 right-0 w-[500px] bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
@@ -60,13 +69,15 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
                     <p className="text-xs text-gray-500">ID: {node.id}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleDelete}
-                        className="p-2 hover:bg-red-100 text-red-500 rounded-full transition"
-                        title="Delete Node"
-                    >
-                        <Trash2 size={20} />
-                    </button>
+                    {!isStartNode && (
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 hover:bg-red-100 text-red-500 rounded-full transition"
+                            title="Delete Node"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    )}
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition">
                         <X size={20} className="text-gray-500" />
                     </button>
