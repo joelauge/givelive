@@ -14,7 +14,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -203,6 +203,36 @@ export default function JourneyBuilder() {
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">Raffle Entry</span>
                             <span className="text-[10px] text-gray-400">Scan → Form → Ticket</span>
+                        </div>
+                    </button>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg group-hover:bg-orange-200 transition">
+                            <Quote size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Share Testimonial</span>
+                            <span className="text-[10px] text-gray-400">Scan → Video/Text → Submit</span>
+                        </div>
+                    </button>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg group-hover:bg-indigo-200 transition">
+                            <UserPlus size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">New Member</span>
+                            <span className="text-[10px] text-gray-400">Scan → Info Form → Welcome</span>
+                        </div>
+                    </button>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-cyan-100 text-cyan-600 p-1.5 rounded-lg group-hover:bg-cyan-200 transition">
+                            <Droplets size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Get Baptised</span>
+                            <span className="text-[10px] text-gray-400">Scan → Info → Schedule</span>
                         </div>
                     </button>
 
