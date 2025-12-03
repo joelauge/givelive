@@ -5,8 +5,6 @@ import JourneyBuilder from './pages/JourneyBuilder';
 import Layout from './components/Layout';
 
 import Home from './pages/Home';
-
-import Home from './pages/Home';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {

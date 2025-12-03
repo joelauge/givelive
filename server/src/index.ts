@@ -6,6 +6,7 @@ import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
 import smsRoutes from './routes/sms';
 import analyticsRoutes from './routes/analytics';
+import demoRoutes from './routes/demo';
 import donationRoutes from './routes/donations';
 
 dotenv.config();
@@ -21,6 +22,7 @@ export const createApp = () => {
     server.register(journeyRoutes);
     server.register(smsRoutes);
     server.register(analyticsRoutes);
+    server.register(demoRoutes);
     server.register(donationRoutes);
 
     server.get('/', async (request, reply) => {
