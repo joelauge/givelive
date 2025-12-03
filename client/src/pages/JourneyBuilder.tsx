@@ -14,7 +14,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -199,6 +199,10 @@ export default function JourneyBuilder() {
     const handleSave = async () => {
         setSaving(true);
         console.log('Saving flow:', { nodes, edges });
+
+        // Save to localStorage
+        localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify({ nodes, edges }));
+
         return new Promise<void>((resolve) => {
             setTimeout(() => {
                 setSaving(false);
@@ -207,6 +211,25 @@ export default function JourneyBuilder() {
                 resolve();
             }, 1000);
         });
+    };
+
+    const handleLoad = () => {
+        if (hasUnsavedChanges) {
+            if (!window.confirm("You have unsaved changes. Are you sure you want to load a saved flow? Current changes will be lost.")) {
+                return;
+            }
+        }
+
+        const savedFlow = localStorage.getItem(`givelive_flow_${eventId}`);
+        if (savedFlow) {
+            const { nodes: savedNodes, edges: savedEdges } = JSON.parse(savedFlow);
+            setNodes(savedNodes);
+            setEdges(savedEdges);
+            setHasUnsavedChanges(false);
+            alert('Flow loaded successfully!');
+        } else {
+            alert('No saved flow found for this event.');
+        }
     };
 
     return (
@@ -237,13 +260,21 @@ export default function JourneyBuilder() {
                             <Plus size={14} /> Donation
                         </button>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="btn-primary py-2 px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Save size={16} /> {saving ? 'Saving...' : 'Save Flow'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleLoad}
+                            className="btn-secondary py-2 px-4 text-sm flex items-center gap-2"
+                        >
+                            <FolderOpen size={16} /> Load Flow
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="btn-primary py-2 px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Save size={16} /> {saving ? 'Saving...' : 'Save Flow'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
