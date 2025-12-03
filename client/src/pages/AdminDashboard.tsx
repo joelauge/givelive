@@ -5,20 +5,25 @@ export default function AdminDashboard() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         loadEvents();
     }, []);
 
     const loadEvents = async () => {
         try {
-            // We need an endpoint to list events. 
-            // Assuming api.getEvents() exists or we add it.
-            // For now, let's mock it or fetch from the endpoint we created (GET /events)
-            const res = await fetch('http://localhost:3000/events');
+            setLoading(true);
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/events`);
+            if (!res.ok) {
+                throw new Error('Failed to fetch events');
+            }
             const data = await res.json();
-            setEvents(data);
+            setEvents(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(err);
+            setError('Could not load events. Please check if the server is running and database is connected.');
+            setEvents([]);
         } finally {
             setLoading(false);
         }
@@ -48,6 +53,12 @@ export default function AdminDashboard() {
     };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading events...</div>;
+    if (error) return (
+        <div className="p-8 text-center">
+            <div className="text-red-500 mb-4">{error}</div>
+            <button onClick={loadEvents} className="btn-primary">Retry</button>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-background p-8">
