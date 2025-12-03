@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
     addEdge,
     MiniMap,
@@ -88,6 +88,14 @@ export default function JourneyBuilder() {
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [saving, setSaving] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Track unsaved changes
+    useEffect(() => {
+        if (nodes.length > 1 || edges.length > 0) {
+            setHasUnsavedChanges(true);
+        }
+    }, [nodes, edges]);
 
     const nodeTypes = useMemo(() => ({ start: StartNode }), []);
 
@@ -104,7 +112,14 @@ export default function JourneyBuilder() {
         setNodes((nds) => nds.concat(newNode));
     };
 
-    const applyTemplate = (templateName: string) => {
+    const applyTemplate = async (templateName: string) => {
+        if (hasUnsavedChanges) {
+            const shouldSave = window.confirm("You have unsaved changes. Would you like to save your current flow before adding this template?");
+            if (shouldSave) {
+                await handleSave();
+            }
+        }
+
         const startNodeId = nodes.find(n => n.type === 'start')?.id || '1';
         const baseId = nodes.length + 1;
         const newNodes: any[] = [];
@@ -184,12 +199,14 @@ export default function JourneyBuilder() {
     const handleSave = async () => {
         setSaving(true);
         console.log('Saving flow:', { nodes, edges });
-        // Here we would convert the flow to our backend format and save
-        // For MVP, we just simulate a save
-        setTimeout(() => {
-            setSaving(false);
-            alert('Journey saved!');
-        }, 1000);
+        return new Promise<void>((resolve) => {
+            setTimeout(() => {
+                setSaving(false);
+                setHasUnsavedChanges(false);
+                alert('Journey saved!');
+                resolve();
+            }, 1000);
+        });
     };
 
     return (
