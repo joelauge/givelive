@@ -128,6 +128,12 @@ export default function JourneyBuilder() {
         // But usually local state in editor handles immediate feedback, this updates the flow
     };
 
+    const deleteNode = (nodeId: string) => {
+        setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+        setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+        setSelectedNode(null);
+    };
+
     const addNode = (type: string) => {
         const id = `${nodes.length + 1}`;
         const newNode = {
