@@ -10,7 +10,8 @@ import ReactFlow, {
     type Edge,
     type Connection,
     Handle,
-    Position
+    Position,
+    useReactFlow
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
@@ -23,10 +24,42 @@ import Modal from '../components/Modal';
 import NodeEditor from '../components/flow-editor/NodeEditor';
 
 // Custom Start Node with QR Code
-const StartNode = () => {
+const StartNode = ({ id }: { id: string }) => {
     const { eventId } = useParams();
     const eventUrl = `${window.location.origin}/event/${eventId}`;
     const [showQr, setShowQr] = useState(false);
+    const [showAddMenu, setShowAddMenu] = useState(false);
+    const { getNodes, setNodes, setEdges, getNode } = useReactFlow();
+
+    const handleAddNode = (type: 'page' | 'logic') => {
+        const currentNode = getNode(id);
+        if (!currentNode) return;
+
+        if (type === 'logic') {
+            alert("Logic steps are coming soon!");
+            setShowAddMenu(false);
+            return;
+        }
+
+        const newNodeId = `${getNodes().length + 1}`;
+        const newNode = {
+            id: newNodeId,
+            position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
+            data: { label: 'New Page', type: 'page' },
+            type: 'default',
+        };
+
+        const newEdge = {
+            id: `e${id}-${newNodeId}`,
+            source: id,
+            target: newNodeId,
+            markerEnd: { type: MarkerType.ArrowClosed },
+        };
+
+        setNodes((nds) => nds.concat(newNode));
+        setEdges((eds) => eds.concat(newEdge));
+        setShowAddMenu(false);
+    };
 
     return (
         <div className="relative group">
@@ -67,12 +100,36 @@ const StartNode = () => {
                 </div>
             )}
 
+            {/* Add Node Menu */}
+            {showAddMenu && (
+                <div className="absolute top-[calc(100%+20px)] left-1/2 -translate-x-1/2 bg-white p-1.5 rounded-xl shadow-xl border border-gray-100 z-50 flex flex-col gap-1 min-w-[140px] animate-in fade-in zoom-in duration-200">
+                    <button
+                        onClick={() => handleAddNode('page')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <LayoutTemplate size={14} className="text-primary" />
+                        <span>Add Page</span>
+                    </button>
+                    <button
+                        onClick={() => handleAddNode('logic')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left opacity-50 cursor-not-allowed"
+                    >
+                        <Workflow size={14} className="text-gray-400" />
+                        <span>Add Logic</span>
+                    </button>
+                </div>
+            )}
+
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110"
+                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
+                onClick={(e) => {
+                    e.stopPropagation(); // Prevent React Flow from handling the click (if it does)
+                    setShowAddMenu(!showAddMenu);
+                }}
             >
-                <Plus size={10} className="text-white stroke-[4]" />
+                <Plus size={10} className={`text-white stroke-[4] transition-transform duration-200 ${showAddMenu ? 'rotate-45' : ''}`} />
             </Handle>
         </div>
     );
