@@ -107,7 +107,7 @@ export default function JourneyBuilder() {
 
     const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
 
-    const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+    const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
         // Ensure node has a type in data for the editor
         const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
             node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
@@ -438,6 +438,7 @@ export default function JourneyBuilder() {
                 node={selectedNode}
                 onClose={() => setSelectedNode(null)}
                 onUpdate={updateNodeData}
+                onDelete={deleteNode}
             />
 
             <Modal

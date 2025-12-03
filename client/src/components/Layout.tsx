@@ -1,4 +1,4 @@
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import Logo from './Logo';
 import { useState } from 'react';

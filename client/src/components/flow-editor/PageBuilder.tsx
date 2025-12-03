@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Type, Image as ImageIcon, Video, Columns, Plus, Trash2, MoveVertical } from 'lucide-react';
+import { Layout, Type, Image as ImageIcon, Video, Columns, Trash2, MoveVertical } from 'lucide-react';
 
 interface PageBuilderProps {
     data: any;
