@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import ReactFlow, {
     addEdge,
     MiniMap,
@@ -8,25 +8,66 @@ import ReactFlow, {
     useEdgesState,
     MarkerType,
     type Edge,
-    type Connection
+    type Connection,
+    Handle,
+    Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3 } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
+import QRCode from 'react-qr-code';
+
+// Custom Start Node with QR Code
+const StartNode = () => {
+    const { eventId } = useParams();
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg border-2 border-primary p-4 w-64">
+            <div className="flex items-center gap-2 mb-3 border-b border-gray-100 pb-2">
+                <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
+                    <QrCode size={16} />
+                </div>
+                <div className="font-bold text-sm text-primary">Start (QR Scan)</div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+                <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
+                    <div className="w-24 h-24 flex items-center justify-center">
+                        <QRCode
+                            size={256}
+                            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                            value={eventUrl}
+                            viewBox={`0 0 256 256`}
+                        />
+                    </div>
+                </div>
+                <div className="text-xs text-center text-gray-500">
+                    Scan to test this flow <br />
+                    <a href={eventUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Open Link</a>
+                </div>
+            </div>
+            <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-primary border-2 border-white" />
+        </div>
+    );
+};
+
 const initialNodes = [
-    { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)' }, type: 'input' },
+    { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)' }, type: 'start' },
 ];
 const initialEdges: Edge[] = [];
 
 export default function JourneyBuilder() {
     const { eventId } = useParams();
-    console.log('Event ID:', eventId); // Use eventId to silence unused warning
+    console.log('Event ID:', eventId);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [saving, setSaving] = useState(false);
+
+    const nodeTypes = useMemo(() => ({ start: StartNode }), []);
 
     const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
 
@@ -92,28 +133,62 @@ export default function JourneyBuilder() {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar */}
-                <div className="w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 z-10">
+                <div className="w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 z-10 overflow-y-auto">
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu</div>
 
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition">
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left">
                         <Workflow size={18} />
                         <span>Flow Editor</span>
                     </button>
 
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
                         <LayoutTemplate size={18} />
                         <span>Templates</span>
                     </button>
 
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
                         <Settings size={18} />
                         <span>Settings</span>
                     </button>
 
                     <div className="h-px bg-gray-100 my-2"></div>
 
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Common Templates</div>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-green-100 text-green-600 p-1.5 rounded-lg group-hover:bg-green-200 transition">
+                            <Heart size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Simple Donation</span>
+                            <span className="text-[10px] text-gray-400">Scan → Donate → Thank You</span>
+                        </div>
+                    </button>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg group-hover:bg-blue-200 transition">
+                            <MessageSquare size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Feedback Survey</span>
+                            <span className="text-[10px] text-gray-400">Scan → Poll → Results</span>
+                        </div>
+                    </button>
+
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group">
+                        <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg group-hover:bg-purple-200 transition">
+                            <Ticket size={16} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Raffle Entry</span>
+                            <span className="text-[10px] text-gray-400">Scan → Form → Ticket</span>
+                        </div>
+                    </button>
+
+                    <div className="h-px bg-gray-100 my-2"></div>
+
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Analytics</div>
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
                         <BarChart3 size={18} />
                         <span>Overview</span>
                     </button>
@@ -127,6 +202,7 @@ export default function JourneyBuilder() {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        nodeTypes={nodeTypes}
                         fitView
                         className="bg-gray-50"
                     >
