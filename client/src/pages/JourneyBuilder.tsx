@@ -52,35 +52,40 @@ export default function JourneyBuilder() {
     };
 
     return (
-        <div className="h-screen flex flex-col">
-            <div className="bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10">
+        <div className="h-screen flex flex-col bg-background">
+            <div className="bg-surface border-b border-gray-100 p-4 flex justify-between items-center z-10 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <Link to="/admin" className="text-gray-500 hover:text-gray-700">
+                    <Link to="/admin" className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-50 text-gray-500 transition">
                         <ArrowLeft size={20} />
                     </Link>
-                    <h1 className="text-xl font-bold">Journey Builder</h1>
+                    <div>
+                        <h1 className="text-lg font-bold text-primary">Journey Builder</h1>
+                        <p className="text-xs text-gray-400">Editing Flow</p>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => addNode('page')} className="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center gap-2">
-                        <Plus size={16} /> Page
-                    </button>
-                    <button onClick={() => addNode('sms')} className="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center gap-2">
-                        <Plus size={16} /> SMS
-                    </button>
-                    <button onClick={() => addNode('donation')} className="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center gap-2">
-                        <Plus size={16} /> Donation
-                    </button>
+                <div className="flex gap-3">
+                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                        <button onClick={() => addNode('page')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
+                            <Plus size={14} /> Page
+                        </button>
+                        <button onClick={() => addNode('sms')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
+                            <Plus size={14} /> SMS
+                        </button>
+                        <button onClick={() => addNode('donation')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
+                            <Plus size={14} /> Donation
+                        </button>
+                    </div>
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                        className="btn-primary py-2 px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save size={16} /> {saving ? 'Saving...' : 'Save Flow'}
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 bg-gray-50/50">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -88,10 +93,11 @@ export default function JourneyBuilder() {
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
                     fitView
+                    className="bg-gray-50"
                 >
-                    <Controls />
-                    <MiniMap />
-                    <Background gap={12} size={1} />
+                    <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden" />
+                    <MiniMap className="bg-white border-gray-100 shadow-card rounded-xl" />
+                    <Background gap={20} size={1} color="#E5E7EB" />
                 </ReactFlow>
             </div>
         </div>

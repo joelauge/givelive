@@ -1,3 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #111827;
+    --color-secondary: #FDE047;
+    --color-accent-pink: #F9A8D4;
+    --color-accent-blue: #93C5FD;
+    --color-accent-green: #86EFAC;
+    --color-accent-purple: #D8B4FE;
+    --color-background: #F9FAFB;
+    --color-surface: #FFFFFF;
+
+    --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    --radius-3xl: 2rem;
+
+    --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+@layer base {
+    body {
+        @apply bg-background text-primary font-sans antialiased;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-primary text-white px-6 py-3 rounded-2xl font-semibold hover:bg-gray-800 transition active:scale-95 shadow-sm cursor-pointer;
+    }
+
+    .btn-secondary {
+        @apply bg-secondary text-primary px-6 py-3 rounded-2xl font-semibold hover:bg-yellow-400 transition active:scale-95 shadow-sm cursor-pointer;
+    }
+
+    .card {
+        @apply bg-surface rounded-3xl shadow-card p-6 border border-gray-100;
+    }
+
+    .input-field {
+        @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition bg-gray-50 focus:bg-white;
+    }
+}

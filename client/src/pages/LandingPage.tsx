@@ -53,12 +53,16 @@ export default function LandingPage() {
     if (!event) return <div className="min-h-screen flex items-center justify-center">Event not found</div>;
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-            {currentNode ? (
-                <NodeRenderer node={currentNode} onNext={handleNext} />
-            ) : (
-                <div>No content available</div>
-            )}
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+            <div className="w-full max-w-md">
+                {currentNode ? (
+                    <NodeRenderer node={currentNode} onNext={handleNext} />
+                ) : (
+                    <div className="card text-center">
+                        <p className="text-gray-500">No content available</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
