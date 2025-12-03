@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Modal from '../components/Modal';
 
 export default function AdminDashboard() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-
     const [error, setError] = useState<string | null>(null);
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newEventName, setNewEventName] = useState('');
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         loadEvents();
@@ -29,26 +34,32 @@ export default function AdminDashboard() {
         }
     };
 
-    const createEvent = async () => {
-        const name = prompt('Event Name:');
-        if (!name) return;
+    const handleCreateEvent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newEventName.trim()) return;
 
         try {
-            const res = await fetch('http://localhost:3000/events', {
+            setCreating(true);
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     org_id: 'default-org', // Mock org ID
-                    name,
+                    name: newEventName,
                     date: new Date().toISOString(),
                     qr_url: 'https://example.com/qr-placeholder'
                 })
             });
             if (res.ok) {
+                setNewEventName('');
+                setIsModalOpen(false);
                 loadEvents();
             }
         } catch (err) {
             console.error(err);
+            alert('Failed to create event');
+        } finally {
+            setCreating(false);
         }
     };
 
@@ -69,7 +80,7 @@ export default function AdminDashboard() {
                         <p className="text-gray-500">Manage your fundraising campaigns</p>
                     </div>
                     <button
-                        onClick={createEvent}
+                        onClick={() => setIsModalOpen(true)}
                         className="btn-primary flex items-center gap-2"
                     >
                         <span>+</span> Create Event
@@ -116,7 +127,7 @@ export default function AdminDashboard() {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">No events yet</h3>
                             <p className="text-gray-500 mb-6">Create your first event to get started</p>
                             <button
-                                onClick={createEvent}
+                                onClick={() => setIsModalOpen(true)}
                                 className="btn-secondary"
                             >
                                 Create Event
@@ -125,6 +136,42 @@ export default function AdminDashboard() {
                     )}
                 </div>
             </div>
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="Create New Event"
+            >
+                <form onSubmit={handleCreateEvent}>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
+                        <input
+                            type="text"
+                            value={newEventName}
+                            onChange={(e) => setNewEventName(e.target.value)}
+                            placeholder="e.g. Summer Gala 2024"
+                            className="input-field"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-6 py-3 rounded-2xl font-semibold text-gray-600 hover:bg-gray-100 transition"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!newEventName.trim() || creating}
+                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {creating ? 'Creating...' : 'Create Event'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }
