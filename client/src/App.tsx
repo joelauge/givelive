@@ -4,11 +4,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import JourneyBuilder from './pages/JourneyBuilder';
 import Layout from './components/Layout';
 
+import Home from './pages/Home';
+
 function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<AdminDashboard />} /> {/* Redirect root to admin for now, or landing */}
+        <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/event/:eventId" element={<LandingPage />} />
       </Route>
