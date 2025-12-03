@@ -24,19 +24,36 @@ import QRCode from 'react-qr-code';
 const StartNode = () => {
     const { eventId } = useParams();
     const eventUrl = `${window.location.origin}/event/${eventId}`;
+    const [showQr, setShowQr] = useState(false);
 
     return (
-        <div className="bg-white rounded-xl shadow-lg border-2 border-primary p-4 w-64">
-            <div className="flex items-center gap-2 mb-3 border-b border-gray-100 pb-2">
-                <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
+        <div className="relative group">
+            <div className="bg-white rounded-full shadow-md border-2 border-primary/20 hover:border-primary transition-all p-2 px-4 flex items-center gap-3 min-w-[160px]">
+                <button
+                    onClick={() => setShowQr(!showQr)}
+                    className={`p-1.5 rounded-full transition-colors ${showQr ? 'bg-primary text-white' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                >
                     <QrCode size={16} />
-                </div>
-                <div className="font-bold text-sm text-primary">Start (QR Scan)</div>
+                </button>
+
+                <div className="font-bold text-sm text-gray-700 select-none">Start</div>
+
+                <div className="h-4 w-px bg-gray-200"></div>
+
+                <a
+                    href={eventUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-400 hover:text-primary transition flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide"
+                >
+                    Link <ArrowLeft size={10} className="rotate-135" />
+                </a>
             </div>
 
-            <div className="flex flex-col items-center gap-3">
-                <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
-                    <div className="w-24 h-24 flex items-center justify-center">
+            {/* QR Popover */}
+            {showQr && (
+                <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 bg-white p-3 rounded-xl shadow-xl border border-gray-100 z-50 w-48 flex flex-col items-center animate-in fade-in zoom-in duration-200">
+                    <div className="w-full aspect-square bg-white rounded-lg overflow-hidden">
                         <QRCode
                             size={256}
                             style={{ height: "auto", maxWidth: "100%", width: "100%" }}
@@ -44,13 +61,17 @@ const StartNode = () => {
                             viewBox={`0 0 256 256`}
                         />
                     </div>
+                    <div className="text-[10px] text-gray-400 mt-2 text-center font-medium">Scan to test flow</div>
                 </div>
-                <div className="text-xs text-center text-gray-500">
-                    Scan to test this flow <br />
-                    <a href={eventUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Open Link</a>
-                </div>
-            </div>
-            <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-primary border-2 border-white" />
+            )}
+
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110"
+            >
+                <Plus size={10} className="text-white stroke-[4]" />
+            </Handle>
         </div>
     );
 };
