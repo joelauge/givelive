@@ -13,10 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^9.0.1",
+    "@types/multer": "^2.0.0",
     "@types/nodemailer": "^7.0.4",
     "@types/uuid": "^10.0.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.26.1",
+    "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
     "pg": "^8.11.3",
     "twilio": "^5.10.7",

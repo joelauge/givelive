@@ -1,6 +1,8 @@
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import dotenv from 'dotenv';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 
 import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
@@ -8,6 +10,7 @@ import smsRoutes from './routes/sms';
 import analyticsRoutes from './routes/analytics';
 import demoRoutes from './routes/demo';
 import donationRoutes from './routes/donations';
+import uploadRoutes from './routes/upload';
 
 dotenv.config();
 
