@@ -161,17 +161,8 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                 <span className="text-[10px] font-medium text-gray-600">Choice</span>
                             </button>
                             <button onClick={() => {
-                                const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
-                                const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
-
-                                if (!stripeConnected && !paypalConnected) {
-                                    if (window.confirm('To accept donations, you need to connect a payment gateway (Stripe or PayPal). Go to Settings now?')) {
-                                        window.location.href = '/settings';
-                                    }
-                                    return;
-                                }
-                                addSection('form'); // For now, just add a form, but ideally pre-fill with donation fields
-                                // We can update the last added section to be a donation form
+                                // Just add the donation form, the public page will handle the mock checkout if no gateway is connected
+                                addSection('form');
                                 setTimeout(() => {
                                     setSections(prev => {
                                         const last = prev[prev.length - 1];

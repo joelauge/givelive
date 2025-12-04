@@ -1,4 +1,5 @@
-
+import { useState } from 'react';
+import { Check, CreditCard } from 'lucide-react';
 
 interface NodeRendererProps {
     node: any;
@@ -6,69 +7,192 @@ interface NodeRendererProps {
 }
 
 export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
-    const { type, config } = node;
+    const { data } = node;
+    const [formState, setFormState] = useState<any>({});
+    const [showMockCheckout, setShowMockCheckout] = useState(false);
+    const [processing, setProcessing] = useState(false);
 
-    if (type === 'page') {
+    if (!data) return <div>Loading...</div>;
+
+    // Handle different node types
+    if (data.type === 'page') {
         return (
-            <div className="card overflow-hidden">
-                {config.mediaUrl && (
-                    <div className="aspect-video bg-gray-100 rounded-2xl mb-6 overflow-hidden">
-                        {/* Placeholder for video/image */}
-                        <img src={config.mediaUrl} alt="Content" className="w-full h-full object-cover" />
+            <div className="card overflow-hidden bg-white shadow-xl rounded-3xl max-w-md w-full mx-auto relative">
+                {/* Render Sections */}
+                <div className="flex flex-col">
+                    {data.sections?.map((section: any) => {
+                        const { type, content, id } = section;
+
+                        if (type === 'header') {
+                            return (
+                                <div key={id} className="p-6 text-center" style={{ backgroundColor: content.backgroundColor || 'transparent' }}>
+                                    <h1 className="text-2xl font-bold text-gray-900" style={{ color: content.textColor }}>{content.title}</h1>
+                                    {content.subtitle && <p className="text-gray-500 mt-2">{content.subtitle}</p>}
+                                </div>
+                            );
+                        }
+
+                        if (type === 'text') {
+                            return (
+                                <div key={id} className="px-6 py-4 text-gray-600 leading-relaxed" style={{ textAlign: content.align as any }}>
+                                    {content.text}
+                                </div>
+                            );
+                        }
+
+                        if (type === 'image') {
+                            return (
+                                <div key={id} className="w-full overflow-hidden">
+                                    <img src={content.url || 'https://via.placeholder.com/400x200'} alt="Section" className="w-full h-auto object-cover" />
+                                </div>
+                            );
+                        }
+
+                        if (type === 'video') {
+                            return (
+                                <div key={id} className="w-full aspect-video bg-black">
+                                    <iframe
+                                        src={content.url?.replace('watch?v=', 'embed/')}
+                                        className="w-full h-full"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            );
+                        }
+
+                        if (type === 'form') {
+                            const isDonation = content.fields?.includes('amount');
+
+                            const handleSubmit = (e: React.FormEvent) => {
+                                e.preventDefault();
+
+                                if (isDonation) {
+                                    // Check for payment gateway
+                                    const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
+                                    const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
+
+                                    if (!stripeConnected && !paypalConnected) {
+                                        // Show Mock Checkout
+                                        setShowMockCheckout(true);
+                                        return;
+                                    }
+                                }
+
+                                // Normal submit or real checkout (mocked for now)
+                                onNext('submit');
+                            };
+
+                            return (
+                                <div key={id} className="p-6" style={{ paddingTop: content.paddingTop, paddingBottom: content.paddingBottom }}>
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        {content.fields?.map((field: string) => (
+                                            <div key={field}>
+                                                {field === 'amount' ? (
+                                                    <div className="grid grid-cols-3 gap-2 mb-2">
+                                                        {[10, 25, 50].map(amt => (
+                                                            <button
+                                                                key={amt}
+                                                                type="button"
+                                                                onClick={() => setFormState({ ...formState, amount: amt })}
+                                                                className={`py-2 rounded-lg border font-medium transition ${formState.amount === amt ? 'bg-primary text-white border-primary' : 'bg-white border-gray-200 text-gray-600 hover:border-primary'}`}
+                                                            >
+                                                                ${amt}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <input
+                                                        type={field === 'email' ? 'email' : 'text'}
+                                                        placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                                        className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
+                                                        required
+                                                        onChange={e => setFormState({ ...formState, [field]: e.target.value })}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="submit"
+                                            className="w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+                                            style={{ backgroundColor: content.buttonColor || '#000000' }}
+                                        >
+                                            {content.buttonText || 'Submit'}
+                                        </button>
+                                    </form>
+                                </div>
+                            );
+                        }
+
+                        if (type === 'choice') {
+                            return (
+                                <div key={id} className="p-6 grid gap-3">
+                                    {content.choices?.map((choice: any, idx: number) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => onNext(choice.label)}
+                                            className="w-full p-4 rounded-xl border-2 border-gray-100 font-bold text-gray-700 hover:border-primary hover:bg-primary/5 hover:text-primary transition text-left flex justify-between items-center group"
+                                        >
+                                            <span>{choice.label}</span>
+                                            <span className="text-gray-300 group-hover:text-primary transition">→</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            );
+                        }
+
+                        return null;
+                    })}
+                </div>
+
+                {/* Mock Checkout Modal */}
+                {showMockCheckout && (
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                                        <CreditCard size={16} />
+                                    </div>
+                                    <span className="font-bold text-gray-900">Secure Checkout</span>
+                                </div>
+                                <div className="text-xs font-bold text-gray-400 bg-gray-200 px-2 py-1 rounded">TEST MODE</div>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm text-blue-800">
+                                    <p className="font-bold mb-1">Demo Donation</p>
+                                    <p>This is a mock checkout because no payment gateway is connected.</p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
+                                    <div className="flex gap-3">
+                                        <div className="h-12 bg-gray-100 rounded-lg flex-1 animate-pulse"></div>
+                                        <div className="h-12 bg-gray-100 rounded-lg w-20 animate-pulse"></div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setProcessing(true);
+                                        setTimeout(() => {
+                                            setProcessing(false);
+                                            setShowMockCheckout(false);
+                                            onNext('donate_success');
+                                        }, 1500);
+                                    }}
+                                    disabled={processing}
+                                    className="w-full py-3 rounded-xl bg-black text-white font-bold hover:bg-gray-800 transition flex justify-center items-center gap-2"
+                                >
+                                    {processing ? 'Processing...' : `Pay $${formState.amount || 0}`}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
-                <div className="">
-                    <h2 className="text-3xl font-bold mb-3 text-primary">{config.title || 'Welcome'}</h2>
-                    <p className="text-gray-500 mb-8 leading-relaxed">{config.content || 'Description goes here.'}</p>
-
-                    <button
-                        onClick={() => onNext('click')}
-                        className="btn-primary w-full"
-                    >
-                        {config.buttonText || 'Continue'}
-                    </button>
-                </div>
             </div>
         );
     }
 
-    if (type === 'donation') {
-        return (
-            <div className="card text-center">
-                <div className="w-16 h-16 bg-accent-green/20 text-accent-green rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl font-bold">$</span>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Make a Donation</h2>
-                <p className="mb-8 text-gray-500">Support our cause!</p>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    {[10, 25, 50, 100].map(amount => (
-                        <button
-                            key={amount}
-                            onClick={() => onNext(`donate_${amount}`)}
-                            className="py-4 rounded-2xl border-2 border-gray-100 font-bold text-lg hover:border-secondary hover:bg-secondary/10 transition active:scale-95"
-                        >
-                            ${amount}
-                        </button>
-                    ))}
-                </div>
-                <div className="mt-4 text-xs text-gray-400 font-medium uppercase tracking-wider">
-                    Secure payment via Stripe
-                </div>
-            </div>
-        );
-    }
-
-    if (type === 'end') {
-        return (
-            <div className="card text-center py-12">
-                <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 shadow-soft">
-                    <span className="text-3xl">🎉</span>
-                </div>
-                <h2 className="text-3xl font-bold mb-4">Thank You!</h2>
-                <p className="text-gray-500">Your journey is complete.</p>
-            </div>
-        );
-    }
-
-    return <div>Unsupported node type: {type}</div>;
+    return <div>Unsupported node type</div>;
 }
