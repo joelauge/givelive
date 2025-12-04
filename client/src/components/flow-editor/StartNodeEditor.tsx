@@ -70,6 +70,25 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
             </div>
 
             <div className="space-y-3">
+                <h4 className="font-bold text-gray-900">Unique Flow URL</h4>
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 font-mono truncate">
+                        {eventUrl}
+                    </div>
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(eventUrl);
+                            alert('URL copied to clipboard!');
+                        }}
+                        className="p-2 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition"
+                        title="Copy URL"
+                    >
+                        <FileCode size={16} />
+                    </button>
+                </div>
+            </div>
+
+            <div className="space-y-3">
                 <h4 className="font-bold text-gray-900">QR Code Assets</h4>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -93,6 +112,19 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
                         <span className="text-xs font-medium text-gray-700">Download PNG</span>
                     </button>
                 </div>
+
+                <button
+                    onClick={() => {
+                        if (window.confirm('Are you sure? This will invalidate the old QR code.')) {
+                            alert('New QR Code generated!');
+                            // In a real app, this would call an API to rotate the ID
+                        }
+                    }}
+                    className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition flex items-center justify-center gap-2"
+                >
+                    <RefreshCw size={14} />
+                    Request New QR Code
+                </button>
             </div>
 
             <div className="flex justify-center mt-8">

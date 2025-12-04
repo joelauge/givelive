@@ -97,7 +97,7 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {node.data.type === 'start' && (
+                {(node.type === 'start' || node.data.type === 'start') && (
                     <StartNodeEditor data={node.data} onUpdate={handleUpdate} />
                 )}
                 {node.data.type === 'page' && (
