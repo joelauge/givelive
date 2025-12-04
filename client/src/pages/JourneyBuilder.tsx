@@ -522,11 +522,6 @@ export default function JourneyBuilder() {
 
         setSaving(true);
 
-        // Get existing flows
-        const storageKey = `givelive_flows_${eventId}`;
-        const existingFlowsStr = localStorage.getItem(storageKey);
-        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
-
         const newFlow = {
             id: Math.random().toString(36).substr(2, 9),
             name: saveModal.flowName,
