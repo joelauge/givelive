@@ -246,7 +246,10 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                     )}
 
                                     {section.type === 'video' && (
-                                        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
+                                        <div
+                                            className="bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden"
+                                            style={{ aspectRatio: section.content.aspectRatio ? section.content.aspectRatio.replace('/', '/') : '16/9' }}
+                                        >
                                             {section.content.url ? (
                                                 <video
                                                     src={section.content.url}
