@@ -77,6 +77,21 @@
 }
 
 /* React Flow Overrides */
+.react-flow__node {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+.react-flow__node.selected,
+.react-flow__node:focus,
+.react-flow__node:active {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 .react-flow__node-default,
 .react-flow__node-input,
 .react-flow__node-output,
@@ -87,14 +102,6 @@
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
-}
-
-.react-flow__node-default.selected,
-.react-flow__node-default:focus,
-.react-flow__node-default:active {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
 }
 
 /* Hide attribution */
