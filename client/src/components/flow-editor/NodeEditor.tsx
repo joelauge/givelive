@@ -5,6 +5,7 @@ import SmsEditor from './SmsEditor';
 import DonationEditor from './DonationEditor';
 import StartNodeEditor from './StartNodeEditor';
 import MessageNodeEditor from './MessageNodeEditor';
+import DelayNodeEditor from './DelayNodeEditor';
 
 interface NodeEditorProps {
     node: Node | null;
@@ -54,6 +55,8 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
                 return <MessageNodeEditor data={node.data} onUpdate={handleUpdate} />;
             case 'donation':
                 return <DonationEditor data={node.data} onUpdate={handleUpdate} />;
+            case 'delay':
+                return <DelayNodeEditor data={node.data} onUpdate={handleUpdate} />;
             default:
                 return (
                     <div className="p-6 text-center text-gray-500">

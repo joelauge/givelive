@@ -15,7 +15,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight, FolderOpen, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -31,7 +31,7 @@ const StartNode = ({ id }: { id: string }) => {
     const [showAddMenu, setShowAddMenu] = useState(false);
     const { getNodes, setNodes, setEdges, getNode } = useReactFlow();
 
-    const handleAddNode = (type: 'page' | 'logic') => {
+    const handleAddNode = (type: 'page' | 'logic' | 'delay') => {
         const currentNode = getNode(id);
         if (!currentNode) return;
 
@@ -42,12 +42,23 @@ const StartNode = ({ id }: { id: string }) => {
         }
 
         const newNodeId = `${getNodes().length + 1}`;
-        const newNode = {
-            id: newNodeId,
-            position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
-            data: { label: 'New Page', type: 'page' },
-            type: 'default',
-        };
+        let newNode;
+
+        if (type === 'delay') {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 150 },
+                data: { label: 'Wait 1 day', type: 'delay', amount: 1, unit: 'days' },
+                type: 'default',
+            };
+        } else {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
+                data: { label: 'New Page', type: 'page' },
+                type: 'default',
+            };
+        }
 
         const newEdge = {
             id: `e${id}-${newNodeId}`,
@@ -109,6 +120,13 @@ const StartNode = ({ id }: { id: string }) => {
                     >
                         <LayoutTemplate size={14} className="text-primary" />
                         <span>Add Page</span>
+                    </button>
+                    <button
+                        onClick={() => handleAddNode('delay')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <Clock size={14} className="text-primary" />
+                        <span>Add Delay</span>
                     </button>
                     <button
                         onClick={() => handleAddNode('logic')}
@@ -181,8 +199,9 @@ export default function JourneyBuilder() {
         if (!node) return null;
 
         // Enrich with type if needed (same logic as before)
-        const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
-            node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+        const nodeData = node.data as any;
+        const type = nodeData.type || (nodeData.label?.toLowerCase().includes('sms') ? 'sms' :
+            nodeData.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
 
         return { ...node, data: { ...node.data, type } };
     }, [nodes, selectedNodeId]);
@@ -358,9 +377,21 @@ export default function JourneyBuilder() {
     };
 
     const handleConfirmTemplate = async () => {
-        await handleSave();
-        processTemplate(confirmModal.templateName);
-        setConfirmModal({ isOpen: false, templateName: '' });
+        // Just save directly here since we are inside the component
+        setSaving(true);
+        const storageKey = `givelive_flows_${eventId}`;
+        const existingFlowsStr = localStorage.getItem(storageKey);
+        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
+
+        // Save current state as a backup/auto-save if no name
+        localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify({ nodes, edges }));
+
+        setTimeout(() => {
+            setSaving(false);
+            setHasUnsavedChanges(false);
+            processTemplate(confirmModal.templateName);
+            setConfirmModal({ isOpen: false, templateName: '' });
+        }, 500);
     };
 
     const handleDiscardTemplate = () => {
@@ -478,6 +509,9 @@ export default function JourneyBuilder() {
                         </button>
                         <button onClick={() => addNode('donation')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
                             <Plus size={14} /> Donation
+                        </button>
+                        <button onClick={() => addNode('delay')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
+                            <Clock size={14} /> Delay
                         </button>
                     </div>
                     <div className="flex gap-2">
@@ -616,7 +650,7 @@ export default function JourneyBuilder() {
             {/* Node Editor Drawer */}
             <NodeEditor
                 node={selectedNode}
-                onClose={() => setSelectedNode(null)}
+                onClose={() => setSelectedNodeId(null)}
                 onUpdate={updateNodeData}
                 onDelete={deleteNode}
             />
