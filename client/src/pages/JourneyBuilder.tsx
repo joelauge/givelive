@@ -621,6 +621,19 @@ export default function JourneyBuilder() {
         setModal({ isOpen: true, title: 'Success', content: `Loaded flow: ${flow.name}` });
     };
 
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; nodeId: string | null }>({ isOpen: false, nodeId: null });
+
+    const handleDeleteClick = (nodeId: string) => {
+        setDeleteModal({ isOpen: true, nodeId });
+    };
+
+    const confirmDelete = () => {
+        if (deleteModal.nodeId) {
+            deleteNode(deleteModal.nodeId);
+            setDeleteModal({ isOpen: false, nodeId: null });
+        }
+    };
+
     return (
         <div className="h-screen flex flex-col bg-background">
             <div className="bg-surface border-b border-gray-100 p-4 flex justify-between items-center z-10 shadow-sm">
@@ -785,12 +798,11 @@ export default function JourneyBuilder() {
                 </div>
             </div>
 
-            {/* Node Editor Drawer */}
             <NodeEditor
                 node={selectedNode}
                 onClose={() => setSelectedNodeId(null)}
                 onUpdate={updateNodeData}
-                onDelete={deleteNode}
+                onDelete={handleDeleteClick}
             />
 
             <Modal
@@ -831,10 +843,42 @@ export default function JourneyBuilder() {
                         onClick={handleConfirmTemplate}
                         className="btn-primary py-2 px-4 text-sm"
                     >
-                        Save & Apply
+                        {saving ? 'Saving...' : 'Save & Continue'}
                     </button>
                 </div>
             </Modal>
-        </div>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, nodeId: null })}
+                title="Delete Node"
+            >
+                <div className="text-gray-600">
+                    Are you sure you want to delete this node? This action cannot be undone.
+                </div>
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        onClick={() => setDeleteModal({ isOpen: false, nodeId: null })}
+                        className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition text-sm font-medium"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={confirmDelete}
+                        className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition text-sm font-medium shadow-lg shadow-red-500/20"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </Modal>
+            onClick={handleConfirmTemplate}
+            className="btn-primary py-2 px-4 text-sm"
+                    >
+            Save & Apply
+        </button>
+                </div >
+            </Modal >
+        </div >
     );
 }

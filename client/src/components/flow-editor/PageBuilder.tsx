@@ -246,10 +246,7 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                     )}
 
                                     {section.type === 'video' && (
-                                        <div
-                                            className="overflow-hidden bg-gray-900 flex items-center justify-center text-white/50 text-xs relative transition-all duration-300"
-                                            style={{
-                                        < div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
+                                        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
                                             {section.content.url ? (
                                                 <video
                                                     src={section.content.url}
@@ -271,19 +268,31 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
                                     {section.type === 'form' && (
                                         <div className="space-y-3">
-                                            className="w-full p-3 rounded-xl font-bold text-white shadow-lg shadow-primary/20"
-                                            style={{ backgroundColor: section.content.buttonColor || '#000000' }}
+                                            {section.content.fields?.includes('name') && (
+                                                <input disabled placeholder="Full Name" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('email') && (
+                                                <input disabled placeholder="Email Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('phone') && (
+                                                <input disabled placeholder="Phone Number" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('address') && (
+                                                <input disabled placeholder="Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            <button
+                                                className="w-full p-3 rounded-xl font-bold text-white shadow-lg shadow-primary/20"
+                                                style={{ backgroundColor: section.content.buttonColor || '#000000' }}
                                             >
-                                            {section.content.buttonText || 'Submit'}
-                                        </button>
+                                                {section.content.buttonText || 'Submit'}
+                                            </button>
                                         </div>
                                     )}
-                            </div>
+                                </div>
                             </div>
                         ))}
+                    </div>
                 </div>
             </div>
-        </div>
-        </div >
-    );
+            );
 }

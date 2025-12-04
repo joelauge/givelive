@@ -1,4 +1,4 @@
-import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface PropertiesPanelProps {
