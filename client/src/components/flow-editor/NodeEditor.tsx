@@ -66,7 +66,7 @@ export default function NodeEditor({ node, nodes, onClose, onUpdate, onDelete }:
             <div className="flex-1 overflow-y-auto">
                 {(node.type === 'start' || node.data.type === 'start') ? (
                     <StartNodeEditor data={node.data} onUpdate={handleUpdate} />
-                ) : node.data.type === 'page' ? (
+                ) : (node.data.type === 'page' || node.data.type === 'donation') ? (
                     <PageBuilder data={node.data} onUpdate={handleUpdate} />
                 ) : (node.data.type === 'message' || node.data.type === 'sms' || node.data.type === 'email') ? (
                     <MessageNodeEditor data={node.data} nodes={nodes} onUpdate={handleUpdate} />

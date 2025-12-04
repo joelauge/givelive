@@ -123,6 +123,67 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
                             );
                         }
 
+                        if (type === 'payment') {
+                            const [frequency, setFrequency] = useState('one-time');
+                            const [amount, setAmount] = useState(content.defaultAmount || 50);
+
+                            const handleDonate = () => {
+                                // Check for payment gateway
+                                const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
+                                const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
+
+                                if (!stripeConnected && !paypalConnected) {
+                                    setFormState({ ...formState, amount, frequency });
+                                    setShowMockCheckout(true);
+                                    return;
+                                }
+
+                                onNext(`donate_${amount}_${frequency}`);
+                            };
+
+                            return (
+                                <div key={id} className="p-6">
+                                    {/* Frequency Toggle */}
+                                    <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                                        {['one-time', 'monthly', 'yearly'].map(freq => (
+                                            <button
+                                                key={freq}
+                                                onClick={() => setFrequency(freq)}
+                                                className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition ${frequency === freq ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                            >
+                                                {freq}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Amount Grid */}
+                                    <div className="grid grid-cols-3 gap-3 mb-6">
+                                        {[10, 25, 50, 100, 250, 500].map(amt => (
+                                            <button
+                                                key={amt}
+                                                onClick={() => setAmount(amt)}
+                                                className={`py-3 rounded-xl border-2 font-bold transition ${amount === amt ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 text-gray-600 hover:border-gray-200'}`}
+                                            >
+                                                ${amt}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        onClick={handleDonate}
+                                        className="w-full py-4 rounded-xl font-bold text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+                                        style={{ backgroundColor: content.buttonColor || '#000000' }}
+                                    >
+                                        {content.buttonText || 'Donate Now'}
+                                    </button>
+
+                                    <div className="mt-4 flex justify-center items-center gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider">
+                                        <CreditCard size={12} /> Secure Payment
+                                    </div>
+                                </div>
+                            );
+                        }
+
                         if (type === 'choice') {
                             return (
                                 <div key={id} className="p-6 grid gap-3">
