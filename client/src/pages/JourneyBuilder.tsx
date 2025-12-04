@@ -800,6 +800,7 @@ export default function JourneyBuilder() {
 
             <NodeEditor
                 node={selectedNode}
+                nodes={nodes}
                 onClose={() => setSelectedNodeId(null)}
                 onUpdate={updateNodeData}
                 onDelete={handleDeleteClick}

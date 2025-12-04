@@ -69,30 +69,46 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
     const isStartNode = node.type === 'start';
 
     return (
-        <div className="fixed inset-y-0 right-0 w-[500px] bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-                <div>
-                    <h3 className="font-bold text-gray-900">{node.data.label || 'Edit Node'}</h3>
-                    <p className="text-xs text-gray-500">ID: {node.id}</p>
+        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl border-l border-gray-100 z-50 flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="font-bold text-gray-900">
+                        {node.data.label}
+                    </div>
+                    <div className="px-2 py-0.5 rounded-full bg-gray-100 border border-gray-200 text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+                        {node.data.type}
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {!isStartNode && (
-                        <button
-                            onClick={handleDelete}
-                            className="p-2 hover:bg-red-100 text-red-500 rounded-full transition"
-                            title="Delete Node"
-                        >
-                            <Trash2 size={20} />
-                        </button>
-                    )}
-                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition">
-                        <X size={20} className="text-gray-500" />
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onDelete(node.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                        title="Delete Node"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                    >
+                        <X size={18} />
                     </button>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {renderEditor()}
+                {node.data.type === 'start' && (
+                    <StartNodeEditor data={node.data} onUpdate={handleUpdate} />
+                )}
+                {node.data.type === 'page' && (
+                    <PageBuilder data={node.data} onUpdate={handleUpdate} />
+                )}
+                {(node.data.type === 'message' || node.data.type === 'sms' || node.data.type === 'email') && (
+                    <MessageNodeEditor data={node.data} nodes={nodes} onUpdate={handleUpdate} />
+                )}
+                {node.data.type === 'delay' && (
+                    <DelayNodeEditor data={node.data} onUpdate={handleUpdate} />
+                )}
             </div>
         </div>
     );
