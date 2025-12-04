@@ -151,7 +151,6 @@ const StartNode = ({ id }: { id: string }) => {
             </Handle>
         </div>
     );
-    );
 };
 
 const CustomNode = ({ id, data }: { id: string, data: any }) => {
