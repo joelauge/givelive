@@ -1,4 +1,7 @@
-import { QrCode, RefreshCw, Palette } from 'lucide-react';
+import { QrCode, RefreshCw, Palette, Download, FileCode, FileImage } from 'lucide-react';
+import QRCode from 'react-qr-code';
+import { useParams } from 'react-router-dom';
+import { useRef } from 'react';
 
 interface StartNodeEditorProps {
     data: any;
@@ -6,6 +9,50 @@ interface StartNodeEditorProps {
 }
 
 export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps) {
+    const { eventId } = useParams();
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    const qrRef = useRef<HTMLDivElement>(null);
+
+    const downloadSvg = () => {
+        const svg = qrRef.current?.querySelector('svg');
+        if (!svg) return;
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `event-${eventId}-qr.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const downloadPng = () => {
+        const svg = qrRef.current?.querySelector('svg');
+        if (!svg) return;
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx?.drawImage(img, 0, 0);
+            const pngFile = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `event-${eventId}-qr.png`;
+            link.href = pngFile;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    };
+
     return (
         <div className="p-6 space-y-6">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
@@ -23,36 +70,39 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
             </div>
 
             <div className="space-y-3">
-                <h4 className="font-bold text-gray-900">QR Code Actions</h4>
+                <h4 className="font-bold text-gray-900">QR Code Assets</h4>
 
-                <button className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-sm transition group">
-                    <div className="flex items-center gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={downloadSvg}
+                        className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-sm transition group gap-2"
+                    >
                         <div className="bg-gray-100 p-2 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition">
-                            <RefreshCw size={20} />
+                            <FileCode size={20} />
                         </div>
-                        <div className="text-left">
-                            <div className="font-bold text-gray-700">Regenerate QR Code</div>
-                            <div className="text-xs text-gray-500">Get a new code for this flow</div>
-                        </div>
-                    </div>
-                </button>
+                        <span className="text-xs font-medium text-gray-700">Download SVG</span>
+                    </button>
 
-                <button className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-sm transition group">
-                    <div className="flex items-center gap-3">
+                    <button
+                        onClick={downloadPng}
+                        className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-sm transition group gap-2"
+                    >
                         <div className="bg-gray-100 p-2 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition">
-                            <Palette size={20} />
+                            <FileImage size={20} />
                         </div>
-                        <div className="text-left">
-                            <div className="font-bold text-gray-700">Customize Design</div>
-                            <div className="text-xs text-gray-500">Change colors and style</div>
-                        </div>
-                    </div>
-                </button>
+                        <span className="text-xs font-medium text-gray-700">Download PNG</span>
+                    </button>
+                </div>
             </div>
 
             <div className="flex justify-center mt-8">
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                    <QrCode size={200} className="opacity-20" />
+                <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100" ref={qrRef}>
+                    <QRCode
+                        size={200}
+                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                        value={eventUrl}
+                        viewBox={`0 0 256 256`}
+                    />
                     <p className="text-center text-xs text-gray-400 mt-2">Preview</p>
                 </div>
             </div>
