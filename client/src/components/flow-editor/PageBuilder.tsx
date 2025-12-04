@@ -294,5 +294,6 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 }
