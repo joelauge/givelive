@@ -97,17 +97,18 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {(node.type === 'start' || node.data.type === 'start') && (
+                {(node.type === 'start' || node.data.type === 'start') ? (
                     <StartNodeEditor data={node.data} onUpdate={handleUpdate} />
-                )}
-                {node.data.type === 'page' && (
+                ) : node.data.type === 'page' ? (
                     <PageBuilder data={node.data} onUpdate={handleUpdate} />
-                )}
-                {(node.data.type === 'message' || node.data.type === 'sms' || node.data.type === 'email') && (
+                ) : (node.data.type === 'message' || node.data.type === 'sms' || node.data.type === 'email') ? (
                     <MessageNodeEditor data={node.data} nodes={nodes} onUpdate={handleUpdate} />
-                )}
-                {node.data.type === 'delay' && (
+                ) : node.data.type === 'delay' ? (
                     <DelayNodeEditor data={node.data} onUpdate={handleUpdate} />
+                ) : (
+                    <div className="p-6 text-center text-gray-500">
+                        Select a node to edit its properties.
+                    </div>
                 )}
             </div>
         </div>

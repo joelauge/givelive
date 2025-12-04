@@ -292,7 +292,7 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
 };
 
 const initialNodes = [
-    { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)' }, type: 'start' },
+    { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)', type: 'start' }, type: 'start' },
 ];
 const initialEdges: Edge[] = [];
 
@@ -506,7 +506,7 @@ export default function JourneyBuilder() {
             const startNode = nds.find(n => n.id === 'start') || {
                 id: 'start',
                 type: 'start',
-                data: { label: 'Start' },
+                data: { label: 'Start', type: 'start' },
                 position: { x: 250, y: 50 }
             };
             return [startNode, ...newNodes];
