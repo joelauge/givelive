@@ -12,6 +12,16 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
                 This is the entry point of your journey. Users will scan this QR code to start the flow.
             </div>
 
+            <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Flow Name</label>
+                <input
+                    value={data.label || 'Start'}
+                    onChange={(e) => onUpdate({ label: e.target.value })}
+                    className="w-full p-2 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
+                    placeholder="Flow Name"
+                />
+            </div>
+
             <div className="space-y-3">
                 <h4 className="font-bold text-gray-900">QR Code Actions</h4>
 

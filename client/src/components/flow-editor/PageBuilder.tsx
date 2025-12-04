@@ -7,7 +7,7 @@ interface PageBuilderProps {
     onUpdate: (data: any) => void;
 }
 
-type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns';
+type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form';
 
 interface Section {
     id: string;
@@ -109,6 +109,16 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                     />
                 ) : (
                     <div className="p-4 h-full flex flex-col">
+                        <div className="mb-4">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Page Name</label>
+                            <input
+                                value={data.label || 'New Page'}
+                                onChange={(e) => onUpdate({ label: e.target.value })}
+                                className="w-full p-2 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
+                                placeholder="Page Name"
+                            />
+                        </div>
+
                         <h3 className="text-sm font-bold text-gray-900 mb-4">Add Section</h3>
                         <div className="grid grid-cols-4 gap-2">
                             <button onClick={() => addSection('header')} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-primary hover:bg-primary/5 transition group">
