@@ -502,8 +502,16 @@ export default function JourneyBuilder() {
                 break;
         }
 
-        setNodes((nds) => [...nds, ...newNodes]);
-        setEdges((eds) => [...eds, ...newEdges]);
+        setNodes((nds) => {
+            const startNode = nds.find(n => n.id === 'start') || {
+                id: 'start',
+                type: 'start',
+                data: { label: 'Start' },
+                position: { x: 250, y: 50 }
+            };
+            return [startNode, ...newNodes];
+        });
+        setEdges(newEdges);
     };
 
     const applyTemplate = (templateName: string) => {
