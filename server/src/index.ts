@@ -21,12 +21,20 @@ export const createApp = () => {
         origin: '*', // Allow all for dev
     });
 
+    server.register(require('@fastify/multipart'));
+
+    server.register(fastifyStatic, {
+        root: path.join(__dirname, '../uploads'),
+        prefix: '/uploads/', // optional: default '/'
+    });
+
     server.register(eventRoutes);
     server.register(journeyRoutes);
     server.register(smsRoutes);
     server.register(analyticsRoutes);
     server.register(demoRoutes);
     server.register(donationRoutes);
+    server.register(uploadRoutes);
 
     server.get('/', async (request, reply) => {
         return { hello: 'world' };

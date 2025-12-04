@@ -177,8 +177,11 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
                                     {section.type === 'video' && (
                                         <div
-                                            className="overflow-hidden bg-gray-900 aspect-video flex items-center justify-center text-white/50 text-xs relative"
-                                            style={{ borderRadius: `${section.content.borderRadius || 8}px` }}
+                                            className="overflow-hidden bg-gray-900 flex items-center justify-center text-white/50 text-xs relative transition-all duration-300"
+                                            style={{
+                                                borderRadius: `${section.content.borderRadius || 8}px`,
+                                                aspectRatio: section.content.aspectRatio ? section.content.aspectRatio.replace(':', '/') : '16/9'
+                                            }}
                                         >
                                             {section.content.url ? (
                                                 <video

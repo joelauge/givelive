@@ -1,39 +1,34 @@
-import express from 'express';
-import multer from 'multer';
-import path from 'path';
+import { FastifyInstance } from 'fastify';
 import fs from 'fs';
+import path from 'path';
+import { pipeline } from 'stream';
+import util from 'util';
 
-const router = express.Router();
+const pump = util.promisify(pipeline);
 
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+export default async function uploadRoutes(fastify: FastifyInstance) {
+    fastify.post('/api/upload', async (req: any, reply) => {
+        const data = await req.file();
+        if (!data) {
+            return reply.status(400).send({ error: 'No file uploaded' });
+        }
+
         const uploadDir = path.join(__dirname, '../../uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
+        const filename = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(data.filename);
+        const filepath = path.join(uploadDir, filename);
 
-// Upload endpoint
-router.post('/', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
+        await pump(data.file, fs.createWriteStream(filepath));
 
-    // Return the URL to access the file
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
-});
+        // Construct URL - ensure port is included if localhost
+        const protocol = req.protocol;
+        const host = req.hostname;
+        // req.hostname usually includes port in Fastify if Host header has it
 
-export default router;
+        const fileUrl = `${protocol}://${host}/uploads/${filename}`;
+        return { url: fileUrl };
+    });
+}

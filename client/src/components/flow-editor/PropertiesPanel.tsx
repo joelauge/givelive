@@ -25,7 +25,27 @@ export default function PropertiesPanel({ section, onUpdate, onClose }: Properti
             });
             const data = await response.json();
             if (data.url) {
-                onUpdate({ url: data.url });
+                const updates: any = { url: data.url };
+
+                // If it's a video, detect aspect ratio
+                if (section.type === 'video') {
+                    const video = document.createElement('video');
+                    video.src = data.url;
+                    await new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            const ratio = video.videoWidth / video.videoHeight;
+                            // Determine closest standard ratio
+                            if (Math.abs(ratio - 16 / 9) < 0.1) updates.aspectRatio = '16/9';
+                            else if (Math.abs(ratio - 9 / 16) < 0.1) updates.aspectRatio = '9/16';
+                            else if (Math.abs(ratio - 1) < 0.1) updates.aspectRatio = '1/1';
+                            else updates.aspectRatio = '16/9'; // Default fallback
+                            resolve(null);
+                        };
+                        video.onerror = () => resolve(null);
+                    });
+                }
+
+                onUpdate(updates);
             }
         } catch (error) {
             console.error('Upload failed:', error);

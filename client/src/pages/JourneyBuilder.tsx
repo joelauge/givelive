@@ -56,7 +56,7 @@ const StartNode = ({ id }: { id: string }) => {
             markerEnd: { type: MarkerType.ArrowClosed },
         };
 
-        setNodes((nds) => nds.concat(newNode));
+        setNodes((nds) => nds.map(n => ({ ...n, selected: false })).concat({ ...newNode, selected: true }));
         setEdges((eds) => eds.concat(newEdge));
         setShowAddMenu(false);
     };
@@ -164,12 +164,20 @@ export default function JourneyBuilder() {
 
     const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
 
-    const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
-        // Ensure node has a type in data for the editor
-        const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
-            node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+    const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
+        const selected = nodes[0];
+        if (selected) {
+            const type = selected.data.type || (selected.data.label?.toLowerCase().includes('sms') ? 'sms' :
+                selected.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+            setSelectedNode({ ...selected, data: { ...selected.data, type } });
+        } else {
+            setSelectedNode(null);
+        }
+    }, []);
 
-        setSelectedNode({ ...node, data: { ...node.data, type } });
+    const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+        // We can keep this for explicit clicks, but onSelectionChange handles the main logic
+        // Maybe just ensure it's selected?
     }, []);
 
     const updateNodeData = (nodeId: string, newData: any) => {
@@ -181,8 +189,6 @@ export default function JourneyBuilder() {
                 return node;
             })
         );
-        // Also update selected node to reflect changes immediately in the editor if needed
-        // But usually local state in editor handles immediate feedback, this updates the flow
     };
 
     const deleteNode = (nodeId: string) => {
@@ -198,8 +204,10 @@ export default function JourneyBuilder() {
             position: { x: Math.random() * 400, y: Math.random() * 400 },
             data: { label: `${type} Node`, type }, // Store type in data
             type: type === 'end' ? 'output' : 'default',
+            selected: true, // Auto-select
         };
-        setNodes((nds) => nds.concat(newNode));
+        // Deselect others and add new node
+        setNodes((nds) => nds.map(n => ({ ...n, selected: false })).concat(newNode));
     };
 
     const processTemplate = (templateName: string) => {
@@ -483,6 +491,7 @@ export default function JourneyBuilder() {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        onSelectionChange={onSelectionChange}
                         onNodeClick={onNodeClick} // Add click handler
                         nodeTypes={nodeTypes}
                         fitView
