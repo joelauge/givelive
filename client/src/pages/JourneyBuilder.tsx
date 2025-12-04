@@ -368,44 +368,88 @@ export default function JourneyBuilder() {
         setConfirmModal({ isOpen: false, templateName: '' });
     };
 
-    const handleSave = async () => {
-        setSaving(true);
-        console.log('Saving flow:', { nodes, edges });
+    const [saveModal, setSaveModal] = useState({ isOpen: false, flowName: '' });
+    const [loadModal, setLoadModal] = useState<{ isOpen: boolean; flows: any[] }>({ isOpen: false, flows: [] });
 
-        // Save to localStorage
-        localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify({ nodes, edges }));
-
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                setSaving(false);
-                setHasUnsavedChanges(false);
-                setModal({ isOpen: true, title: 'Success', content: 'Journey saved successfully!' });
-                resolve();
-            }, 1000);
-        });
+    const handleSaveClick = () => {
+        setSaveModal({ isOpen: true, flowName: '' });
     };
 
-    const handleLoad = () => {
+    const confirmSave = async () => {
+        if (!saveModal.flowName.trim()) {
+            alert("Please enter a flow name");
+            return;
+        }
+
+        setSaving(true);
+
+        // Get existing flows
+        const storageKey = `givelive_flows_${eventId}`;
+        const existingFlowsStr = localStorage.getItem(storageKey);
+        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
+
+        const newFlow = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: saveModal.flowName,
+            updatedAt: new Date().toISOString(),
+            nodes,
+            edges
+        };
+
+        // Add new flow
+        existingFlows.push(newFlow);
+        localStorage.setItem(storageKey, JSON.stringify(existingFlows));
+
+        // Also save as "current" for backward compatibility or quick resume? 
+        // Maybe just rely on the list.
+        // Let's also save to the old key for now to not break "current session" if any
+        localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify({ nodes, edges }));
+
+        setTimeout(() => {
+            setSaving(false);
+            setHasUnsavedChanges(false);
+            setSaveModal({ isOpen: false, flowName: '' });
+            setModal({ isOpen: true, title: 'Success', content: 'Journey saved successfully!' });
+        }, 500);
+    };
+
+    const handleLoadClick = () => {
         if (hasUnsavedChanges) {
-            // We could also use a modal here, but for now let's stick to the template one as requested
-            // Or better, reuse the logic? The user specifically asked for "These types of messages should always be modals"
-            // Let's implement a generic confirm modal for load too?
-            // For now, let's just fix the template one as that was the context.
             if (!window.confirm("You have unsaved changes. Are you sure you want to load a saved flow? Current changes will be lost.")) {
                 return;
             }
         }
 
-        const savedFlow = localStorage.getItem(`givelive_flow_${eventId}`);
-        if (savedFlow) {
-            const { nodes: savedNodes, edges: savedEdges } = JSON.parse(savedFlow);
-            setNodes(savedNodes);
-            setEdges(savedEdges);
-            setHasUnsavedChanges(false);
-            setModal({ isOpen: true, title: 'Success', content: 'Flow loaded successfully!' });
+        const storageKey = `givelive_flows_${eventId}`;
+        const existingFlowsStr = localStorage.getItem(storageKey);
+        const flows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
+
+        if (flows.length === 0) {
+            // Fallback to check old single save
+            const oldSave = localStorage.getItem(`givelive_flow_${eventId}`);
+            if (oldSave) {
+                // Migrate old save
+                const migratedFlow = {
+                    id: 'legacy',
+                    name: 'Auto-Saved Flow',
+                    updatedAt: new Date().toISOString(),
+                    ...JSON.parse(oldSave)
+                };
+                setLoadModal({ isOpen: true, flows: [migratedFlow] });
+            } else {
+                setModal({ isOpen: true, title: 'No Saved Flows', content: 'No saved flows found for this event.' });
+            }
         } else {
-            setModal({ isOpen: true, title: 'No Saved Flow', content: 'No saved flow found for this event.' });
+            setLoadModal({ isOpen: true, flows });
         }
+    };
+
+    const confirmLoad = (flow: any) => {
+        setNodes(flow.nodes);
+        setEdges(flow.edges);
+        setHasUnsavedChanges(false);
+        setLoadModal({ isOpen: false, flows: [] });
+        setModal({ isOpen: true, title: 'Success', content: `Loaded flow: ${flow.name}` });
     };
 
     return (
@@ -438,13 +482,13 @@ export default function JourneyBuilder() {
                     </div>
                     <div className="flex gap-2">
                         <button
-                            onClick={handleLoad}
+                            onClick={handleLoadClick}
                             className="btn-secondary py-2 px-4 text-sm flex items-center gap-2"
                         >
                             <FolderOpen size={16} /> Load Flow
                         </button>
                         <button
-                            onClick={handleSave}
+                            onClick={handleSaveClick}
                             disabled={saving}
                             className="btn-primary py-2 px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >

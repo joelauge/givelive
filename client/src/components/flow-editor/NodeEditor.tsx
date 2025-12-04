@@ -1,4 +1,3 @@
-```
 import { X, Trash2 } from 'lucide-react';
 import type { Node } from 'reactflow';
 import PageBuilder from './PageBuilder';
@@ -44,7 +43,7 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
 
         const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
             node.data.label?.toLowerCase().includes('message') ? 'message' :
-            node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+                node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
 
         switch (type) {
             case 'page':
