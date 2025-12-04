@@ -258,6 +258,38 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Style</label>
                                 <div>
+                                    <label className="text-[10px] text-gray-400">Size Mode</label>
+                                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                                        <button
+                                            onClick={() => onUpdate({ sizeMode: 'fit' })}
+                                            className={`flex-1 py-1 text-xs font-medium rounded-md transition ${(!section.content.sizeMode || section.content.sizeMode === 'fit') ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Fit Container
+                                        </button>
+                                        <button
+                                            onClick={() => onUpdate({ sizeMode: 'original' })}
+                                            className={`flex-1 py-1 text-xs font-medium rounded-md transition ${section.content.sizeMode === 'original' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Original
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {(!section.content.sizeMode || section.content.sizeMode === 'fit') && (
+                                    <div>
+                                        <label className="text-[10px] text-gray-400">Height</label>
+                                        <input
+                                            type="range"
+                                            min="100"
+                                            max="600"
+                                            value={section.content.height || 200}
+                                            onChange={(e) => onUpdate({ height: parseInt(e.target.value) })}
+                                            className="w-full accent-primary"
+                                        />
+                                    </div>
+                                )}
+
+                                <div>
                                     <label className="text-[10px] text-gray-400">Border Radius</label>
                                     <input
                                         type="range"

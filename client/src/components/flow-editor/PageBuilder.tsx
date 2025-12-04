@@ -212,10 +212,22 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
                                     {section.type === 'image' && (
                                         <div
-                                            className="overflow-hidden bg-gray-100 aspect-video relative"
-                                            style={{ borderRadius: `${section.content.borderRadius}px` }}
+                                            className={`overflow-hidden bg-gray-100 relative ${(!section.content.sizeMode || section.content.sizeMode === 'fit') ? '' : ''}`}
+                                            style={{
+                                                borderRadius: `${section.content.borderRadius}px`,
+                                                height: (!section.content.sizeMode || section.content.sizeMode === 'fit') ? `${section.content.height || 200}px` : 'auto',
+                                                width: '100%'
+                                            }}
                                         >
-                                            <img src={section.content.url} alt={section.content.alt} className="w-full h-full object-cover" />
+                                            <img
+                                                src={section.content.url}
+                                                alt={section.content.alt}
+                                                className={`w-full h-full ${(!section.content.sizeMode || section.content.sizeMode === 'fit') ? 'object-cover' : 'object-contain'}`}
+                                                style={{
+                                                    maxHeight: (!section.content.sizeMode || section.content.sizeMode === 'fit') ? 'none' : 'none',
+                                                    width: (!section.content.sizeMode || section.content.sizeMode === 'fit') ? '100%' : '100%'
+                                                }}
+                                            />
                                         </div>
                                     )}
 
