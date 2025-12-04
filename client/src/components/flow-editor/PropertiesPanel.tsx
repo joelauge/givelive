@@ -1,13 +1,14 @@
-import { X, Upload, AlignLeft, AlignCenter, AlignRight, Type, Palette, Image as ImageIcon, Video, Layout } from 'lucide-react';
+import { X, Upload, AlignLeft, AlignCenter, AlignRight, Type, Palette, Image as ImageIcon, Video, Layout, Check } from 'lucide-react';
 import { useState } from 'react';
 
 interface PropertiesPanelProps {
     section: any;
     onUpdate: (data: any) => void;
-    onClose: () => void;
+    onDone: () => void;
+    onCancel: () => void;
 }
 
-export default function PropertiesPanel({ section, onUpdate, onClose }: PropertiesPanelProps) {
+export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }: PropertiesPanelProps) {
     const [uploading, setUploading] = useState(false);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,9 +68,21 @@ export default function PropertiesPanel({ section, onUpdate, onClose }: Properti
                     </div>
                     <span className="font-bold text-gray-900 capitalize">{section.type} Settings</span>
                 </div>
-                <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500">
-                    <X size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={onCancel}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onDone}
+                        className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition flex items-center gap-1"
+                    >
+                        <Check size={14} />
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">

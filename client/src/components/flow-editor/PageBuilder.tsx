@@ -17,8 +17,7 @@ interface Section {
 
 export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
     const [sections, setSections] = useState<Section[]>(data.sections || []);
-    const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-    // const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor'); // Removed unused state
+    const [editingSectionSnapshot, setEditingSectionSnapshot] = useState<Section | null>(null);
 
     useEffect(() => {
         onUpdate({ sections });
@@ -31,7 +30,8 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
             content: getDefaultContent(type)
         };
         setSections([...sections, newSection]);
-        setSelectedSectionId(newSection.id); // Auto-select new section
+        setSelectedSectionId(newSection.id);
+        setEditingSectionSnapshot(null); // New section has no snapshot (indicates it's new)
     };
 
     const removeSection = (id: string, e?: React.MouseEvent) => {
@@ -42,6 +42,31 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
     const updateSection = (id: string, content: any) => {
         setSections(sections.map(s => s.id === id ? { ...s, content: { ...s.content, ...content } } : s));
+    };
+
+    const handleSectionClick = (section: Section) => {
+        if (selectedSectionId === section.id) return;
+        setSelectedSectionId(section.id);
+        setEditingSectionSnapshot(JSON.parse(JSON.stringify(section))); // Deep copy
+    };
+
+    const handleDone = () => {
+        setSelectedSectionId(null);
+        setEditingSectionSnapshot(null);
+    };
+
+    const handleCancel = () => {
+        if (selectedSectionId) {
+            if (editingSectionSnapshot) {
+                // Revert to snapshot
+                setSections(sections.map(s => s.id === selectedSectionId ? editingSectionSnapshot : s));
+            } else {
+                // It was a new section, remove it
+                setSections(sections.filter(s => s.id !== selectedSectionId));
+            }
+        }
+        setSelectedSectionId(null);
+        setEditingSectionSnapshot(null);
     };
 
     const getDefaultContent = (type: SectionType) => {
@@ -65,7 +90,8 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                     <PropertiesPanel
                         section={selectedSection}
                         onUpdate={(data) => updateSection(selectedSection.id, data)}
-                        onClose={() => setSelectedSectionId(null)}
+                        onDone={handleDone}
+                        onCancel={handleCancel}
                     />
                 ) : (
                     <div className="p-4 h-full flex flex-col">
@@ -117,7 +143,7 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                         {sections.map((section) => (
                             <div
                                 key={section.id}
-                                onClick={() => setSelectedSectionId(section.id)}
+                                onClick={() => handleSectionClick(section)}
                                 className={`relative group transition-all cursor-pointer ${selectedSectionId === section.id ? 'ring-2 ring-primary ring-inset' : 'hover:ring-1 hover:ring-primary/30 ring-inset'}`}
                                 style={{
                                     paddingTop: `${section.content.paddingTop || 0}px`,
