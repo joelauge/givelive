@@ -312,7 +312,7 @@ export default function JourneyBuilder() {
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, templateName: '' });
 
     // Undo/Redo
-    const { takeSnapshot, undo, canUndo } = useUndoRedo(initialNodes, initialEdges);
+    const { takeSnapshot, undo, canUndo } = useUndoRedo();
 
     // Track changes for undo (debounced or on specific actions)
     // For simplicity, we'll just snapshot on every change for now, but in reality we should debounce

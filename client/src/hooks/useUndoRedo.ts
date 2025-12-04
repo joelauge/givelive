@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Node, Edge } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 
 interface HistoryState {
     nodes: Node[];
     edges: Edge[];
 }
 
-export function useUndoRedo(initialNodes: Node[], initialEdges: Edge[]) {
+export function useUndoRedo() {
     const [past, setPast] = useState<HistoryState[]>([]);
     const [future, setFuture] = useState<HistoryState[]>([]);
 
