@@ -9,12 +9,13 @@ import DelayNodeEditor from './DelayNodeEditor';
 
 interface NodeEditorProps {
     node: Node | null;
+    nodes: Node[];
     onClose: () => void;
     onUpdate: (nodeId: string, data: any) => void;
     onDelete: (nodeId: string) => void;
 }
 
-export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEditorProps) {
+export default function NodeEditor({ node, nodes, onClose, onUpdate, onDelete }: NodeEditorProps) {
     if (!node) return null;
 
     const handleUpdate = (newData: any) => {
