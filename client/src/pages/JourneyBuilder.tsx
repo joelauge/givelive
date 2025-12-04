@@ -363,7 +363,7 @@ export default function JourneyBuilder() {
                     const connectedEdges = edges.filter(e => e.source === nodeId);
                     const hasMessageConnection = connectedEdges.some(edge => {
                         const targetNode = updatedNodes.find(n => n.id === edge.target);
-                        return targetNode?.data.type === 'message';
+                        return targetNode && ['message', 'sms', 'email'].includes(targetNode.data.type);
                     });
 
                     if (!hasMessageConnection) {
