@@ -22,6 +22,8 @@ import Logo from '../components/Logo';
 import QRCode from 'react-qr-code';
 import Modal from '../components/Modal';
 import NodeEditor from '../components/flow-editor/NodeEditor';
+import { useUndoRedo } from '../hooks/useUndoRedo';
+import { Undo } from 'lucide-react';
 
 // Custom Start Node with QR Code
 const StartNode = ({ id }: { id: string }) => {
@@ -309,6 +311,59 @@ export default function JourneyBuilder() {
 
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, templateName: '' });
 
+    // Undo/Redo
+    const { takeSnapshot, undo, canUndo } = useUndoRedo(initialNodes, initialEdges);
+
+    // Track changes for undo (debounced or on specific actions)
+    // For simplicity, we'll just snapshot on every change for now, but in reality we should debounce
+    // or only snapshot on "drag stop" or "connect" etc.
+    // ReactFlow's onNodesChange/onEdgesChange fire frequently during drag.
+
+    // Better approach: Snapshot on specific user actions or use a ref to track "last saved state"
+    // and snapshot when it deviates significantly.
+    // For this MVP, let's snapshot when the user *starts* a change (e.g. onNodeDragStart) or *ends* it.
+    // But onNodesChange handles everything.
+
+    // Let's use a simple effect that debounces the snapshot
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (nodes.length > 0) { // Avoid initial empty state if any
+                // We need to check if it's different from the last snapshot to avoid duplicates?
+                // The hook handles the stack.
+                // Actually, we should call takeSnapshot *before* the change, but we only have the *new* state here.
+                // So we need to maintain a "previous" state ref.
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [nodes, edges]);
+
+    // Actually, a better way for ReactFlow is to snapshot on `onNodeDragStart` and `onConnectStart`.
+    // But `onNodesChange` covers add/remove too.
+
+    // Let's manually call takeSnapshot before we make big changes (like applying template, adding node).
+    // And for drag/resize, maybe we can just rely on the user not needing infinite undo for every pixel.
+
+    // Let's try a manual approach:
+    // 1. Snapshot before adding node
+    // 2. Snapshot before deleting node
+    // 3. Snapshot before connecting
+    // 4. Snapshot before updating node data
+
+    const handleUndo = useCallback(() => {
+        const result = undo(nodes, edges);
+        if (result) {
+            setNodes(result.nodes);
+            setEdges(result.edges);
+        }
+    }, [undo, nodes, edges, setNodes, setEdges]);
+
+    // Wrap setNodes/setEdges or specific actions?
+    // Let's wrap the high-level actions we have control over.
+
+    const saveCheckpoint = () => {
+        takeSnapshot(nodes, edges);
+    };
+
     // Track unsaved changes
     useEffect(() => {
         if (nodes.length > 1 || edges.length > 0) {
@@ -318,7 +373,10 @@ export default function JourneyBuilder() {
 
     const nodeTypes = useMemo(() => ({ start: StartNode, default: CustomNode }), []);
 
-    const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
+    const onConnect = useCallback((params: Connection) => {
+        saveCheckpoint();
+        setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds));
+    }, [setEdges, saveCheckpoint, nodes, edges]);
 
     const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
         const selected = nodes[0];
@@ -345,6 +403,7 @@ export default function JourneyBuilder() {
     }, [nodes, selectedNodeId]);
 
     const updateNodeData = (nodeId: string, newData: any) => {
+        saveCheckpoint();
         setNodes((nds) => {
             const updatedNodes = nds.map((node) => {
                 if (node.id === nodeId) {
@@ -972,7 +1031,11 @@ export default function JourneyBuilder() {
                         className="bg-gray-50"
                         proOptions={{ hideAttribution: true }}
                     >
-                        <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden" />
+                        <Controls className="bg-white border-gray-100 shadow-card rounded-xl overflow-hidden">
+                            <div className="react-flow__controls-button" onClick={handleUndo} title="Undo">
+                                <Undo size={12} className={!canUndo ? 'opacity-30' : ''} />
+                            </div>
+                        </Controls>
                         <MiniMap className="bg-white border-gray-100 shadow-card rounded-xl" />
                         <Background gap={20} size={1} color="#E5E7EB" />
                     </ReactFlow>
