@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, GripVertical, Settings, Play, DollarSign, ListChecks } from 'lucide-react';
+import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, GripVertical, Settings, Play, DollarSign, ListChecks, Layout, Columns, MoveVertical } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 
 interface PageBuilderProps {
