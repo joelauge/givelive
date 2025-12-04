@@ -874,6 +874,78 @@ export default function JourneyBuilder() {
                 </div>
             </Modal>
 
+            {/* Save Flow Modal */}
+            <Modal
+                isOpen={saveModal.isOpen}
+                onClose={() => setSaveModal({ ...saveModal, isOpen: false })}
+                title="Save Flow"
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Flow Name</label>
+                    <input
+                        type="text"
+                        value={saveModal.flowName}
+                        onChange={(e) => setSaveModal({ ...saveModal, flowName: e.target.value })}
+                        placeholder="e.g., Welcome Series V2"
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        autoFocus
+                    />
+                </div>
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        onClick={() => setSaveModal({ ...saveModal, isOpen: false })}
+                        className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition text-sm font-medium"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={confirmSave}
+                        className="btn-primary py-2 px-4 text-sm"
+                    >
+                        {saving ? 'Saving...' : 'Save Flow'}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Load Flow Modal */}
+            <Modal
+                isOpen={loadModal.isOpen}
+                onClose={() => setLoadModal({ ...loadModal, isOpen: false })}
+                title="Load Saved Flow"
+            >
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                    {loadModal.flows.length === 0 ? (
+                        <p className="text-gray-500 text-center py-8">No saved flows found.</p>
+                    ) : (
+                        loadModal.flows.map((flow: any) => (
+                            <button
+                                key={flow.id}
+                                onClick={() => confirmLoad(flow)}
+                                className="w-full p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 text-left transition group"
+                            >
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="font-bold text-gray-900 group-hover:text-primary transition">{flow.name}</span>
+                                    <span className="text-xs text-gray-400">
+                                        {new Date(flow.updatedAt).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    {flow.nodes?.length || 0} nodes • {flow.edges?.length || 0} connections
+                                </div>
+                            </button>
+                        ))
+                    )}
+                </div>
+                <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={() => setLoadModal({ ...loadModal, isOpen: false })}
+                        className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition text-sm font-medium"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </Modal>
+
         </div >
     );
 }

@@ -38,10 +38,10 @@ export default function MessageNodeEditor({ data, nodes = [], onUpdate }: Messag
 
         if (linkToInsert) {
             if (messageType === 'sms' || messageType === 'both') {
-                setSmsMessage(prev => prev + linkToInsert);
+                setSmsMessage((prev: string) => prev + linkToInsert);
             }
             if (messageType === 'email' || messageType === 'both') {
-                setEmailBody(prev => prev + linkToInsert);
+                setEmailBody((prev: string) => prev + linkToInsert);
             }
 
             // Reset fields
