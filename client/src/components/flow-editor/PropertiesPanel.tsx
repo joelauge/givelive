@@ -1,4 +1,4 @@
-import { X, Upload, AlignLeft, AlignCenter, AlignRight, Type, Palette, Image as ImageIcon, Video, Layout, Check } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check } from 'lucide-react';
 import { useState } from 'react';
 
 interface PropertiesPanelProps {
@@ -264,13 +264,13 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                                             onClick={() => onUpdate({ sizeMode: 'fit' })}
                                             className={`flex-1 py-1 text-xs font-medium rounded-md transition ${(!section.content.sizeMode || section.content.sizeMode === 'fit') ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         >
-                                            Fit Container
+                                            Original
                                         </button>
                                         <button
                                             onClick={() => onUpdate({ sizeMode: 'original' })}
                                             className={`flex-1 py-1 text-xs font-medium rounded-md transition ${section.content.sizeMode === 'original' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                                         >
-                                            Original
+                                            Fit Container
                                         </button>
                                     </div>
                                 </div>

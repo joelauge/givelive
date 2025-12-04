@@ -175,7 +175,7 @@ export default function JourneyBuilder() {
         }
     }, []);
 
-    const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+    const onNodeClick = useCallback((_: React.MouseEvent, _node: any) => {
         // We can keep this for explicit clicks, but onSelectionChange handles the main logic
         // Maybe just ensure it's selected?
     }, []);
