@@ -89,6 +89,7 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
             case 'image': return { url: 'https://placehold.co/600x400', alt: 'Event Image', paddingTop: 10, paddingBottom: 10, borderRadius: 8 };
             case 'video': return { url: '', paddingTop: 10, paddingBottom: 10, loop: false, autoplay: false };
             case 'columns': return { left: 'Left content', right: 'Right content', paddingTop: 10, paddingBottom: 10 };
+            case 'form': return { fields: ['name', 'email'], buttonText: 'Sign Up', buttonColor: '#000000', paddingTop: 20, paddingBottom: 20 };
             default: return {};
         }
     };
@@ -129,6 +130,10 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                             <button onClick={() => addSection('columns')} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-primary hover:bg-primary/5 transition group">
                                 <Columns size={24} className="text-gray-400 group-hover:text-primary" />
                                 <span className="text-xs font-medium text-gray-600">Columns</span>
+                            </button>
+                            <button onClick={() => addSection('form')} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-primary hover:bg-primary/5 transition group">
+                                <Layout size={24} className="text-gray-400 group-hover:text-primary" />
+                                <span className="text-xs font-medium text-gray-600">Form</span>
                             </button>
                         </div>
                         <div className="mt-auto text-center text-xs text-gray-400">
@@ -241,6 +246,29 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="bg-gray-100 p-2 rounded text-xs min-h-[50px]">{section.content.left}</div>
                                             <div className="bg-gray-100 p-2 rounded text-xs min-h-[50px]">{section.content.right}</div>
+                                        </div>
+                                    )}
+
+                                    {section.type === 'form' && (
+                                        <div className="space-y-3">
+                                            {section.content.fields?.includes('name') && (
+                                                <input disabled placeholder="Full Name" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('email') && (
+                                                <input disabled placeholder="Email Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('phone') && (
+                                                <input disabled placeholder="Phone Number" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            {section.content.fields?.includes('address') && (
+                                                <input disabled placeholder="Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                                            )}
+                                            <button
+                                                className="w-full p-3 rounded-xl font-bold text-white shadow-lg shadow-primary/20"
+                                                style={{ backgroundColor: section.content.buttonColor || '#000000' }}
+                                            >
+                                                {section.content.buttonText || 'Submit'}
+                                            </button>
                                         </div>
                                     )}
                                 </div>

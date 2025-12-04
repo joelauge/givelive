@@ -298,6 +298,62 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                         )}
                     </div>
                 )}
+
+                {section.type === 'form' && (
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Fields</label>
+                            <div className="space-y-2">
+                                {['name', 'email', 'phone', 'address'].map((field) => (
+                                    <label key={field} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer capitalize">
+                                        <input
+                                            type="checkbox"
+                                            checked={section.content.fields?.includes(field) || false}
+                                            onChange={(e) => {
+                                                const current = section.content.fields || [];
+                                                const next = e.target.checked
+                                                    ? [...current, field]
+                                                    : current.filter((f: string) => f !== field);
+                                                onUpdate({ fields: next });
+                                            }}
+                                            className="rounded text-primary focus:ring-primary"
+                                        />
+                                        {field}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Button</label>
+                            <div className="space-y-2">
+                                <div>
+                                    <label className="text-[10px] text-gray-400">Text</label>
+                                    <input
+                                        value={section.content.buttonText || 'Submit'}
+                                        onChange={(e) => onUpdate({ buttonText: e.target.value })}
+                                        className="input-field"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] text-gray-400">Color</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={section.content.buttonColor || '#000000'}
+                                            onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                            className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                        />
+                                        <input
+                                            value={section.content.buttonColor || '#000000'}
+                                            onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                            className="input-field flex-1"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
