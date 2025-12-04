@@ -188,14 +188,67 @@ export default function JourneyBuilder() {
     }, [nodes, selectedNodeId]);
 
     const updateNodeData = (nodeId: string, newData: any) => {
-        setNodes((nds) =>
-            nds.map((node) => {
+        setNodes((nds) => {
+            const updatedNodes = nds.map((node) => {
                 if (node.id === nodeId) {
                     return { ...node, data: newData };
                 }
                 return node;
-            })
-        );
+            });
+
+            // Check if we need to auto-create a message node
+            const updatedNode = updatedNodes.find(n => n.id === nodeId);
+            if (updatedNode && updatedNode.data.type === 'page' && updatedNode.data.sections) {
+                const hasForm = updatedNode.data.sections.some((s: any) => s.type === 'form');
+
+                if (hasForm) {
+                    // Check if already connected to a message node
+                    const connectedEdges = edges.filter(e => e.source === nodeId);
+                    const hasMessageConnection = connectedEdges.some(edge => {
+                        const targetNode = updatedNodes.find(n => n.id === edge.target);
+                        return targetNode?.data.type === 'message';
+                    });
+
+                    if (!hasMessageConnection) {
+                        // Create new message node
+                        const newNodeId = `${updatedNodes.length + 1}`;
+                        const newNode = {
+                            id: newNodeId,
+                            position: { x: updatedNode.position.x + 300, y: updatedNode.position.y },
+                            data: { label: 'Send Message', type: 'message', messageType: 'both' },
+                            type: 'default',
+                        };
+
+                        // Create edge
+                        const newEdge = {
+                            id: `e${nodeId}-${newNodeId}`,
+                            source: nodeId,
+                            target: newNodeId,
+                            markerEnd: { type: MarkerType.ArrowClosed },
+                        };
+
+                        // We need to schedule this update to avoid state update loops if possible, 
+                        // but since we are inside setNodes, we can return the new state directly?
+                        // Actually setNodes expects a pure update. We can't easily access 'edges' state here reliably if it's stale.
+                        // But 'edges' is in closure.
+
+                        // Better approach: Use a useEffect or a separate handler. 
+                        // But here we are inside the update function.
+
+                        // Let's try to do it in a separate effect or just trigger it here if we can.
+                        // Since we need to update both nodes and edges, we might need to do it outside.
+
+                        // Let's defer the creation.
+                        setTimeout(() => {
+                            setNodes(currNodes => [...currNodes, newNode]);
+                            setEdges(currEdges => [...currEdges, newEdge]);
+                        }, 0);
+                    }
+                }
+            }
+
+            return updatedNodes;
+        });
     };
 
     const deleteNode = (nodeId: string) => {

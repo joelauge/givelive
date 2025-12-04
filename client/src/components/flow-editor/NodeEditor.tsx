@@ -1,9 +1,11 @@
+```
 import { X, Trash2 } from 'lucide-react';
 import type { Node } from 'reactflow';
 import PageBuilder from './PageBuilder';
 import SmsEditor from './SmsEditor';
 import DonationEditor from './DonationEditor';
 import StartNodeEditor from './StartNodeEditor';
+import MessageNodeEditor from './MessageNodeEditor';
 
 interface NodeEditorProps {
     node: Node | null;
@@ -41,6 +43,7 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
         }
 
         const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
+            node.data.label?.toLowerCase().includes('message') ? 'message' :
             node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
 
         switch (type) {
@@ -48,6 +51,8 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
                 return <PageBuilder data={node.data} onUpdate={handleUpdate} />;
             case 'sms':
                 return <SmsEditor data={node.data} onUpdate={handleUpdate} />;
+            case 'message':
+                return <MessageNodeEditor data={node.data} onUpdate={handleUpdate} />;
             case 'donation':
                 return <DonationEditor data={node.data} onUpdate={handleUpdate} />;
             default:
