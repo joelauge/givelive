@@ -17,10 +17,23 @@ interface Section {
 
 export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
     const [sections, setSections] = useState<Section[]>(data.sections || []);
+    const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [editingSectionSnapshot, setEditingSectionSnapshot] = useState<Section | null>(null);
 
     useEffect(() => {
         onUpdate({ sections });
+
+        // Load Google Fonts
+        const fonts = new Set(sections.map(s => s.content.fontFamily).filter(f => f && !['sans', 'serif', 'mono'].includes(f)));
+        if (fonts.size > 0) {
+            const link = document.createElement('link');
+            link.href = `https://fonts.googleapis.com/css2?family=${Array.from(fonts).map(f => f?.replace(' ', '+')).join('&family=')}&display=swap`;
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
+            return () => {
+                document.head.removeChild(link);
+            };
+        }
     }, [sections]);
 
     const addSection = (type: SectionType) => {

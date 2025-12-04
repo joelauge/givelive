@@ -151,9 +151,23 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                                     onChange={(e) => onUpdate({ fontFamily: e.target.value })}
                                     className="input-field"
                                 >
-                                    <option value="sans">Sans Serif</option>
-                                    <option value="serif">Serif</option>
-                                    <option value="mono">Monospace</option>
+                                    <optgroup label="Standard">
+                                        <option value="sans">Sans Serif</option>
+                                        <option value="serif">Serif</option>
+                                        <option value="mono">Monospace</option>
+                                    </optgroup>
+                                    <optgroup label="Google Fonts">
+                                        <option value="Inter">Inter</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Open Sans">Open Sans</option>
+                                        <option value="Lato">Lato</option>
+                                        <option value="Montserrat">Montserrat</option>
+                                        <option value="Oswald">Oswald</option>
+                                        <option value="Raleway">Raleway</option>
+                                        <option value="Poppins">Poppins</option>
+                                        <option value="Playfair Display">Playfair Display</option>
+                                        <option value="Merriweather">Merriweather</option>
+                                    </optgroup>
                                 </select>
                                 <select
                                     value={section.content.fontWeight || 'normal'}
