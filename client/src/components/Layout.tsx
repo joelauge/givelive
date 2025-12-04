@@ -42,7 +42,7 @@ export default function Layout() {
         <div className="min-h-screen flex flex-col bg-background font-sans text-primary">
             {/* Header */}
             <header className="bg-surface border-b border-gray-100 sticky top-0 z-40">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+                <div className="w-full px-6 h-16 flex items-center justify-between">
                     <Logo />
                     <div className="flex items-center gap-4">
                         <SignedOut>
