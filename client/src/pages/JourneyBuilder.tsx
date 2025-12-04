@@ -451,7 +451,7 @@ export default function JourneyBuilder() {
             case 'feedback-survey':
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Survey Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Results Page' }, type: 'output' }
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Results Page' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -461,7 +461,7 @@ export default function JourneyBuilder() {
             case 'raffle-entry':
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Entry Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Digital Ticket' }, type: 'output' }
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Digital Ticket' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -471,7 +471,7 @@ export default function JourneyBuilder() {
             case 'share-testimonial':
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Video/Text Upload' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Confirmation' }, type: 'output' }
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Confirmation' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -481,7 +481,7 @@ export default function JourneyBuilder() {
             case 'new-member':
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Member Info Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Welcome Video' }, type: 'output' }
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Welcome Video' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -492,7 +492,7 @@ export default function JourneyBuilder() {
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Baptism Info' }, type: 'default' },
                     { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Schedule Form' }, type: 'default' },
-                    { id: `${baseId + 2}`, position: { x: 250, y: 450 }, data: { label: 'Confirmation' }, type: 'output' }
+                    { id: `${baseId + 2}`, position: { x: 250, y: 450 }, data: { label: 'Confirmation' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
