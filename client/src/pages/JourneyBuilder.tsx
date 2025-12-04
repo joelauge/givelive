@@ -149,7 +149,7 @@ export default function JourneyBuilder() {
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, title: '', content: '' });
-    const [selectedNode, setSelectedNode] = useState<any>(null);
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, templateName: '' });
 
@@ -166,19 +166,26 @@ export default function JourneyBuilder() {
 
     const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
         const selected = nodes[0];
-        if (selected) {
-            const type = selected.data.type || (selected.data.label?.toLowerCase().includes('sms') ? 'sms' :
-                selected.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
-            setSelectedNode({ ...selected, data: { ...selected.data, type } });
-        } else {
-            setSelectedNode(null);
-        }
+        setSelectedNodeId(selected ? selected.id : null);
     }, []);
 
     const onNodeClick = useCallback((_: React.MouseEvent, _node: any) => {
         // We can keep this for explicit clicks, but onSelectionChange handles the main logic
         // Maybe just ensure it's selected?
     }, []);
+
+    // Derive selected node from nodes array to ensure it's always up to date
+    const selectedNode = useMemo(() => {
+        if (!selectedNodeId) return null;
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (!node) return null;
+
+        // Enrich with type if needed (same logic as before)
+        const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
+            node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
+
+        return { ...node, data: { ...node.data, type } };
+    }, [nodes, selectedNodeId]);
 
     const updateNodeData = (nodeId: string, newData: any) => {
         setNodes((nds) =>
@@ -194,7 +201,9 @@ export default function JourneyBuilder() {
     const deleteNode = (nodeId: string) => {
         setNodes((nds) => nds.filter((node) => node.id !== nodeId));
         setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-        setSelectedNode(null);
+        if (selectedNodeId === nodeId) {
+            setSelectedNodeId(null);
+        }
     };
 
     const addNode = (type: string) => {
@@ -208,6 +217,8 @@ export default function JourneyBuilder() {
         };
         // Deselect others and add new node
         setNodes((nds) => nds.map(n => ({ ...n, selected: false })).concat(newNode));
+        // selectedNodeId will be updated by onSelectionChange or we can set it here if needed,
+        // but ReactFlow should trigger selection change.
     };
 
     const processTemplate = (templateName: string) => {
