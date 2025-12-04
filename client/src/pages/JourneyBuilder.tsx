@@ -441,7 +441,7 @@ export default function JourneyBuilder() {
             case 'simple-donation':
                 newNodes.push(
                     { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Donation Page' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Thank You Page' }, type: 'output' }
+                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Thank You Page' }, type: 'default' }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
