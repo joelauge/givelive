@@ -21,52 +21,18 @@ export default function NodeEditor({ node, onClose, onUpdate, onDelete }: NodeEd
         onUpdate(node.id, { ...node.data, ...newData });
     };
 
-    const handleDelete = () => {
-        if (window.confirm('Are you sure you want to delete this node?')) {
-            onDelete(node.id);
-            onClose();
-        }
-    };
+    // const handleDelete = () => {
+    //     if (window.confirm('Are you sure you want to delete this node?')) {
+    //         onDelete(node.id);
+    //         onClose();
+    //     }
+    // };
 
-    const renderEditor = () => {
-        // Determine type based on node.type or node.data.label/type
-        // In JourneyBuilder we used 'default' type but passed 'page', 'sms', 'donation' to addNode
-        // But addNode set data.label. We might need to adjust addNode to store a specific type in data
-        // For now, let's infer from label or check if we can use node.type if we update addNode
+    // const renderEditor = () => {
+    //     // ...
+    // };
 
-        // Let's assume we will update addNode to set data.type or use specific node types
-        // For now, let's look at data.label or a new data.type field
-
-        // Check for start node type first
-        if (node.type === 'start') {
-            return <StartNodeEditor data={node.data} onUpdate={handleUpdate} />;
-        }
-
-        const type = node.data.type || (node.data.label?.toLowerCase().includes('sms') ? 'sms' :
-            node.data.label?.toLowerCase().includes('message') ? 'message' :
-                node.data.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
-
-        switch (type) {
-            case 'page':
-                return <PageBuilder data={node.data} onUpdate={handleUpdate} />;
-            case 'sms':
-                return <SmsEditor data={node.data} onUpdate={handleUpdate} />;
-            case 'message':
-                return <MessageNodeEditor data={node.data} onUpdate={handleUpdate} />;
-            case 'donation':
-                return <DonationEditor data={node.data} onUpdate={handleUpdate} />;
-            case 'delay':
-                return <DelayNodeEditor data={node.data} onUpdate={handleUpdate} />;
-            default:
-                return (
-                    <div className="p-6 text-center text-gray-500">
-                        Select a specific node type to edit.
-                    </div>
-                );
-        }
-    };
-
-    const isStartNode = node.type === 'start';
+    // const isStartNode = node.type === 'start';
 
     return (
         <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl border-l border-gray-100 z-50 flex flex-col animate-in slide-in-from-right duration-300">

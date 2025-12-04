@@ -292,7 +292,7 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
 };
 
 const initialNodes = [
-    { id: '1', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)', type: 'start' }, type: 'start' },
+    { id: 'start', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)', type: 'start' }, type: 'start' },
 ];
 const initialEdges: Edge[] = [];
 
@@ -432,7 +432,7 @@ export default function JourneyBuilder() {
     };
 
     const processTemplate = (templateName: string) => {
-        const startNodeId = nodes.find(n => n.type === 'start')?.id || '1';
+        const startNodeId = nodes.find(n => n.type === 'start')?.id || 'start';
         const baseId = nodes.length + 1;
         const newNodes: any[] = [];
         const newEdges: Edge[] = [];
@@ -440,59 +440,44 @@ export default function JourneyBuilder() {
         switch (templateName) {
             case 'simple-donation':
                 newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Donation Page' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Thank You Page' }, type: 'default' }
-                );
-                newEdges.push(
-                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
-                );
-                break;
-            case 'feedback-survey':
-                newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Survey Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Results Page' }, type: 'default' }
-                );
-                newEdges.push(
-                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
-                );
-                break;
-            case 'raffle-entry':
-                newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Entry Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Digital Ticket' }, type: 'default' }
-                );
-                newEdges.push(
-                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
-                );
-                break;
-            case 'share-testimonial':
-                newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Video/Text Upload' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Confirmation' }, type: 'default' }
-                );
-                newEdges.push(
-                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
-                );
-                break;
-            case 'new-member':
-                newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Member Info Form' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Welcome Video' }, type: 'default' }
-                );
-                newEdges.push(
-                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
-                );
-                break;
-            case 'get-baptised':
-                newNodes.push(
-                    { id: `${baseId}`, position: { x: 250, y: 150 }, data: { label: 'Baptism Info' }, type: 'default' },
-                    { id: `${baseId + 1}`, position: { x: 250, y: 300 }, data: { label: 'Schedule Form' }, type: 'default' },
-                    { id: `${baseId + 2}`, position: { x: 250, y: 450 }, data: { label: 'Confirmation' }, type: 'default' }
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Donation Page',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Support Our Cause', logo: '', paddingTop: 40, paddingBottom: 40, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'Your generosity helps us make a difference. Every contribution counts.', paddingTop: 20, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 18 } },
+                                { id: 's3', type: 'form', content: { fields: ['name', 'email', 'amount'], buttonText: 'Donate Now', buttonColor: '#000000', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 350 },
+                        data: {
+                            label: 'Thank You SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'Thank you so much for your generous donation! We truly appreciate your support. 🙏'
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 500 },
+                        data: {
+                            label: 'Thank You Page',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Thank You!', logo: '', paddingTop: 60, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'Your donation has been received. You are making a real impact.', paddingTop: 20, paddingBottom: 60, textAlign: 'center', color: '#333333', fontSize: 20 } }
+                            ]
+                        },
+                        type: 'default'
+                    }
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -500,10 +485,198 @@ export default function JourneyBuilder() {
                     { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
                 );
                 break;
+
+            case 'feedback-survey':
+                newNodes.push(
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Survey Page',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'We Value Your Feedback', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#f8f9fa', textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'Please take a moment to let us know how we did today.', paddingTop: 10, paddingBottom: 30, textAlign: 'center', color: '#666666', fontSize: 16 } },
+                                { id: 's3', type: 'form', content: { fields: ['rating', 'comments', 'email'], buttonText: 'Submit Feedback', buttonColor: '#2563eb', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 350 },
+                        data: { label: 'Wait 1 Hour', type: 'delay', amount: 1, unit: 'hours' },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 500 },
+                        data: {
+                            label: 'Follow-up SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'Thanks for attending today! We hope to see you again soon.'
+                        },
+                        type: 'default'
+                    }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+
+            case 'raffle-entry':
+                newNodes.push(
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Raffle Entry',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Enter the Raffle!', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'image', content: { url: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2070&auto=format&fit=crop', alt: 'Prize Image', paddingTop: 10, paddingBottom: 20, borderRadius: 12 } },
+                                { id: 's3', type: 'text', content: { text: 'Enter for a chance to win our grand prize! Winner announced at the end of the event.', paddingTop: 10, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 16 } },
+                                { id: 's4', type: 'form', content: { fields: ['name', 'phone', 'email'], buttonText: 'Enter Now', buttonColor: '#ea580c', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 400 },
+                        data: {
+                            label: 'Ticket SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'You are entered! Good luck! 🎟️'
+                        },
+                        type: 'default'
+                    }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+
+            case 'share-testimonial':
+                newNodes.push(
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Share Story',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Share Your Story', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'We would love to hear how this event has impacted you. Record a short video or write a message below.', paddingTop: 10, paddingBottom: 30, textAlign: 'center', color: '#4b5563', fontSize: 16 } },
+                                { id: 's3', type: 'video', content: { url: '', paddingTop: 20, paddingBottom: 20, loop: false, autoplay: false } }, // Placeholder for upload prompt
+                                { id: 's4', type: 'form', content: { fields: ['name', 'message'], buttonText: 'Submit Story', buttonColor: '#000000', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 400 },
+                        data: {
+                            label: 'Thanks SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'Thank you for sharing your story with us! It means the world. ❤️'
+                        },
+                        type: 'default'
+                    }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+
+            case 'new-member':
+                newNodes.push(
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Welcome Info',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Welcome Home', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'video', content: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', paddingTop: 10, paddingBottom: 20, loop: false, autoplay: false } }, // Placeholder video
+                                { id: 's3', type: 'text', content: { text: 'We are so glad you are here. Fill out the form below to get connected.', paddingTop: 10, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 16 } },
+                                { id: 's4', type: 'form', content: { fields: ['name', 'email', 'phone', 'interests'], buttonText: 'Get Connected', buttonColor: '#2563eb', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 400 },
+                        data: { label: 'Wait 2 Days', type: 'delay', amount: 2, unit: 'days' },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 550 },
+                        data: {
+                            label: 'Coffee SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'Hey! We\'d love to buy you a coffee and get to know you. Are you free this week? ☕'
+                        },
+                        type: 'default'
+                    }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
+
+            case 'get-baptised':
+                newNodes.push(
+                    {
+                        id: `${baseId}`,
+                        position: { x: 250, y: 150 },
+                        data: {
+                            label: 'Baptism Info',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'header', content: { title: 'Take the Next Step', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'Baptism is an outward declaration of an inward decision. Watch this video to learn more.', paddingTop: 10, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 16 } },
+                                { id: 's3', type: 'video', content: { url: '', paddingTop: 10, paddingBottom: 30, loop: false, autoplay: false } },
+                                { id: 's4', type: 'form', content: { fields: ['name', 'email', 'phone'], buttonText: 'I\'m Ready', buttonColor: '#000000', paddingTop: 20, paddingBottom: 40 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 1}`,
+                        position: { x: 250, y: 400 },
+                        data: {
+                            label: 'Celebration SMS',
+                            type: 'sms',
+                            messageType: 'sms',
+                            smsMessage: 'We are so excited for you! A team member will reach out shortly to schedule your baptism. 🎉'
+                        },
+                        type: 'default'
+                    }
+                );
+                newEdges.push(
+                    { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                );
+                break;
         }
 
         setNodes((nds) => {
-            const startNode = nds.find(n => n.id === 'start') || {
+            const startNode = nds.find(n => n.type === 'start') || {
                 id: 'start',
                 type: 'start',
                 data: { label: 'Start', type: 'start' },
@@ -527,7 +700,7 @@ export default function JourneyBuilder() {
         setSaving(true);
         const storageKey = `givelive_flows_${eventId}`;
         const existingFlowsStr = localStorage.getItem(storageKey);
-        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
+        // let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
 
         // Save current state as a backup/auto-save if no name
         localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify({ nodes, edges }));
