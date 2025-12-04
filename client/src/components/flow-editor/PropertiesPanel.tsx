@@ -386,6 +386,49 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                         </div>
                     </div>
                 )}
+                {section.type === 'choice' && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Choices</label>
+                            <button
+                                onClick={() => {
+                                    const newChoices = [...(section.content.choices || [])];
+                                    newChoices.push({ id: Math.random().toString(36).substr(2, 9), label: 'New Choice' });
+                                    onUpdate({ choices: newChoices });
+                                }}
+                                className="text-xs text-primary font-medium hover:underline"
+                            >
+                                + Add Choice
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {(section.content.choices || []).map((choice: any, idx: number) => (
+                                <div key={choice.id || idx} className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={choice.label}
+                                        onChange={(e) => {
+                                            const newChoices = [...(section.content.choices || [])];
+                                            newChoices[idx] = { ...choice, label: e.target.value };
+                                            onUpdate({ choices: newChoices });
+                                        }}
+                                        className="flex-1 p-2 border border-gray-200 rounded-lg text-sm"
+                                        placeholder="Choice Label"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const newChoices = section.content.choices.filter((_: any, i: number) => i !== idx);
+                                            onUpdate({ choices: newChoices });
+                                        }}
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Type, Image as ImageIcon, Video, Columns, Trash2, MoveVertical } from 'lucide-react';
+import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, GripVertical, Settings, Play, DollarSign, ListChecks } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 
 interface PageBuilderProps {
@@ -7,7 +7,7 @@ interface PageBuilderProps {
     onUpdate: (data: any) => void;
 }
 
-type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form';
+export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice';
 
 interface Section {
     id: string;
@@ -141,9 +141,13 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                 <Columns size={24} className="text-gray-400 group-hover:text-primary" />
                                 <span className="text-xs font-medium text-gray-600">Columns</span>
                             </button>
-                            <button onClick={() => addSection('form')} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-primary hover:bg-primary/5 transition group">
-                                <Layout size={24} className="text-gray-400 group-hover:text-primary" />
-                                <span className="text-xs font-medium text-gray-600">Form</span>
+                            <button onClick={() => addSection('form')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
+                                <div className="p-2 bg-purple-100 text-purple-600 rounded-lg"><LayoutTemplate size={18} /></div>
+                                <span className="text-[10px] font-medium text-gray-600">Form</span>
+                            </button>
+                            <button onClick={() => addSection('choice')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
+                                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><ListChecks size={18} /></div>
+                                <span className="text-[10px] font-medium text-gray-600">Choice</span>
                             </button>
                         </div>
                         <div className="mt-auto text-center text-xs text-gray-400">
@@ -245,21 +249,15 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                         <div
                                             className="overflow-hidden bg-gray-900 flex items-center justify-center text-white/50 text-xs relative transition-all duration-300"
                                             style={{
-                                                borderRadius: `${section.content.borderRadius || 8}px`,
-                                                aspectRatio: section.content.aspectRatio ? section.content.aspectRatio.replace(':', '/') : '16/9'
-                                            }}
-                                        >
+                                        < div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
                                             {section.content.url ? (
                                                 <video
                                                     src={section.content.url}
                                                     className="w-full h-full object-cover"
-                                                    loop={section.content.loop}
-                                                    autoPlay={section.content.autoplay}
-                                                    muted={section.content.autoplay} // Autoplay usually requires mute
-                                                    controls={!section.content.autoplay}
+                                                    controls={false}
                                                 />
                                             ) : (
-                                                <span>Video Placeholder</span>
+                                                <Play size={32} className="text-white opacity-50" />
                                             )}
                                         </div>
                                     )}
@@ -273,32 +271,19 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
                                     {section.type === 'form' && (
                                         <div className="space-y-3">
-                                            {section.content.fields?.includes('name') && (
-                                                <input disabled placeholder="Full Name" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                                            )}
-                                            {section.content.fields?.includes('email') && (
-                                                <input disabled placeholder="Email Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                                            )}
-                                            {section.content.fields?.includes('phone') && (
-                                                <input disabled placeholder="Phone Number" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                                            )}
-                                            {section.content.fields?.includes('address') && (
-                                                <input disabled placeholder="Address" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                                            )}
-                                            <button
-                                                className="w-full p-3 rounded-xl font-bold text-white shadow-lg shadow-primary/20"
-                                                style={{ backgroundColor: section.content.buttonColor || '#000000' }}
+                                            className="w-full p-3 rounded-xl font-bold text-white shadow-lg shadow-primary/20"
+                                            style={{ backgroundColor: section.content.buttonColor || '#000000' }}
                                             >
-                                                {section.content.buttonText || 'Submit'}
-                                            </button>
+                                            {section.content.buttonText || 'Submit'}
+                                        </button>
                                         </div>
                                     )}
-                                </div>
+                            </div>
                             </div>
                         ))}
-                    </div>
                 </div>
             </div>
         </div>
+        </div >
     );
 }

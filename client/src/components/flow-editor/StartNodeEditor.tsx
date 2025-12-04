@@ -1,4 +1,4 @@
-import { QrCode, RefreshCw, Palette, Download, FileCode, FileImage } from 'lucide-react';
+import { RefreshCw, Palette, FileCode, FileImage } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { useParams } from 'react-router-dom';
 import { useRef } from 'react';

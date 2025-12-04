@@ -208,6 +208,10 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
         return <LayoutTemplate size={16} className="text-gray-500" />;
     };
 
+    // Check for choice section
+    const choiceSection = data.sections?.find((s: any) => s.type === 'choice');
+    const choices = choiceSection?.content?.choices || [];
+
     return (
         <div className="bg-white rounded-xl shadow-sm border-2 border-gray-100 min-w-[180px] p-3 hover:border-primary/50 transition-colors relative group">
             <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-gray-300 !-top-1.5" />
@@ -246,17 +250,43 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
                 </div>
             )}
 
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setShowAddMenu(!showAddMenu);
-                }}
-            >
-                <Plus size={10} className={`text-white stroke-[4] transition-transform duration-200 ${showAddMenu ? 'rotate-45' : ''}`} />
-            </Handle>
+            {/* Render handles for choices if present */}
+            {choices.length > 0 ? (
+                <div className="absolute -bottom-3 left-0 w-full flex justify-center gap-4 px-2">
+                    {choices.map((choice: any, idx: number) => (
+                        <div key={choice.id || idx} className="relative flex flex-col items-center">
+                            <div className="absolute -top-6 text-[10px] font-bold text-gray-500 bg-white px-1 rounded border border-gray-100 whitespace-nowrap">
+                                {choice.label}
+                            </div>
+                            <Handle
+                                type="source"
+                                position={Position.Bottom}
+                                id={`choice-${choice.id || idx}`}
+                                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !relative !bottom-0 shadow-sm flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    // For now, just open the menu. In future, we might want to pass the source handle ID
+                                    setShowAddMenu(!showAddMenu);
+                                }}
+                            >
+                                <Plus size={10} className={`text-white stroke-[4] transition-transform duration-200 ${showAddMenu ? 'rotate-45' : ''}`} />
+                            </Handle>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <Handle
+                    type="source"
+                    position={Position.Bottom}
+                    className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAddMenu(!showAddMenu);
+                    }}
+                >
+                    <Plus size={10} className={`text-white stroke-[4] transition-transform duration-200 ${showAddMenu ? 'rotate-45' : ''}`} />
+                </Handle>
+            )}
         </div>
     );
 };
@@ -521,6 +551,11 @@ export default function JourneyBuilder() {
         }
 
         setSaving(true);
+
+        // Get existing flows
+        const storageKey = `givelive_flows_${eventId}`;
+        const existingFlowsStr = localStorage.getItem(storageKey);
+        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
 
         const newFlow = {
             id: Math.random().toString(36).substr(2, 9),
