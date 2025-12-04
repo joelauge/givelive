@@ -872,13 +872,7 @@ export default function JourneyBuilder() {
                     </button>
                 </div>
             </Modal>
-            onClick={handleConfirmTemplate}
-            className="btn-primary py-2 px-4 text-sm"
-                    >
-            Save & Apply
-        </button>
-                </div >
-            </Modal >
+
         </div >
     );
 }
