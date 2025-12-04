@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical } from 'lucide-react';
+import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 
 interface PageBuilderProps {
@@ -119,6 +119,17 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                             />
                         </div>
 
+                        <div className="mb-6">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">GL Code (Internal)</label>
+                            <input
+                                value={data.glCode || ''}
+                                onChange={(e) => onUpdate({ glCode: e.target.value })}
+                                className="w-full p-2 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition font-mono text-gray-600"
+                                placeholder="e.g. CAMP-2024-Q1"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">Internal attribution code. Not visible to donors.</p>
+                        </div>
+
                         <h3 className="text-sm font-bold text-gray-900 mb-4">Add Section</h3>
                         <div className="grid grid-cols-4 gap-2">
                             <button onClick={() => addSection('header')} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-primary hover:bg-primary/5 transition group">
@@ -148,6 +159,34 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                             <button onClick={() => addSection('choice')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
                                 <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><ListChecks size={18} /></div>
                                 <span className="text-[10px] font-medium text-gray-600">Choice</span>
+                            </button>
+                            <button onClick={() => {
+                                const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
+                                const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
+
+                                if (!stripeConnected && !paypalConnected) {
+                                    if (window.confirm('To accept donations, you need to connect a payment gateway (Stripe or PayPal). Go to Settings now?')) {
+                                        window.location.href = '/settings';
+                                    }
+                                    return;
+                                }
+                                addSection('form'); // For now, just add a form, but ideally pre-fill with donation fields
+                                // We can update the last added section to be a donation form
+                                setTimeout(() => {
+                                    setSections(prev => {
+                                        const last = prev[prev.length - 1];
+                                        if (last && last.type === 'form') {
+                                            return prev.map(s => s.id === last.id ? {
+                                                ...s,
+                                                content: { ...s.content, fields: ['name', 'email', 'amount'], buttonText: 'Donate Now' }
+                                            } : s);
+                                        }
+                                        return prev;
+                                    });
+                                }, 0);
+                            }} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
+                                <div className="p-2 bg-green-100 text-green-600 rounded-lg"><DollarSign size={18} /></div>
+                                <span className="text-[10px] font-medium text-gray-600">Donate</span>
                             </button>
                         </div>
                         <div className="mt-auto text-center text-xs text-gray-400">

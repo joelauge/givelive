@@ -5,6 +5,7 @@ import JourneyBuilder from './pages/JourneyBuilder';
 import Layout from './components/Layout';
 
 import Home from './pages/Home';
+import Settings from './pages/Settings';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {
@@ -33,6 +34,19 @@ function App() {
           <>
             <SignedIn>
               <JourneyBuilder />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <>
+            <SignedIn>
+              <Settings />
             </SignedIn>
             <SignedOut>
               <RedirectToSignIn />

@@ -943,10 +943,10 @@ export default function JourneyBuilder() {
                         </div>
                     )}
 
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
+                    <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
                         <Settings size={18} />
                         <span>Settings</span>
-                    </button>
+                    </Link>
 
                     <div className="h-px bg-gray-100 my-2"></div>
 
