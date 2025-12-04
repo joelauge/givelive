@@ -151,6 +151,115 @@ const StartNode = ({ id }: { id: string }) => {
             </Handle>
         </div>
     );
+    );
+};
+
+const CustomNode = ({ id, data }: { id: string, data: any }) => {
+    const [showAddMenu, setShowAddMenu] = useState(false);
+    const { getNodes, setNodes, setEdges, getNode } = useReactFlow();
+
+    const handleAddNode = (type: 'page' | 'logic' | 'delay') => {
+        const currentNode = getNode(id);
+        if (!currentNode) return;
+
+        if (type === 'logic') {
+            alert("Logic steps are coming soon!");
+            setShowAddMenu(false);
+            return;
+        }
+
+        const newNodeId = `${getNodes().length + 1}`;
+        let newNode;
+
+        if (type === 'delay') {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 150 },
+                data: { label: 'Wait 1 day', type: 'delay', amount: 1, unit: 'days' },
+                type: 'default',
+            };
+        } else {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
+                data: { label: 'New Page', type: 'page' },
+                type: 'default',
+            };
+        }
+
+        const newEdge = {
+            id: `e${id}-${newNodeId}`,
+            source: id,
+            target: newNodeId,
+            markerEnd: { type: MarkerType.ArrowClosed },
+        };
+
+        setNodes((nds) => nds.map(n => ({ ...n, selected: false })).concat({ ...newNode, selected: true }));
+        setEdges((eds) => eds.concat(newEdge));
+        setShowAddMenu(false);
+    };
+
+    // Determine icon based on type
+    const getIcon = () => {
+        const type = data.type || 'page';
+        if (type === 'sms') return <MessageSquare size={16} className="text-blue-500" />;
+        if (type === 'donation') return <Heart size={16} className="text-red-500" />;
+        if (type === 'delay') return <Clock size={16} className="text-orange-500" />;
+        if (type === 'message') return <MessageSquare size={16} className="text-purple-500" />;
+        return <LayoutTemplate size={16} className="text-gray-500" />;
+    };
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border-2 border-gray-100 min-w-[180px] p-3 hover:border-primary/50 transition-colors relative group">
+            <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-gray-300 !-top-1.5" />
+
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-50 rounded-lg">
+                    {getIcon()}
+                </div>
+                <div className="font-medium text-sm text-gray-700">{data.label}</div>
+            </div>
+
+            {/* Add Node Menu */}
+            {showAddMenu && (
+                <div className="absolute top-[calc(100%+20px)] left-1/2 -translate-x-1/2 bg-white p-1.5 rounded-xl shadow-xl border border-gray-100 z-50 flex flex-col gap-1 min-w-[140px] animate-in fade-in zoom-in duration-200">
+                    <button
+                        onClick={() => handleAddNode('page')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <LayoutTemplate size={14} className="text-primary" />
+                        <span>Add Page</span>
+                    </button>
+                    <button
+                        onClick={() => handleAddNode('delay')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <Clock size={14} className="text-primary" />
+                        <span>Add Delay</span>
+                    </button>
+                    <button
+                        onClick={() => handleAddNode('logic')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left opacity-50 cursor-not-allowed"
+                    >
+                        <Workflow size={14} className="text-gray-400" />
+                        <span>Add Logic</span>
+                    </button>
+                </div>
+            )}
+
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                className="!w-6 !h-6 !bg-primary !border-4 !border-white !rounded-full !-bottom-3 shadow-sm flex items-center justify-center transition-transform hover:scale-110 cursor-pointer z-10"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAddMenu(!showAddMenu);
+                }}
+            >
+                <Plus size={10} className={`text-white stroke-[4] transition-transform duration-200 ${showAddMenu ? 'rotate-45' : ''}`} />
+            </Handle>
+        </div>
+    );
 };
 
 const initialNodes = [
@@ -178,7 +287,7 @@ export default function JourneyBuilder() {
         }
     }, [nodes, edges]);
 
-    const nodeTypes = useMemo(() => ({ start: StartNode }), []);
+    const nodeTypes = useMemo(() => ({ start: StartNode, default: CustomNode }), []);
 
     const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
 
