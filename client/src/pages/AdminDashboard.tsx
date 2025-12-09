@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../api';
 import Modal from '../components/Modal';
 
 export default function AdminDashboard() {
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
     const loadEvents = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/events`);
+            const res = await fetch(`${API_URL}/events`);
             if (!res.ok) {
                 throw new Error('Failed to fetch events');
             }
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
 
         try {
             setCreating(true);
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/events`, {
+            const res = await fetch(`${API_URL}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

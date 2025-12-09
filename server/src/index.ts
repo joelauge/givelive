@@ -28,13 +28,13 @@ export const createApp = () => {
         prefix: '/uploads/', // optional: default '/'
     });
 
-    server.register(eventRoutes);
-    server.register(journeyRoutes);
-    server.register(smsRoutes);
-    server.register(analyticsRoutes);
-    server.register(demoRoutes);
-    server.register(donationRoutes);
-    server.register(uploadRoutes);
+    server.register(eventRoutes, { prefix: '/api' });
+    server.register(journeyRoutes, { prefix: '/api' });
+    server.register(smsRoutes, { prefix: '/api' });
+    server.register(analyticsRoutes, { prefix: '/api' });
+    server.register(demoRoutes, { prefix: '/api' });
+    server.register(donationRoutes, { prefix: '/api' });
+    server.register(uploadRoutes, { prefix: '/api' });
 
     server.get('/', async (request, reply) => {
         return { hello: 'world' };
