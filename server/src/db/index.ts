@@ -5,7 +5,7 @@ import { mockQuery } from './mock';
 dotenv.config();
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || process.env.givelive_POSTGRES_URL,
     ssl: true
 });
 
