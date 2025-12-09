@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign } from 'lucide-react';
+import { Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 
 interface PageBuilderProps {
@@ -7,7 +7,7 @@ interface PageBuilderProps {
     onUpdate: (data: any) => void;
 }
 
-export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice';
+export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice' | 'payment';
 
 interface Section {
     id: string;

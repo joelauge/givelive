@@ -757,8 +757,6 @@ export default function JourneyBuilder() {
     const handleConfirmTemplate = async () => {
         // Just save directly here since we are inside the component
         setSaving(true);
-        const storageKey = `givelive_flows_${eventId}`;
-        const existingFlowsStr = localStorage.getItem(storageKey);
         // let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
 
         // Save current state as a backup/auto-save if no name

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, CreditCard } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 
 interface NodeRendererProps {
     node: any;

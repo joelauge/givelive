@@ -1,8 +1,6 @@
 import { X, Trash2 } from 'lucide-react';
 import type { Node } from 'reactflow';
 import PageBuilder from './PageBuilder';
-import SmsEditor from './SmsEditor';
-import DonationEditor from './DonationEditor';
 import StartNodeEditor from './StartNodeEditor';
 import MessageNodeEditor from './MessageNodeEditor';
 import DelayNodeEditor from './DelayNodeEditor';
