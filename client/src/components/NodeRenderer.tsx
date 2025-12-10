@@ -280,5 +280,12 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
         );
     }
 
-    return <div>Unsupported node type</div>;
+    return (
+        <div className="p-4 bg-red-50 text-red-700">
+            <h3 className="font-bold">Unsupported node type: {type}</h3>
+            <pre className="text-xs mt-2 overflow-auto bg-white p-2 border border-red-200 rounded">
+                {JSON.stringify(node, null, 2)}
+            </pre>
+        </div>
+    );
 }
