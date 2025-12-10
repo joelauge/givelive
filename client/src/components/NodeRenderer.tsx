@@ -8,6 +8,8 @@ interface NodeRendererProps {
 
 export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
     const { data } = node;
+    const type = data?.type || node.type; // Robust type detection
+
     const [formState, setFormState] = useState<any>({});
     const [showMockCheckout, setShowMockCheckout] = useState(false);
     const [processing, setProcessing] = useState(false);
@@ -15,11 +17,12 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
     if (!data) return <div>Loading...</div>;
 
     // Handle different node types
-    if (data.type === 'start') {
+    // Handle different node types
+    if (type === 'start') {
         return <div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
     }
 
-    if (data.type === 'sms') {
+    if (type === 'sms') {
         return (
             <div className="w-full min-h-screen bg-background flex items-center justify-center p-6">
                 <div className="text-center max-w-sm">
@@ -36,7 +39,7 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
         );
     }
 
-    if (['page', 'donation'].includes(data.type)) {
+    if (['page', 'donation'].includes(type)) {
         return (
             <div className="w-full min-h-screen bg-white">
                 {/* Render Sections */}

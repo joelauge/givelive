@@ -47,7 +47,10 @@ export default function LandingPage() {
                     // Map DB config to data for NodeRenderer
                     const nodeForRender = {
                         ...dbNode,
-                        data: dbNode.config || {}
+                        data: {
+                            ...(dbNode.config || {}),
+                            type: dbNode.config?.type || dbNode.type
+                        }
                     };
                     setCurrentNode(nodeForRender as any);
                 } else {
@@ -111,12 +114,18 @@ export default function LandingPage() {
         const inboundTypes = ['page', 'donation'];
         const outboundTypes = ['sms', 'email'];
 
-        const currentIsInbound = inboundTypes.includes(currentNode.type);
-        const nextIsOutbound = outboundTypes.includes(nextNode.type);
+        // Helper to get true type
+        const getNodeType = (n: JourneyNode) => n.config?.type || n.type;
+
+        const currentType = getNodeType(currentNode);
+        const nextType = getNodeType(nextNode);
+
+        const currentIsInbound = inboundTypes.includes(currentType);
+        const nextIsOutbound = outboundTypes.includes(nextType);
 
         // Execute outbound actions (SMS, Email, etc.)
         if (nextIsOutbound) {
-            if (nextNode.type === 'sms') {
+            if (nextType === 'sms') {
                 try {
                     const phoneToUse = formData?.phone || userPhone;
                     if (phoneToUse) {
@@ -146,17 +155,21 @@ export default function LandingPage() {
                         const result = await response.json();
                         console.log('[SMS] Result:', result);
 
+                        if (!response.ok) {
+                            throw new Error(result.error || 'Failed to send SMS');
+                        }
+
                         // Show success toast instead of navigating
                         alert('Message sent! Check your phone.');
                     } else {
                         console.warn('[SMS] No phone number available');
                         alert('No phone number provided - cannot send SMS');
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error('Failed to send SMS:', err);
-                    alert('Failed to send SMS. Please try again.');
+                    alert(`Failed to send SMS: ${err.message}`);
                 }
-            } else if (nextNode.type === 'email') {
+            } else if (nextType === 'email') {
                 // TODO: Implement email sending with personalization
                 alert('Email sent!');
             }

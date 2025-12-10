@@ -119,6 +119,12 @@ export default async function journeyRoutes(server: FastifyInstance) {
 
             for (const node of nodes) {
                 const nodeType = node.data?.type || node.type || 'page';
+                const nodeData = node.data || {};
+
+                // Ensure type is in config
+                if (!nodeData.type) {
+                    nodeData.type = nodeType;
+                }
 
                 // Insert node without next_nodes first (will update after we have all UUIDs)
                 const result = await query(
@@ -126,7 +132,7 @@ export default async function journeyRoutes(server: FastifyInstance) {
                     [
                         eventId,
                         nodeType,
-                        JSON.stringify(node.data || {}),
+                        JSON.stringify(nodeData),
                         JSON.stringify([]) // Empty for now, will update later
                     ]
                 );
