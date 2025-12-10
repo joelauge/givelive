@@ -9,13 +9,14 @@ import ReactFlow, {
     MarkerType,
     type Edge,
     type Connection,
+    type Node,
     Handle,
     Position,
     useReactFlow
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight, FolderOpen, Clock } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, Ticket, Quote, UserPlus, Droplets, ChevronDown, ChevronRight, FolderOpen, Clock, CreditCard, Mail, GitBranch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -23,7 +24,27 @@ import QRCode from 'react-qr-code';
 import Modal from '../components/Modal';
 import NodeEditor from '../components/flow-editor/NodeEditor';
 import { useUndoRedo } from '../hooks/useUndoRedo';
-import { Undo } from 'lucide-react';
+import { Undo, Globe } from 'lucide-react';
+import { api } from '../api';
+
+interface NodeData {
+    label: string;
+    type: string;
+    sections?: any[];
+    amount?: number;
+    unit?: string;
+    messageType?: string;
+    smsMessage?: string;
+    [key: string]: any;
+}
+
+interface SavedFlow {
+    id: string;
+    name: string;
+    updatedAt: string;
+    nodes: Node<NodeData>[];
+    edges: Edge[];
+}
 
 // Custom Start Node with QR Code
 const StartNode = ({ id }: { id: string }) => {
@@ -33,7 +54,7 @@ const StartNode = ({ id }: { id: string }) => {
     const [showAddMenu, setShowAddMenu] = useState(false);
     const { getNodes, setNodes, setEdges, getNode } = useReactFlow();
 
-    const handleAddNode = (type: 'page' | 'logic' | 'delay') => {
+    const handleAddNode = (type: 'page' | 'payment' | 'logic' | 'delay') => {
         const currentNode = getNode(id);
         if (!currentNode) return;
 
@@ -51,6 +72,30 @@ const StartNode = ({ id }: { id: string }) => {
                 id: newNodeId,
                 position: { x: currentNode.position.x, y: currentNode.position.y + 150 },
                 data: { label: 'Wait 1 day', type: 'delay', amount: 1, unit: 'days' },
+                type: 'default',
+            };
+        } else if (type === 'payment') {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
+                data: {
+                    label: 'Payment Page',
+                    type: 'donation',
+                    sections: [
+                        { id: 's1', type: 'header', content: { title: 'Support Our Cause', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
+                        {
+                            id: 's2',
+                            type: 'payment',
+                            content: {
+                                frequencies: ['one-time', 'monthly'],
+                                defaultAmount: 50,
+                                buttonText: 'Donate Now',
+                                buttonColor: '#000000',
+                                fields: ['name', 'email', 'phone'] // Ensure collection fields are there
+                            }
+                        }
+                    ]
+                },
                 type: 'default',
             };
         } else {
@@ -131,6 +176,13 @@ const StartNode = ({ id }: { id: string }) => {
                         <span>Add Delay</span>
                     </button>
                     <button
+                        onClick={() => handleAddNode('payment')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <CreditCard size={14} className="text-primary" />
+                        <span>Add Payment Page</span>
+                    </button>
+                    <button
                         onClick={() => handleAddNode('logic')}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left opacity-50 cursor-not-allowed"
                     >
@@ -155,11 +207,11 @@ const StartNode = ({ id }: { id: string }) => {
     );
 };
 
-const CustomNode = ({ id, data }: { id: string, data: any }) => {
+const CustomNode = ({ id, data }: { id: string, data: NodeData }) => {
     const [showAddMenu, setShowAddMenu] = useState(false);
     const { getNodes, setNodes, setEdges, getNode } = useReactFlow();
 
-    const handleAddNode = (type: 'page' | 'logic' | 'delay') => {
+    const handleAddNode = (type: 'page' | 'payment' | 'logic' | 'delay') => {
         const currentNode = getNode(id);
         if (!currentNode) return;
 
@@ -177,6 +229,29 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
                 id: newNodeId,
                 position: { x: currentNode.position.x, y: currentNode.position.y + 150 },
                 data: { label: 'Wait 1 day', type: 'delay', amount: 1, unit: 'days' },
+                type: 'default',
+            };
+        } else if (type === 'payment') {
+            newNode = {
+                id: newNodeId,
+                position: { x: currentNode.position.x, y: currentNode.position.y + 200 },
+                data: {
+                    label: 'Payment Page',
+                    type: 'donation',
+                    sections: [
+                        { id: 's1', type: 'header', content: { title: 'Support Our Cause', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
+                        {
+                            id: 's2',
+                            type: 'payment',
+                            content: {
+                                frequencies: ['one-time', 'monthly'],
+                                defaultAmount: 50,
+                                buttonText: 'Donate Now',
+                                buttonColor: '#000000'
+                            }
+                        }
+                    ]
+                },
                 type: 'default',
             };
         } else {
@@ -203,11 +278,26 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
     // Determine icon based on type
     const getIcon = () => {
         const type = data.type || 'page';
-        if (type === 'sms') return <MessageSquare size={16} className="text-blue-500" />;
-        if (type === 'donation') return <Heart size={16} className="text-red-500" />;
-        if (type === 'delay') return <Clock size={16} className="text-orange-500" />;
-        if (type === 'message') return <MessageSquare size={16} className="text-purple-500" />;
+        if (type === 'sms') return <MessageSquare size={16} className="text-green-600" />;
+        if (type === 'email') return <Mail size={16} className="text-green-600" />;
+        if (type === 'donation') return <Heart size={16} className="text-blue-600" />;
+        if (type === 'delay') return <Clock size={16} className="text-purple-600" />;
+        if (type === 'condition') return <GitBranch size={16} className="text-purple-600" />;
+        if (type === 'message') return <MessageSquare size={16} className="text-green-600" />;
+        if (type === 'page') return <LayoutTemplate size={16} className="text-blue-600" />;
         return <LayoutTemplate size={16} className="text-gray-500" />;
+    };
+
+    // Get node category color
+    const getNodeColor = () => {
+        const type = data.type || 'page';
+        // Inbound nodes (blue)
+        if (['page', 'donation'].includes(type)) return 'border-blue-200 hover:border-blue-400';
+        // Outbound nodes (green)
+        if (['sms', 'email'].includes(type)) return 'border-green-200 hover:border-green-400';
+        // Instruction nodes (purple)
+        if (['delay', 'condition', 'start'].includes(type)) return 'border-purple-200 hover:border-purple-400';
+        return 'border-gray-100 hover:border-primary/50';
     };
 
     // Check for choice section
@@ -215,15 +305,25 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
     const choices = choiceSection?.content?.choices || [];
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border-2 border-gray-100 min-w-[180px] p-3 hover:border-primary/50 transition-colors relative group">
+        <div className={`bg-white rounded-xl shadow-sm border-2 ${getNodeColor()} min-w-[180px] p-3 transition-colors relative group`}>
             <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-gray-300 !-top-1.5" />
+
 
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-gray-50 rounded-lg">
                     {getIcon()}
                 </div>
-                <div className="font-medium text-sm text-gray-700">{data.label}</div>
+                <div className="flex-1">
+                    <div className="font-medium text-sm text-gray-700">{data.label}</div>
+                    {data.isEndNode && (
+                        <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-bold">
+                            <span>✓</span>
+                            <span>END</span>
+                        </div>
+                    )}
+                </div>
             </div>
+
 
             {/* Add Node Menu */}
             {showAddMenu && (
@@ -241,6 +341,13 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
                     >
                         <Clock size={14} className="text-primary" />
                         <span>Add Delay</span>
+                    </button>
+                    <button
+                        onClick={() => handleAddNode('payment')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 font-medium transition text-left"
+                    >
+                        <CreditCard size={14} className="text-primary" />
+                        <span>Add Payment Page</span>
                     </button>
                     <button
                         onClick={() => handleAddNode('logic')}
@@ -293,7 +400,7 @@ const CustomNode = ({ id, data }: { id: string, data: any }) => {
     );
 };
 
-const initialNodes = [
+const initialNodes: Node<NodeData>[] = [
     { id: 'start', position: { x: 250, y: 0 }, data: { label: 'Start (QR Scan)', type: 'start' }, type: 'start' },
 ];
 const initialEdges: Edge[] = [];
@@ -301,15 +408,30 @@ const initialEdges: Edge[] = [];
 export default function JourneyBuilder() {
     const { eventId } = useParams();
     console.log('Event ID:', eventId);
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    // Load from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem(`givelive_flow_${eventId}`);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.nodes) setNodes(parsed.nodes);
+                if (parsed.edges) setEdges(parsed.edges);
+            } catch (e) {
+                console.error("Failed to parse saved flow", e);
+            }
+        }
+    }, [eventId, setNodes, setEdges]);
     const [saving, setSaving] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [modal, setModal] = useState({ isOpen: false, title: '', content: '' });
+    const [modal, setModal] = useState<{ isOpen: boolean; title: string; content: React.ReactNode }>({ isOpen: false, title: '', content: '' });
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, templateName: '' });
+    const [messageConfirmation, setMessageConfirmation] = useState<{ isOpen: boolean; nodeId: string | null }>({ isOpen: false, nodeId: null });
 
     // Undo/Redo
     const { takeSnapshot, undo, canUndo } = useUndoRedo();
@@ -325,20 +447,50 @@ export default function JourneyBuilder() {
     // But onNodesChange handles everything.
 
     // Let's use a simple effect that debounces the snapshot
+    // Auto-save to localStorage
+    useEffect(() => {
+        if (nodes.length > 0 || edges.length > 0) {
+            const flow = { nodes, edges };
+            localStorage.setItem(`givelive_flow_${eventId}`, JSON.stringify(flow));
+        }
+    }, [nodes, edges, eventId]);
+
+    // Warn before unload
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = ''; // Chrome requires returnValue to be set
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
+
+    // Track changes for undo (debounced or on specific actions)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (nodes.length > 0) { // Avoid initial empty state if any
-                // We need to check if it's different from the last snapshot to avoid duplicates?
-                // The hook handles the stack.
-                // Actually, we should call takeSnapshot *before* the change, but we only have the *new* state here.
-                // So we need to maintain a "previous" state ref.
+                // Snapshot logic placeholder
             }
         }, 500);
         return () => clearTimeout(timer);
     }, [nodes, edges]);
 
-    // Actually, a better way for ReactFlow is to snapshot on `onNodeDragStart` and `onConnectStart`.
-    // But `onNodesChange` covers add/remove too.
+    const onNodesChangeWrapped = useCallback((changes: any) => {
+        onNodesChange(changes);
+        if (changes.some((c: any) => c.type !== 'select')) {
+            setHasUnsavedChanges(true);
+        }
+    }, [onNodesChange]);
+
+    const onEdgesChangeWrapped = useCallback((changes: any) => {
+        onEdgesChange(changes);
+        if (changes.some((c: any) => c.type !== 'select')) {
+            setHasUnsavedChanges(true);
+        }
+    }, [onEdgesChange]);
 
     // Let's manually call takeSnapshot before we make big changes (like applying template, adding node).
     // And for drag/resize, maybe we can just rely on the user not needing infinite undo for every pixel.
@@ -364,12 +516,7 @@ export default function JourneyBuilder() {
         takeSnapshot(nodes, edges);
     };
 
-    // Track unsaved changes
-    useEffect(() => {
-        if (nodes.length > 1 || edges.length > 0) {
-            setHasUnsavedChanges(true);
-        }
-    }, [nodes, edges]);
+    // Track unsaved changes removed (handled by wrappers)
 
     const nodeTypes = useMemo(() => ({ start: StartNode, default: CustomNode }), []);
 
@@ -378,12 +525,12 @@ export default function JourneyBuilder() {
         setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds));
     }, [setEdges, saveCheckpoint, nodes, edges]);
 
-    const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
+    const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
         const selected = nodes[0];
         setSelectedNodeId(selected ? selected.id : null);
     }, []);
 
-    const onNodeClick = useCallback((_: React.MouseEvent, _node: any) => {
+    const onNodeClick = useCallback(() => {
         // We can keep this for explicit clicks, but onSelectionChange handles the main logic
         // Maybe just ensure it's selected?
     }, []);
@@ -395,76 +542,95 @@ export default function JourneyBuilder() {
         if (!node) return null;
 
         // Enrich with type if needed (same logic as before)
-        const nodeData = node.data as any;
+        const nodeData = node.data as NodeData;
         const type = nodeData.type || (nodeData.label?.toLowerCase().includes('sms') ? 'sms' :
             nodeData.label?.toLowerCase().includes('donation') ? 'donation' : 'page');
 
         return { ...node, data: { ...node.data, type } };
     }, [nodes, selectedNodeId]);
 
-    const updateNodeData = (nodeId: string, newData: any) => {
+    const updateNodeData = (nodeId: string, newData: Partial<NodeData>) => {
         saveCheckpoint();
-        setNodes((nds) => {
-            const updatedNodes = nds.map((node) => {
-                if (node.id === nodeId) {
-                    return { ...node, data: newData };
-                }
-                return node;
-            });
 
-            // Check if we need to auto-create a message node
-            const updatedNode = updatedNodes.find(n => n.id === nodeId);
-            if (updatedNode && updatedNode.data.type === 'page' && updatedNode.data.sections) {
-                const hasForm = updatedNode.data.sections.some((s: any) => s.type === 'form');
+        // 1. Update the node data
+        setNodes((nds) => nds.map((node) => {
+            if (node.id === nodeId) {
+                return { ...node, data: { ...node.data, ...newData } as NodeData };
+            }
+            return node;
+        }));
+
+        // 2. Check for form addition condition to prompt user
+        // We look up the latest node state from the previous render cycle (nodes) + the newData being applied
+        const node = nodes.find(n => n.id === nodeId);
+        if (node && node.data.type === 'page') {
+            const mergedData = { ...node.data, ...newData };
+            const sections = mergedData.sections;
+
+            if (sections) {
+                const hasForm = sections.some((s: any) => s.type === 'form');
 
                 if (hasForm) {
-                    // Check if already connected to a message node
+                    // Check existing connections
                     const connectedEdges = edges.filter(e => e.source === nodeId);
                     const hasMessageConnection = connectedEdges.some(edge => {
-                        const targetNode = updatedNodes.find(n => n.id === edge.target);
-                        return targetNode && ['message', 'sms', 'email'].includes(targetNode.data.type);
+                        const targetNode = nodes.find(n => n.id === edge.target);
+                        return targetNode && ['message', 'sms', 'email'].includes(targetNode.data.type || '');
                     });
 
                     if (!hasMessageConnection) {
-                        // Create new message node
-                        const newNodeId = `${updatedNodes.length + 1}`;
-                        const newNode = {
-                            id: newNodeId,
-                            position: { x: updatedNode.position.x + 300, y: updatedNode.position.y },
-                            data: { label: 'Send Message', type: 'message', messageType: 'both' },
-                            type: 'default',
-                        };
-
-                        // Create edge
-                        const newEdge = {
-                            id: `e${nodeId}-${newNodeId}`,
-                            source: nodeId,
-                            target: newNodeId,
-                            markerEnd: { type: MarkerType.ArrowClosed },
-                        };
-
-                        // We need to schedule this update to avoid state update loops if possible, 
-                        // but since we are inside setNodes, we can return the new state directly?
-                        // Actually setNodes expects a pure update. We can't easily access 'edges' state here reliably if it's stale.
-                        // But 'edges' is in closure.
-
-                        // Better approach: Use a useEffect or a separate handler. 
-                        // But here we are inside the update function.
-
-                        // Let's try to do it in a separate effect or just trigger it here if we can.
-                        // Since we need to update both nodes and edges, we might need to do it outside.
-
-                        // Let's defer the creation.
+                        // PROMPT USER
+                        // We use setTimeout to ensure this runs after the current update cycle finishes
                         setTimeout(() => {
-                            setNodes(currNodes => [...currNodes, newNode]);
-                            setEdges(currEdges => [...currEdges, newEdge]);
+                            setMessageConfirmation({ isOpen: true, nodeId });
                         }, 0);
                     }
                 }
             }
+        }
+    };
 
-            return updatedNodes;
-        });
+    const confirmAddMessageNode = () => {
+        const nodeId = messageConfirmation.nodeId;
+        if (!nodeId) return;
+
+        const sourceNode = nodes.find(n => n.id === nodeId);
+        if (!sourceNode) return;
+
+        // Determine default message type based on form fields
+        let defaultMessageType = 'both';
+        if (sourceNode.data.sections) {
+            const formSection = sourceNode.data.sections.find((s: any) => s.type === 'form');
+            if (formSection && formSection.content && formSection.content.fields) {
+                const fields = formSection.content.fields;
+                const hasPhone = fields.includes('phone');
+                const hasEmail = fields.includes('email');
+
+                if (hasPhone && !hasEmail) defaultMessageType = 'sms';
+                else if (!hasPhone && hasEmail) defaultMessageType = 'email';
+                else if (hasPhone && hasEmail) defaultMessageType = 'both';
+                else defaultMessageType = 'sms'; // Default fallback
+            }
+        }
+
+        const newNodeId = `${nodes.length + 1}`;
+        const newNode = {
+            id: newNodeId,
+            position: { x: sourceNode.position.x + 300, y: sourceNode.position.y },
+            data: { label: 'Send Message', type: 'message', messageType: defaultMessageType },
+            type: 'default',
+        };
+
+        const newEdge = {
+            id: `e${nodeId}-${newNodeId}`,
+            source: nodeId,
+            target: newNodeId,
+            markerEnd: { type: MarkerType.ArrowClosed },
+        };
+
+        setNodes((nds) => nds.concat(newNode));
+        setEdges((eds) => eds.concat(newEdge));
+        setMessageConfirmation({ isOpen: false, nodeId: null });
     };
 
     const deleteNode = (nodeId: string) => {
@@ -480,7 +646,7 @@ export default function JourneyBuilder() {
         const newNode = {
             id,
             position: { x: Math.random() * 400, y: Math.random() * 400 },
-            data: { label: `${type} Node`, type }, // Store type in data
+            data: { label: type === 'donation' ? 'Payment Node' : `${type.charAt(0).toUpperCase() + type.slice(1)} Node`, type }, // Store type in data
             type: type === 'end' ? 'output' : 'default',
             selected: true, // Auto-select
         };
@@ -493,7 +659,7 @@ export default function JourneyBuilder() {
     const processTemplate = (templateName: string) => {
         const startNodeId = nodes.find(n => n.type === 'start')?.id || 'start';
         const baseId = nodes.length + 1;
-        const newNodes: any[] = [];
+        const newNodes: Node<NodeData>[] = [];
         const newEdges: Edge[] = [];
 
         switch (templateName) {
@@ -776,7 +942,170 @@ export default function JourneyBuilder() {
     };
 
     const [saveModal, setSaveModal] = useState({ isOpen: false, flowName: '' });
-    const [loadModal, setLoadModal] = useState<{ isOpen: boolean; flows: any[] }>({ isOpen: false, flows: [] });
+    const [loadModal, setLoadModal] = useState<{ isOpen: boolean; flows: SavedFlow[] }>({ isOpen: false, flows: [] });
+
+    const handlePublish = async () => {
+        if (!eventId) return;
+
+        // Validation: Check for common issues
+        const validationErrors: string[] = [];
+
+        // 1. Check if there are any nodes
+        if (nodes.length === 0) {
+            validationErrors.push("❌ Your flow is empty. Add at least one node to publish.");
+            setModal({
+                isOpen: true,
+                title: 'Cannot Publish',
+                content: validationErrors.join('\n\n')
+            });
+            return;
+        }
+
+        // 2. Check for Start node
+        const startNode = nodes.find(n => n.type === 'start' || n.data.type === 'start');
+        if (!startNode) {
+            validationErrors.push("❌ No Start node found. Every flow needs a Start node (QR code).");
+        }
+
+        // 3. Check if Start node is connected
+        if (startNode) {
+            const startConnections = edges.filter(e => e.source === startNode.id);
+            if (startConnections.length === 0) {
+                validationErrors.push("❌ Start node is not connected. Connect the Start node to your first page.");
+            }
+        }
+
+        // 4. Check for orphaned nodes (nodes with no incoming connections except Start)
+        const orphanedNodes = nodes.filter(n => {
+            if (n.type === 'start' || n.data.type === 'start') return false;
+            const hasIncomingEdge = edges.some(e => e.target === n.id);
+            return !hasIncomingEdge;
+        });
+
+        if (orphanedNodes.length > 0) {
+            validationErrors.push(
+                `⚠️ ${orphanedNodes.length} disconnected node(s) found: ${orphanedNodes.map(n => n.data.label).join(', ')}. ` +
+                `Connect them or delete them.`
+            );
+        }
+
+        // 5. Check for nodes with missing required data
+        const nodesWithIssues = nodes.filter(n => {
+            const type = n.data.type || n.type;
+
+            // Check SMS nodes have message
+            if (type === 'sms' || type === 'message') {
+                if (!n.data.smsMessage && !n.data.smsMessages?.[0]) {
+                    return true;
+                }
+            }
+
+            // Check pages have sections
+            if (type === 'page' || type === 'donation') {
+                if (!n.data.sections || n.data.sections.length === 0) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        if (nodesWithIssues.length > 0) {
+            validationErrors.push(
+                `⚠️ Some nodes are incomplete:\n` +
+                nodesWithIssues.map(n => `  • ${n.data.label}: Add content or configuration`).join('\n')
+            );
+        }
+
+
+        // 6. Check for dead ends (nodes with no outgoing connections, except End nodes or pages marked as end)
+        const deadEnds = nodes.filter(n => {
+            const type = n.data.type || n.type;
+            if (type === 'end') return false; // End nodes are supposed to have no outgoing
+            if (n.data.isEndNode) return false; // Pages marked as "End Journey" are valid endpoints
+            const hasOutgoingEdge = edges.some(e => e.source === n.id);
+            return !hasOutgoingEdge;
+        });
+
+        if (deadEnds.length > 0) {
+            validationErrors.push(
+                `⚠️ ${deadEnds.length} node(s) have no next step: ${deadEnds.map(n => n.data.label).join(', ')}. ` +
+                `Connect them to another node, add an End node, or mark them as "End Journey".`
+            );
+        }
+
+        // Show validation errors if any
+        if (validationErrors.length > 0) {
+            setModal({
+                isOpen: true,
+                title: '⚠️ Flow Issues Detected',
+                content: (
+                    <div className="space-y-3 text-left">
+                        <p className="text-gray-600 text-sm">
+                            Fix these issues before publishing:
+                        </p>
+                        <div className="space-y-2">
+                            {validationErrors.map((error, i) => (
+                                <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-900 whitespace-pre-wrap">
+                                    {error}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-4">
+                            💡 Tip: Make sure all nodes are connected in a logical flow from Start to End.
+                        </p>
+                    </div>
+                )
+            });
+            return;
+        }
+
+        // All validation passed, proceed with publish
+        try {
+            setSaving(true);
+            await api.publishJourney(eventId, { nodes, edges });
+            setModal({
+                isOpen: true,
+                title: '✅ Published Successfully!',
+                content: 'Your journey is now live! Users can scan the QR code to begin.'
+            });
+        } catch (err: any) {
+            console.error(err);
+
+            // Better error message based on error type
+            let errorMessage = 'Failed to publish journey.';
+
+            if (err.message?.includes('Network')) {
+                errorMessage = '🌐 Network error. Check your internet connection and try again.';
+            } else if (err.message?.includes('500')) {
+                errorMessage = '🔧 Server error. Please try again in a moment.';
+            } else if (err.message?.includes('401') || err.message?.includes('403')) {
+                errorMessage = '🔒 Authentication error. Please log in again.';
+            } else if (err.message) {
+                errorMessage = `❌ ${err.message}`;
+            }
+
+            setModal({
+                isOpen: true,
+                title: 'Publish Failed',
+                content: (
+                    <div className="space-y-3 text-left">
+                        <p className="text-gray-900">{errorMessage}</p>
+                        <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+                            <p className="font-bold mb-1">What to try:</p>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li>Check your internet connection</li>
+                                <li>Refresh the page and try again</li>
+                                <li>Make sure all nodes are properly configured</li>
+                            </ul>
+                        </div>
+                    </div>
+                )
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const handleSaveClick = () => {
         setSaveModal({ isOpen: true, flowName: '' });
@@ -793,7 +1122,7 @@ export default function JourneyBuilder() {
         // Get existing flows
         const storageKey = `givelive_flows_${eventId}`;
         const existingFlowsStr = localStorage.getItem(storageKey);
-        let existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
+        const existingFlows = existingFlowsStr ? JSON.parse(existingFlowsStr) : [];
 
         const newFlow = {
             id: Math.random().toString(36).substr(2, 9),
@@ -851,7 +1180,7 @@ export default function JourneyBuilder() {
         }
     };
 
-    const confirmLoad = (flow: any) => {
+    const confirmLoad = (flow: SavedFlow) => {
         setNodes(flow.nodes);
         setEdges(flow.edges);
         setHasUnsavedChanges(false);
@@ -897,7 +1226,7 @@ export default function JourneyBuilder() {
                             <Plus size={14} /> SMS
                         </button>
                         <button onClick={() => addNode('donation')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
-                            <Plus size={14} /> Donation
+                            <Plus size={14} /> Payment
                         </button>
                         <button onClick={() => addNode('delay')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
                             <Clock size={14} /> Delay
@@ -909,6 +1238,13 @@ export default function JourneyBuilder() {
                             className="btn-secondary py-2 px-4 text-sm flex items-center gap-2"
                         >
                             <FolderOpen size={16} /> Load Flow
+                        </button>
+                        <button
+                            onClick={handlePublish}
+                            disabled={saving}
+                            className="bg-[#FCD34D] hover:bg-[#FBBF24] text-slate-900 font-bold py-2 px-4 rounded-full text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                            <Globe size={16} /> {saving ? 'Publishing...' : 'Publish Live'}
                         </button>
                         <button
                             onClick={handleSaveClick}
@@ -1008,10 +1344,10 @@ export default function JourneyBuilder() {
                     <div className="h-px bg-gray-100 my-2"></div>
 
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Analytics</div>
-                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
+                    <Link to="/analytics" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition">
                         <BarChart3 size={18} />
                         <span>Overview</span>
-                    </button>
+                    </Link>
                 </div>
 
                 {/* Main Content (ReactFlow) */}
@@ -1019,8 +1355,8 @@ export default function JourneyBuilder() {
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
+                        onNodesChange={onNodesChangeWrapped}
+                        onEdgesChange={onEdgesChangeWrapped}
                         onConnect={onConnect}
                         onSelectionChange={onSelectionChange}
                         onNodeClick={onNodeClick} // Add click handler
@@ -1043,6 +1379,7 @@ export default function JourneyBuilder() {
             <NodeEditor
                 node={selectedNode}
                 nodes={nodes}
+                edges={edges}
                 onClose={() => setSelectedNodeId(null)}
                 onUpdate={updateNodeData}
                 onDelete={handleDeleteClick}
@@ -1087,6 +1424,31 @@ export default function JourneyBuilder() {
                         className="btn-primary py-2 px-4 text-sm"
                     >
                         {saving ? 'Saving...' : 'Save & Continue'}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Message Node Creation Confirmation Modal */}
+            <Modal
+                isOpen={messageConfirmation.isOpen}
+                onClose={() => setMessageConfirmation({ isOpen: false, nodeId: null })}
+                title="Add Message Node"
+            >
+                <div className="text-gray-600">
+                    Adding a form to a page generally means you&apos;re going to ask for contact information. Do you want us to add a &quot;Send Message&quot; node so you can contact this person?
+                </div>
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        onClick={() => setMessageConfirmation({ isOpen: false, nodeId: null })}
+                        className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition text-sm font-medium"
+                    >
+                        No, thanks
+                    </button>
+                    <button
+                        onClick={confirmAddMessageNode}
+                        className="btn-primary py-2 px-4 text-sm"
+                    >
+                        Yes, add it
                     </button>
                 </div>
             </Modal>
@@ -1159,7 +1521,7 @@ export default function JourneyBuilder() {
                     {loadModal.flows.length === 0 ? (
                         <p className="text-gray-500 text-center py-8">No saved flows found.</p>
                     ) : (
-                        loadModal.flows.map((flow: any) => (
+                        loadModal.flows.map((flow) => (
                             <button
                                 key={flow.id}
                                 onClick={() => confirmLoad(flow)}

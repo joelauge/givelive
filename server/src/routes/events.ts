@@ -46,9 +46,9 @@ export default async function eventRoutes(server: FastifyInstance) {
                 [org_id, name, date, qr_url, root_node_id]
             );
             reply.code(201).send(result.rows[0]);
-        } catch (err) {
+        } catch (err: any) {
             server.log.error(err);
-            reply.code(500).send({ error: 'Internal Server Error' });
+            reply.code(500).send({ error: err.message, details: err });
         }
     });
 

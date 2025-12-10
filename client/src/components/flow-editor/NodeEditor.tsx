@@ -1,5 +1,5 @@
 import { X, Trash2 } from 'lucide-react';
-import type { Node } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import PageBuilder from './PageBuilder';
 import StartNodeEditor from './StartNodeEditor';
 import MessageNodeEditor from './MessageNodeEditor';
@@ -8,12 +8,13 @@ import DelayNodeEditor from './DelayNodeEditor';
 interface NodeEditorProps {
     node: Node | null;
     nodes: Node[];
+    edges: Edge[];
     onClose: () => void;
     onUpdate: (nodeId: string, data: any) => void;
     onDelete: (nodeId: string) => void;
 }
 
-export default function NodeEditor({ node, nodes, onClose, onUpdate, onDelete }: NodeEditorProps) {
+export default function NodeEditor({ node, nodes, edges, onClose, onUpdate, onDelete }: NodeEditorProps) {
     if (!node) return null;
 
     const handleUpdate = (newData: any) => {
@@ -67,7 +68,7 @@ export default function NodeEditor({ node, nodes, onClose, onUpdate, onDelete }:
                 ) : (node.data.type === 'page' || node.data.type === 'donation') ? (
                     <PageBuilder data={node.data} onUpdate={handleUpdate} />
                 ) : (node.data.type === 'message' || node.data.type === 'sms' || node.data.type === 'email') ? (
-                    <MessageNodeEditor data={node.data} nodes={nodes} onUpdate={handleUpdate} />
+                    <MessageNodeEditor data={node.data} nodeId={node.id} nodes={nodes} edges={edges} onUpdate={handleUpdate} />
                 ) : node.data.type === 'delay' ? (
                     <DelayNodeEditor data={node.data} onUpdate={handleUpdate} />
                 ) : (

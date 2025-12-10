@@ -7,13 +7,22 @@ export const api = {
         return res.json();
     },
 
+    getEvents: async () => {
+        const res = await fetch(`${API_URL}/events`);
+        if (!res.ok) throw new Error('Failed to fetch events');
+        return res.json();
+    },
+
     startJourney: async (eventId: string, phoneNumber?: string) => {
         const res = await fetch(`${API_URL}/journey/start`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ event_id: eventId, phone_number: phoneNumber }),
         });
-        if (!res.ok) throw new Error('Failed to start journey');
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to start journey');
+        }
         return res.json();
     },
 
@@ -22,6 +31,16 @@ export const api = {
         // For now, let's assume we fetch all nodes and filter client side or have a specific endpoint
         const res = await fetch(`${API_URL}/journey/${eventId}/nodes`);
         if (!res.ok) throw new Error('Failed to fetch nodes');
+        return res.json();
+    },
+
+    publishJourney: async (eventId: string, data: { nodes: any[], edges: any[] }) => {
+        const res = await fetch(`${API_URL}/journey/${eventId}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error('Failed to publish journey');
         return res.json();
     }
 };

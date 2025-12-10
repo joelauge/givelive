@@ -1,17 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquare } from 'lucide-react';
 
 interface SmsEditorProps {
-    data: any;
+    data: { message?: string;[key: string]: any };
     onUpdate: (data: any) => void;
 }
 
 export default function SmsEditor({ data, onUpdate }: SmsEditorProps) {
     const [message, setMessage] = useState(data.message || '');
 
+    const onUpdateRef = useRef(onUpdate);
+    useEffect(() => {
+        onUpdateRef.current = onUpdate;
+    });
+
     useEffect(() => {
         const timer = setTimeout(() => {
-            onUpdate({ message });
+            onUpdateRef.current({ message });
         }, 500);
         return () => clearTimeout(timer);
     }, [message]);

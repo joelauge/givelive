@@ -75,12 +75,18 @@ export default async function journeyRoutes(server: FastifyInstance) {
             );
             const user = userResult.rows[0];
 
-            // Get root node
+            // Get event and root node
             const eventResult = await query('SELECT root_node_id FROM events WHERE id = $1', [event_id]);
+
+            if (eventResult.rows.length === 0) {
+                reply.code(404).send({ error: 'Event not found' });
+                return;
+            }
+
             const rootNodeId = eventResult.rows[0]?.root_node_id;
 
             if (!rootNodeId) {
-                reply.code(400).send({ error: 'Event has no root node' });
+                reply.code(400).send({ error: 'Journey not yet published. Please publish the flow in the builder.' });
                 return;
             }
 
@@ -94,6 +100,85 @@ export default async function journeyRoutes(server: FastifyInstance) {
         } catch (err) {
             server.log.error(err);
             reply.code(500).send({ error: 'Internal Server Error' });
+        }
+    });
+    // Publish Journey (Bulk replace)
+    server.post<{ Params: { eventId: string }; Body: { nodes: any[]; edges: any[] } }>('/journey/:eventId/publish', async (request, reply) => {
+        try {
+            const { eventId } = request.params;
+            const { nodes, edges } = request.body;
+
+            // 1. Clear existing nodes
+            await query('DELETE FROM journey_nodes WHERE event_id = $1', [eventId]);
+
+            // 2. Create ID mapping from frontend IDs to database UUIDs
+            const idMapping = new Map<string, string>();
+
+            // 3. Insert new nodes and build ID mapping
+            let rootNodeId: string | null = null;
+
+            for (const node of nodes) {
+                const nodeType = node.data?.type || node.type || 'page';
+
+                // Insert node without next_nodes first (will update after we have all UUIDs)
+                const result = await query(
+                    'INSERT INTO journey_nodes (event_id, type, config, next_nodes) VALUES ($1, $2, $3, $4) RETURNING id',
+                    [
+                        eventId,
+                        nodeType,
+                        JSON.stringify(node.data || {}),
+                        JSON.stringify([]) // Empty for now, will update later
+                    ]
+                );
+
+                const dbNodeId = result.rows[0].id;
+                idMapping.set(node.id, dbNodeId);
+
+                // If type is 'start', this is the root
+                if (nodeType === 'start') {
+                    rootNodeId = dbNodeId;
+                }
+            }
+
+            // 4. Now update next_nodes with mapped UUIDs
+            for (const node of nodes) {
+                const dbNodeId = idMapping.get(node.id);
+                if (!dbNodeId) continue;
+
+                // Find edges starting from this node
+                const outboundEdges = edges.filter((e: any) => e.source === node.id);
+                const frontendNextNodeIds = outboundEdges.map((e: any) => e.target);
+
+                // Map frontend IDs to database UUIDs
+                const dbNextNodeIds = frontendNextNodeIds
+                    .map((frontendId: string) => idMapping.get(frontendId))
+                    .filter((id): id is string => id !== undefined);
+
+                // Update next_nodes
+                await query(
+                    'UPDATE journey_nodes SET next_nodes = $1 WHERE id = $2',
+                    [JSON.stringify(dbNextNodeIds), dbNodeId]
+                );
+            }
+
+            // 5. Update Event Root Node
+            if (rootNodeId) {
+                await query('UPDATE events SET root_node_id = $1 WHERE id = $2', [rootNodeId, eventId]);
+            } else if (nodes.length > 0) {
+                // Fallback: use the first node if no explicit start
+                const firstNodeDbId = idMapping.get(nodes[0].id);
+                if (firstNodeDbId) {
+                    await query('UPDATE events SET root_node_id = $1 WHERE id = $2', [firstNodeDbId, eventId]);
+                }
+            }
+
+            return { success: true, message: 'Journey published successfully' };
+        } catch (err: any) {
+            server.log.error(err);
+            reply.code(500).send({
+                error: 'Failed to publish journey',
+                details: err.message || 'Internal Server Error'
+            });
         }
     });
 }

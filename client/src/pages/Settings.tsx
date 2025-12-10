@@ -1,18 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, CreditCard, Check, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Settings() {
-    const [stripeConnected, setStripeConnected] = useState(false);
-    const [paypalConnected, setPaypalConnected] = useState(false);
+    const [stripeConnected, setStripeConnected] = useState(() => localStorage.getItem('givelive_stripe_connected') === 'true');
+    const [paypalConnected, setPaypalConnected] = useState(() => localStorage.getItem('givelive_paypal_connected') === 'true');
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const savedStripe = localStorage.getItem('givelive_stripe_connected');
-        const savedPaypal = localStorage.getItem('givelive_paypal_connected');
-        if (savedStripe === 'true') setStripeConnected(true);
-        if (savedPaypal === 'true') setPaypalConnected(true);
-    }, []);
 
     const handleConnect = (gateway: 'stripe' | 'paypal') => {
         setLoading(true);

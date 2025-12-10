@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 
 import Home from './pages/Home';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {
@@ -26,8 +27,8 @@ function App() {
             </>
           }
         />
-        <Route path="/event/:eventId" element={<LandingPage />} />
       </Route>
+      <Route path="/event/:eventId" element={<LandingPage />} />
       <Route
         path="/admin/event/:eventId"
         element={
@@ -47,6 +48,19 @@ function App() {
           <>
             <SignedIn>
               <Settings />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <>
+            <SignedIn>
+              <Analytics />
             </SignedIn>
             <SignedOut>
               <RedirectToSignIn />

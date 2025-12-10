@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Events Table
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  org_id UUID NOT NULL, -- Assuming organization ID comes from auth or another table
+  org_id TEXT NOT NULL, -- Changed to TEXT to support 'default-org'
   name TEXT NOT NULL,
   date TIMESTAMP WITH TIME ZONE,
   qr_url TEXT,

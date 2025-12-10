@@ -25,7 +25,7 @@ export default function Home() {
                             New: Intelligent Journey Builder is live
                         </div>
 
-                        <img src={logoWhite} alt="GiveLive" className="h-16 w-auto mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-75" />
+                        <img src={logoWhite} alt="GiveLive" className="h-32 w-auto mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-75 drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]" />
 
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-display tracking-tight mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                             Power the Next Generation of <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-blue via-accent-purple to-secondary">Giving</span>

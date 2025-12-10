@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import dotenv from 'dotenv';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
+import { query } from './db';
 
 import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
@@ -11,6 +12,7 @@ import analyticsRoutes from './routes/analytics';
 import demoRoutes from './routes/demo';
 import donationRoutes from './routes/donations';
 import uploadRoutes from './routes/upload';
+import userRoutes from './routes/users';
 
 dotenv.config();
 
@@ -21,7 +23,11 @@ export const createApp = () => {
         origin: '*', // Allow all for dev
     });
 
-    server.register(require('@fastify/multipart'));
+    server.register(require('@fastify/multipart'), {
+        limits: {
+            fileSize: 50 * 1024 * 1024, // 50MB
+        }
+    });
 
     server.register(fastifyStatic, {
         root: path.join(__dirname, '../uploads'),
@@ -35,6 +41,7 @@ export const createApp = () => {
     server.register(demoRoutes, { prefix: '/api' });
     server.register(donationRoutes, { prefix: '/api' });
     server.register(uploadRoutes, { prefix: '/api' });
+    server.register(userRoutes, { prefix: '/api' });
 
     server.get('/', async (request, reply) => {
         return { hello: 'world' };
@@ -47,6 +54,15 @@ if (require.main === module) {
     const start = async () => {
         const server = createApp();
         try {
+            // Test DB Connection
+            try {
+                await query('SELECT NOW()');
+                console.log('✅ Database connected successfully');
+            } catch (dbErr) {
+                console.error('❌ Database connection failed:', dbErr);
+                console.warn('⚠️ Server starting without DB connection. API calls needing DB will fail.');
+            }
+
             const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
             await server.listen({ port, host: '0.0.0.0' });
             console.log(`Server listening on port ${port}`);

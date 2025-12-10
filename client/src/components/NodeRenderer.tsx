@@ -15,14 +15,36 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
     if (!data) return <div>Loading...</div>;
 
     // Handle different node types
-    if (data.type === 'page') {
+    if (data.type === 'start') {
+        return <div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+    }
+
+    if (data.type === 'sms') {
         return (
-            <div className="card overflow-hidden bg-white shadow-xl rounded-3xl max-w-md w-full mx-auto relative">
+            <div className="w-full min-h-screen bg-background flex items-center justify-center p-6">
+                <div className="text-center max-w-sm">
+                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h2>
+                    <p className="text-gray-600 mb-4">{data.message || 'Check your phone for a text message to continue.'}</p>
+                    <div className="text-sm text-gray-400">Waiting for your response...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (['page', 'donation'].includes(data.type)) {
+        return (
+            <div className="w-full min-h-screen bg-white">
                 {/* Render Sections */}
                 <div className="flex flex-col">
                     {data.sections?.map((section: any) => {
                         const { type, content, id } = section;
 
+                        // ... (same section rendering logic as before: header, text, image, video, form, payment, choice) ...
                         if (type === 'header') {
                             return (
                                 <div key={id} className="p-6 text-center" style={{ backgroundColor: content.backgroundColor || 'transparent' }}>
@@ -50,10 +72,10 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
 
                         if (type === 'video') {
                             return (
-                                <div key={id} className="w-full aspect-video bg-black">
+                                <div key={id} className="w-full bg-black">
                                     <iframe
                                         src={content.url?.replace('watch?v=', 'embed/')}
-                                        className="w-full h-full"
+                                        className="w-full h-screen"
                                         allowFullScreen
                                     />
                                 </div>
@@ -78,8 +100,8 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
                                     }
                                 }
 
-                                // Normal submit or real checkout (mocked for now)
-                                onNext('submit');
+                                // Pass form data to next handler
+                                onNext(formState);
                             };
 
                             return (

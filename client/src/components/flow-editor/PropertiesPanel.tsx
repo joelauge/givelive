@@ -1,5 +1,6 @@
-import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2 } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2, CreditCard, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { API_URL } from '../../api';
 
 interface PropertiesPanelProps {
     section: any;
@@ -16,38 +17,55 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
         if (!file) return;
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
 
         try {
-            const response = await fetch('http://localhost:3000/api/upload', {
+            // 1. Get Signed URL from Backend
+            const signRes = await fetch(`${API_URL}/upload/sign`, {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filename: file.name,
+                    contentType: file.type
+                }),
             });
-            const data = await response.json();
-            if (data.url) {
-                const updates: any = { url: data.url };
 
-                // If it's a video, detect aspect ratio
-                if (section.type === 'video') {
-                    const video = document.createElement('video');
-                    video.src = data.url;
-                    await new Promise((resolve) => {
-                        video.onloadedmetadata = () => {
-                            const ratio = video.videoWidth / video.videoHeight;
-                            // Determine closest standard ratio
-                            if (Math.abs(ratio - 16 / 9) < 0.1) updates.aspectRatio = '16/9';
-                            else if (Math.abs(ratio - 9 / 16) < 0.1) updates.aspectRatio = '9/16';
-                            else if (Math.abs(ratio - 1) < 0.1) updates.aspectRatio = '1/1';
-                            else updates.aspectRatio = '16/9'; // Default fallback
-                            resolve(null);
-                        };
-                        video.onerror = () => resolve(null);
-                    });
+            if (!signRes.ok) throw new Error('Failed to get upload signature');
+            const { signedUrl, publicUrl } = await signRes.json();
+
+            // 2. Upload to Supabase Storage using Signed URL
+            const uploadRes = await fetch(signedUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'Content-Type': file.type
                 }
+            });
 
-                onUpdate(updates);
+            if (!uploadRes.ok) throw new Error('Failed to upload file to storage');
+
+            // 3. Update State with Public URL
+            const updates: any = { url: publicUrl };
+
+            // If it's a video, detect aspect ratio
+            if (section.type === 'video') {
+                const video = document.createElement('video');
+                video.src = publicUrl;
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        const ratio = video.videoWidth / video.videoHeight;
+                        // Determine closest standard ratio
+                        if (Math.abs(ratio - 16 / 9) < 0.1) updates.aspectRatio = '16/9';
+                        else if (Math.abs(ratio - 9 / 16) < 0.1) updates.aspectRatio = '9/16';
+                        else if (Math.abs(ratio - 1) < 0.1) updates.aspectRatio = '1/1';
+                        else updates.aspectRatio = '16/9'; // Default fallback
+                        resolve(null);
+                    };
+                    video.onerror = () => resolve(null);
+                });
             }
+
+            onUpdate(updates);
+
         } catch (error) {
             console.error('Upload failed:', error);
             alert('Upload failed. Please try again.');
@@ -143,6 +161,15 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
 
                 {section.type === 'text' && (
                     <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Content</label>
+                            <textarea
+                                value={section.content.text}
+                                onChange={(e) => onUpdate({ text: e.target.value })}
+                                className="input-field min-h-[100px]"
+                                placeholder="Enter text..."
+                            />
+                        </div>
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Typography</label>
                             <div className="grid grid-cols-2 gap-2">
@@ -427,6 +454,222 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {section.type === 'payment' && (
+                    <div className="space-y-4">
+                        {!localStorage.getItem('givelive_stripe_connected') ? (
+                            <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center space-y-4 mb-6">
+                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                                    <CreditCard size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-medium text-gray-900">Accept Payments</h3>
+                                    <p className="text-sm text-gray-500">Connect Stripe to configure donation options.</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        const confirm = window.confirm("This would redirect to Stripe Connect. Simulating connection now?");
+                                        if (confirm) {
+                                            localStorage.setItem('givelive_stripe_connected', 'true');
+                                            window.location.reload(); // Reload to refresh state
+                                        }
+                                    }}
+                                    className="btn-primary w-full py-2 flex items-center justify-center gap-2"
+                                >
+                                    <CreditCard size={16} />
+                                    Connect Stripe
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Settings</label>
+
+                                    {/* Frequencies */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] text-gray-400">Accepted Frequencies</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['one-time', 'monthly', 'yearly'].map((freq) => (
+                                                <label key={freq} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer capitalize bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={section.content.frequencies?.includes(freq) || false}
+                                                        onChange={(e) => {
+                                                            const current = section.content.frequencies || [];
+                                                            const next = e.target.checked
+                                                                ? [...current, freq]
+                                                                : current.filter((f: string) => f !== freq);
+                                                            onUpdate({ frequencies: next });
+                                                        }}
+                                                        className="rounded text-primary focus:ring-primary"
+                                                    />
+                                                    {freq}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Default Amount */}
+                                    <div>
+                                        <label className="text-[10px] text-gray-400">Default Amount ($)</label>
+                                        <input
+                                            type="number"
+                                            value={section.content.defaultAmount || 50}
+                                            onChange={(e) => onUpdate({ defaultAmount: parseInt(e.target.value) })}
+                                            className="input-field"
+                                            placeholder="50"
+                                        />
+                                    </div>
+
+                                    {/* Giving Levels (Tiers) */}
+                                    <div className="space-y-2 pt-4 border-t border-gray-100">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Giving Levels</label>
+                                            <button
+                                                onClick={() => {
+                                                    const newLevels = [...(section.content.givingLevels || [])];
+                                                    newLevels.push({ amount: 25, label: 'Supporter', description: 'Helps us keep the lights on.' });
+                                                    onUpdate({ givingLevels: newLevels });
+                                                }}
+                                                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                                            >
+                                                <Plus size={12} /> Add Level
+                                            </button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {(section.content.givingLevels || []).map((level: any, idx: number) => (
+                                                <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2 relative group">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newLevels = section.content.givingLevels.filter((_: any, i: number) => i !== idx);
+                                                            onUpdate({ givingLevels: newLevels });
+                                                        }}
+                                                        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+
+                                                    <div className="flex gap-2">
+                                                        <div className="w-1/3">
+                                                            <label className="text-[10px] text-gray-400">Amount</label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-2 top-1.5 text-gray-400 text-xs">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={level.amount}
+                                                                    onChange={(e) => {
+                                                                        const newLevels = [...section.content.givingLevels];
+                                                                        newLevels[idx] = { ...level, amount: parseInt(e.target.value) };
+                                                                        onUpdate({ givingLevels: newLevels });
+                                                                    }}
+                                                                    className="w-full pl-5 p-1.5 text-sm border border-gray-200 rounded outline-none focus:border-primary"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-2/3">
+                                                            <label className="text-[10px] text-gray-400">Label</label>
+                                                            <input
+                                                                type="text"
+                                                                value={level.label}
+                                                                onChange={(e) => {
+                                                                    const newLevels = [...section.content.givingLevels];
+                                                                    newLevels[idx] = { ...level, label: e.target.value };
+                                                                    onUpdate({ givingLevels: newLevels });
+                                                                }}
+                                                                className="w-full p-1.5 text-sm border border-gray-200 rounded outline-none focus:border-primary"
+                                                                placeholder="e.g. Bronze"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] text-gray-400">Description</label>
+                                                        <textarea
+                                                            value={level.description}
+                                                            onChange={(e) => {
+                                                                const newLevels = [...section.content.givingLevels];
+                                                                newLevels[idx] = { ...level, description: e.target.value };
+                                                                onUpdate({ givingLevels: newLevels });
+                                                            }}
+                                                            rows={2}
+                                                            className="w-full p-1.5 text-sm border border-gray-200 rounded outline-none focus:border-primary resize-none"
+                                                            placeholder="What does this donation provide?"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(section.content.givingLevels?.length === 0 || !section.content.givingLevels) && (
+                                                <div className="text-xs text-gray-400 text-center py-2 italic">
+                                                    No levels defined. Standard input will be shown.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Button Styling */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Button</label>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="text-[10px] text-gray-400">Text</label>
+                                            <input
+                                                value={section.content.buttonText || 'Donate Now'}
+                                                onChange={(e) => onUpdate({ buttonText: e.target.value })}
+                                                className="input-field"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-gray-400">Color</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="color"
+                                                    value={section.content.buttonColor || '#000000'}
+                                                    onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                                    className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                                />
+                                                <input
+                                                    value={section.content.buttonColor || '#000000'}
+                                                    onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                                    className="input-field flex-1"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
+                                    <p><strong>Receipts:</strong> We automatically collect the user&apos;s email during payment to send them a receipt.</p>
+                                </div>
+
+                                {/* Thank You Page Reminder */}
+                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-purple-600 text-lg">💜</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold text-purple-900 mb-1">Don't Forget: Thank You Page!</h4>
+                                            <p className="text-xs text-purple-700 mb-3">
+                                                After someone completes their donation, they need to see a confirmation.
+                                                Connect a "Thank You" page after this payment page.
+                                            </p>
+                                            <button
+                                                onClick={() => {
+                                                    // This would trigger adding a thank you page node
+                                                    // For now, just show an alert
+                                                    alert('To add a Thank You page:\n\n1. Click the "+" button on this Payment node\n2. Select "Page"\n3. Customize with your thank you message!\n\nTip: Include their donation details and next steps.');
+                                                }}
+                                                className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-purple-700 transition shadow-sm"
+                                            >
+                                                How to Add Thank You Page
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
