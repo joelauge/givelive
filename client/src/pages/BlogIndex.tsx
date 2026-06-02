@@ -23,7 +23,7 @@ export default function BlogIndex() {
                             Discover <span className="text-primary">Free Templates</span>
                         </h1>
                         <p className="text-lg text-gray-500 mb-8">
-                            Browse our library of professionally designed templates for fundraising, events, and more.
+                            Browse our library of professionally designed templates for fundraising, real locations, and more.
                         </p>
 
                         {/* Search Bar */}

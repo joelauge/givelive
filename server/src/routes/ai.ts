@@ -22,7 +22,7 @@ export default async function aiRoutes(server: FastifyInstance) {
                 messages: [
                     {
                         role: "system",
-                        content: `You are an expert user journey builder for GiveLive, a platform for live event engagement and fundraising.
+                        content: `You are an expert user journey builder for GiveLive, a platform for real-location engagement and fundraising.
 Your goal is to translate a user's natural language prompt into a structured flow of nodes and edges for a flow editor.
 
 ### Node Types and Data Structures:

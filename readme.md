@@ -1,4 +1,4 @@
-# GiveLive — Live Event Smart Fundraising Platform  
+# GiveLive — Real-Location Smart Fundraising Platform  
 **Product Requirements Document (PRD)**  
 Version: 1.0
 
@@ -6,7 +6,7 @@ Version: 1.0
 
 ## 📌 Overview
 
-GiveLive is a web app + live-event service that turns real-time audience engagement into donations through QR-driven journeys. At a live event, the organizer displays a QR code. Audience members scan it and begin a dynamic storytelling funnel leading to giving.
+GiveLive is a web app + real-location service that turns real-time scanner engagement into donations through QR-driven journeys. At any real location, the organizer displays a QR code. Scanners scan it and begin a dynamic storytelling funnel leading to giving.
 
 GiveLive uses a *visual automation tree* (like Mailchimp’s customer journey builder) to create personalized multi-step donor funnels that may include videos, text messages, follow-up content, and final donation asks.
 
@@ -14,17 +14,17 @@ GiveLive uses a *visual automation tree* (like Mailchimp’s customer journey bu
 
 ## 🎯 Goals
 
-- Convert anonymous live audiences into segmented donors.
+- Convert anonymous scanners at real locations into segmented donors.
 - Build real-time storytelling funnels starting from a single QR scan.
 - Allow organizers to design a multi-step, branching, personalized donor journey.
 - Optimize donor conversion with analytics and per-node tracking.
-- Support follow-up after the event via text and dynamic pages.
+- Support follow-up after the visit via text and dynamic pages.
 
 ---
 
 ## 🧩 Key Components
 
-### 1. **Live Event QR System**
+### 1. **Real-Location QR System**
 - Each event generates a unique QR code and URL.
 - QR sends users directly to the event’s funnel landing page.
 - Track number of scans, conversions, dropoffs.

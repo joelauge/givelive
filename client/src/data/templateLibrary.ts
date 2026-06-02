@@ -13,7 +13,7 @@ export interface TemplateMetadata {
 export const categories = [
     'All',
     'Fundraising',
-    'Live Events',
+    'Real Locations',
     'Churches',
     'Lead Capture',
     'Online Webinar',
@@ -56,12 +56,12 @@ export const templates: TemplateMetadata[] = [
         iconBg: 'bg-green-100'
     },
 
-    // Live Events (3 templates)
+    // Real Locations (3 templates)
     {
         id: 'event-checkin',
         name: 'Event Check-in',
         description: 'Simple check-in with follow-up',
-        category: 'Live Events',
+        category: 'Real Locations',
         icon: Users,
         iconColor: 'text-purple-600',
         iconBg: 'bg-purple-100'
@@ -69,8 +69,8 @@ export const templates: TemplateMetadata[] = [
     {
         id: 'networking-event',
         name: 'Networking Event',
-        description: 'Connect attendees and collect contacts',
-        category: 'Live Events',
+        description: 'Connect scanners and collect contacts',
+        category: 'Real Locations',
         icon: Users,
         iconColor: 'text-purple-600',
         iconBg: 'bg-purple-100'
@@ -79,7 +79,7 @@ export const templates: TemplateMetadata[] = [
         id: 'conference-agenda',
         name: 'Conference Agenda',
         description: 'Event schedule with session selection',
-        category: 'Live Events',
+        category: 'Real Locations',
         icon: Calendar,
         iconColor: 'text-purple-600',
         iconBg: 'bg-purple-100'

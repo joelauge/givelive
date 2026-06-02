@@ -155,11 +155,11 @@ export default function Home() {
                     <div className="flex flex-col lg:flex-row gap-16 items-center">
                         <div className="lg:w-1/2">
                             <h2 className="text-3xl md:text-5xl font-bold font-display text-gray-900 mb-8 leading-tight">
-                                Live events are powerful <span className="text-accent-blue">lead generators</span>.
+                                Real locations are powerful <span className="text-accent-blue">lead generators</span>.
                             </h2>
                             <div className="space-y-6 text-lg text-gray-500 leading-relaxed">
                                 <p>
-                                    In a digital-first world, real interaction stands out. Marketers agree that live touchpoints—whether at events, in-store, or in-person—are unmatched for building trust and driving immediate acquisition.
+                                    In a digital-first world, real interaction stands out. Marketers agree that on-site touchpoints—whether at a storefront, in-store display, or any real location—are unmatched for building trust and driving immediate acquisition.
                                 </p>
                                 <ul className="space-y-4 mt-6">
                                     <li className="flex items-start gap-4">
@@ -187,12 +187,12 @@ export default function Home() {
                             <div className="bg-surface p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="text-4xl md:text-5xl font-black text-accent-blue mb-2">80%<span className="text-2xl ml-1">+</span></div>
                                 <p className="font-semibold text-gray-900 mb-2">Marketer Adoption</p>
-                                <p className="text-sm text-gray-500">Of marketers use live events specifically for lead generation.</p>
+                                <p className="text-sm text-gray-500">Of marketers use real locations specifically for lead generation.</p>
                             </div>
                             <div className="bg-surface p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:-translate-y-1 transition-transform duration-300 translate-y-8">
                                 <div className="text-4xl md:text-5xl font-black text-accent-purple mb-2">85%<span className="text-2xl ml-1">+</span></div>
                                 <p className="font-semibold text-gray-900 mb-2">Boost Sales</p>
-                                <p className="text-sm text-gray-500">Find that events significantly boost sales and engagement.</p>
+                                <p className="text-sm text-gray-500">Find that activations at real locations significantly boost sales and engagement.</p>
                             </div>
                             <div className="bg-surface p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:-translate-y-1 transition-transform duration-300">
                                 <div className="text-4xl md:text-5xl font-black text-secondary mb-2">14%<span className="text-2xl ml-1">+</span></div>
@@ -235,7 +235,7 @@ export default function Home() {
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3">Digital-to-Physical Bridge</h3>
                             <p className="text-gray-500 leading-relaxed">
-                                Deploy dynamic QR codes that trigger automated workflows. Capture leads at events, in-store, or on-package with zero friction.
+                                Deploy dynamic QR codes that trigger automated workflows. Capture leads at real locations, in-store, or on-package with zero friction.
                             </p>
                         </div>
                         <div className="p-8 rounded-3xl bg-surface border border-gray-100 hover:shadow-xl hover:shadow-secondary/5 hover:-translate-y-1 transition-all duration-300 group">

@@ -33,11 +33,11 @@ const sections: Section[] = [
         id: 'get-started',
         icon: <Rocket size={22} className="text-accent-blue" />,
         title: 'Get started',
-        intro: 'GiveLive helps you turn real-world moments—events, signage, packaging, and in-person touchpoints—into automated lead capture and follow-up using QR-powered journeys.',
+        intro: 'GiveLive helps you turn real-world moments—real locations, signage, packaging, and on-site touchpoints—into automated lead capture and follow-up using QR-powered journeys.',
         steps: [
             {
                 title: 'Create your account',
-                body: 'Click Start Building Free on the homepage and sign in. You land on the dashboard where all your flows (events) live.',
+                body: 'Click Start Building Free on the homepage and sign in. You land on the dashboard where all your flows live.',
             },
             {
                 title: 'Understand the pieces',
@@ -57,7 +57,7 @@ const sections: Section[] = [
             },
             {
                 title: 'Use templates (optional)',
-                body: 'Browse categories like Fundraising, Events, Lead Magnets, and Real Estate. Templates pre-build pages and messages; you customize copy, images, and connections in the journey builder.',
+                body: 'Browse categories like Fundraising, Real Locations, Lead Magnets, and Real Estate. Templates pre-build pages and messages; you customize copy, images, and connections in the journey builder.',
             },
             {
                 title: 'Open the journey builder',
@@ -85,14 +85,14 @@ const sections: Section[] = [
             },
             {
                 title: 'Copy your flow URL and download QR assets',
-                body: 'Use the unique flow URL to test in a browser. Download the QR as SVG or PNG for print, slides, or signage. The preview QR in the panel matches what attendees will scan.',
+                body: 'Use the unique flow URL to test in a browser. Download the QR as SVG or PNG for print, slides, or signage. The preview QR in the panel matches what scanners will use.',
             },
             {
                 title: 'Simple redirect-only flows (optional)',
                 body: 'If you only need to send people to an external site, set Auto-forward URL and enable End flow here on the Start node. You can publish without adding any other steps.',
             },
         ],
-        tip: 'Test before you print: open the flow link on your phone and walk through every step you expect attendees to see.',
+        tip: 'Test before you print: open the flow link on your phone and walk through every step you expect scanners to see.',
     },
     {
         id: 'build-journey',
@@ -150,7 +150,7 @@ const sections: Section[] = [
         id: 'publish',
         icon: <CheckCircle2 size={22} className="text-green-600" />,
         title: 'Publish your flow',
-        intro: 'Publishing writes your canvas to the live journey attendees experience when they scan or open your link.',
+        intro: 'Publishing writes your canvas to the journey scanners experience when they scan or open your link.',
         steps: [
             {
                 title: 'Save your draft',
@@ -178,7 +178,7 @@ const sections: Section[] = [
                 body: 'Print PNG/SVG on signage, badges, table tents, or slides. You can also paste the flow URL in SMS blasts, email signatures, or social bios.',
             },
             {
-                title: 'What attendees experience',
+                title: 'What scanners experience',
                 body: 'They scan → land on your first page (or auto-forward URL) → submit forms or pay → receive scheduled SMS/email → data syncs to integrations you configured.',
             },
             {

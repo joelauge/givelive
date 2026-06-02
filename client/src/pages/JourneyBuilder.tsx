@@ -1523,7 +1523,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                 );
                 break;
 
-            // LIVE EVENTS TEMPLATES
+            // REAL LOCATIONS TEMPLATES
             case 'event-checkin':
                 newNodes.push(
                     {
@@ -1588,7 +1588,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Connect With Others', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
-                                { id: 's2', type: 'text', content: { text: 'Share your info to connect with other attendees', paddingTop: 10, paddingBottom: 20, textAlign: 'center' } },
+                                { id: 's2', type: 'text', content: { text: 'Share your info to connect with other scanners', paddingTop: 10, paddingBottom: 20, textAlign: 'center' } },
                                 { id: 's3', type: 'form', content: { fields: ['name', 'email', 'company', 'linkedin'], buttonText: 'Join Network', buttonColor: '#2563eb' } }
                             ]
                         },
@@ -1601,7 +1601,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             label: 'Connection SMS',
                             type: 'sms',
                             messageType: 'sms',
-                            smsMessage: 'You\'re connected! We\'ll email you a list of attendees after the event.'
+                            smsMessage: 'You\'re connected! We\'ll email you a list of scanners after your visit.'
                         },
                         type: 'default'
                     }

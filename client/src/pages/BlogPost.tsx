@@ -130,7 +130,7 @@ export default function BlogPost() {
                         <h2>Why use this {template.name} template?</h2>
                         <p>
                             Starting from scratch can be tough. Our <strong>{template.name}</strong> template is pre-configured with the optimal flow to maximize conversions.
-                            Whether you're looking to {template.description.toLowerCase()} or simply engage your audience, this template provides the perfect foundation.
+                            Whether you're looking to {template.description.toLowerCase()} or simply engage scanners at your location, this template provides the perfect foundation.
                         </p>
 
                         <div className="my-12 grid md:grid-cols-2 gap-8 not-prose">
