@@ -186,7 +186,7 @@ export default function NodeRenderer({ node, onNext, isSubmitting = false, event
 
                                 if (isDonation) {
                                     // Check for payment gateway
-                                    const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
+                                    const stripeConnected = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
                                     const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
 
                                     if (!stripeConnected && !paypalConnected) {

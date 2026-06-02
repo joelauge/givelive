@@ -15,6 +15,7 @@ import smsRoutes from './routes/sms';
 import analyticsRoutes from './routes/analytics';
 import demoRoutes from './routes/demo';
 import donationRoutes from './routes/donations';
+import billingRoutes from './routes/billing';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
 import aiRoutes from './routes/ai';
@@ -83,6 +84,7 @@ export const createApp = () => {
     server.register(analyticsRoutes, { prefix: '/api' });
     server.register(demoRoutes, { prefix: '/api' });
     server.register(donationRoutes, { prefix: '/api' });
+    server.register(billingRoutes, { prefix: '/api' });
     server.register(uploadRoutes, { prefix: '/api' });
     server.register(aiRoutes, { prefix: '/api' });
     server.register(webhookRoutes, { prefix: '/api' });

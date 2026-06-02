@@ -1,17 +1,36 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, CreditCard, Check, AlertCircle, ShoppingBag, MessageCircle, Instagram, Facebook, Video } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { API_URL } from '../api';
+import { ArrowLeft, CreditCard, Check, AlertCircle, ShoppingBag, MessageCircle, Instagram, Facebook, Video, Sparkles } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import { API_URL, api } from '../api';
 import { SHOW_SOCIAL_TRIGGERS } from '../config/features';
+import { isPlatformStripeConfigured } from '../config/stripe';
+
+const PLAN_LABELS: Record<string, string> = {
+    free: 'Free',
+    starter: 'Starter',
+    growth: 'Growth',
+    pro: 'Pro',
+    enterprise: 'Enterprise',
+};
 
 export default function Settings() {
+    const { user } = useUser();
+    const [searchParams] = useSearchParams();
+    const [billing, setBilling] = useState<{
+        planId: string;
+        aiFollowUpAddon: boolean;
+        hasSubscription: boolean;
+    } | null>(null);
+    const [billingLoading, setBillingLoading] = useState(false);
+
     const [status, setStatus] = useState<any>({
         facebook: false,
         instagram: false,
         tiktok: false,
         whatsapp: false,
         shopify: false,
-        stripe: localStorage.getItem('givelive_stripe_connected') === 'true',
+        stripe: isPlatformStripeConfigured,
         paypal: localStorage.getItem('givelive_paypal_connected') === 'true',
         metadata: {}
     });
@@ -33,7 +52,7 @@ export default function Settings() {
                     ...prev,
                     ...data,
                     // keep local storage mocks for now to avoid breaking existing flow
-                    stripe: prev.stripe,
+                    stripe: isPlatformStripeConfigured,
                     paypal: prev.paypal
                 }));
             })
@@ -107,7 +126,39 @@ export default function Settings() {
         }
 
         fetchStatus();
+
+        if (searchParams.get('billing') === 'success') {
+            setShowSuccess('Subscription updated successfully!');
+            setTimeout(() => setShowSuccess(null), 6000);
+            window.history.replaceState(null, '', '/settings');
+        }
     }, []);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        api.getBillingStatus(user.id)
+            .then((data) =>
+                setBilling({
+                    planId: data.planId,
+                    aiFollowUpAddon: data.aiFollowUpAddon,
+                    hasSubscription: data.hasSubscription,
+                })
+            )
+            .catch(console.error);
+    }, [user?.id, searchParams.get('billing')]);
+
+    const handleManageBilling = async () => {
+        if (!user?.id) return;
+        setBillingLoading(true);
+        try {
+            const { url } = await api.createBillingPortal(user.id);
+            window.location.href = url;
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Could not open billing portal');
+        } finally {
+            setBillingLoading(false);
+        }
+    };
 
     const handleConnectMeta = () => {
         window.location.href = `${API_URL}/auth/facebook`;
@@ -117,29 +168,19 @@ export default function Settings() {
         window.location.href = `${API_URL}/auth/tiktok`;
     };
 
-    const handleConnectPayment = (gateway: 'stripe' | 'paypal') => {
+    const handleConnectPayment = (gateway: 'paypal') => {
         setLoading(true);
         setTimeout(() => {
-            if (gateway === 'stripe') {
-                localStorage.setItem('givelive_stripe_connected', 'true');
-                setStatus((prev: any) => ({ ...prev, stripe: true }));
-            } else {
-                localStorage.setItem('givelive_paypal_connected', 'true');
-                setStatus((prev: any) => ({ ...prev, paypal: true }));
-            }
+            localStorage.setItem('givelive_paypal_connected', 'true');
+            setStatus((prev: any) => ({ ...prev, paypal: true }));
             setLoading(false);
         }, 1500);
     };
 
-    const handleDisconnect = (gateway: 'stripe' | 'paypal') => {
-        if (window.confirm(`Are you sure you want to disconnect ${gateway === 'stripe' ? 'Stripe' : 'PayPal'}? This will disable payments.`)) {
-            if (gateway === 'stripe') {
-                localStorage.removeItem('givelive_stripe_connected');
-                setStatus((prev: any) => ({ ...prev, stripe: false }));
-            } else {
-                localStorage.removeItem('givelive_paypal_connected');
-                setStatus((prev: any) => ({ ...prev, paypal: false }));
-            }
+    const handleDisconnect = (gateway: 'paypal') => {
+        if (window.confirm('Are you sure you want to disconnect PayPal? This will disable PayPal payments.')) {
+            localStorage.removeItem('givelive_paypal_connected');
+            setStatus((prev: any) => ({ ...prev, paypal: false }));
         }
     };
 
@@ -279,13 +320,62 @@ export default function Settings() {
                     </div>
                 </div>
 
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                    <div className="p-6 border-b border-gray-100">
+                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <Sparkles className="text-accent-purple" />
+                            Your GiveLive plan
+                        </h2>
+                        <p className="text-gray-500 text-sm mt-1">
+                            Platform subscription for campaigns, leads, and features.
+                        </p>
+                    </div>
+                    <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <p className="text-2xl font-bold text-gray-900 capitalize">
+                                {PLAN_LABELS[billing?.planId || 'free'] || billing?.planId || 'Free'}
+                            </p>
+                            {billing?.aiFollowUpAddon && (
+                                <p className="text-sm text-accent-purple font-medium mt-1">
+                                    + AI Follow-Up Assistant
+                                </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-2">
+                                {billing?.hasSubscription
+                                    ? 'Manage payment method, invoices, or cancel in Stripe.'
+                                    : 'Upgrade on the pricing page to unlock more campaigns and leads.'}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <Link
+                                to="/pricing"
+                                className="px-4 py-2 rounded-lg border border-gray-200 font-medium text-gray-700 hover:bg-gray-50 transition"
+                            >
+                                View plans
+                            </Link>
+                            {billing?.hasSubscription && (
+                                <button
+                                    onClick={handleManageBilling}
+                                    disabled={billingLoading}
+                                    className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition disabled:opacity-50"
+                                >
+                                    {billingLoading ? 'Opening…' : 'Manage billing'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 border-b border-gray-100">
                         <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                             <CreditCard className="text-primary" />
-                            Payment Gateways
+                            Flow payments (Stripe)
                         </h2>
-                        <p className="text-gray-500 text-sm mt-1">Connect your payment providers to accept payments.</p>
+                        <p className="text-gray-500 text-sm mt-1">
+                            Donations on published flows are processed through the same GiveLive Stripe account as your
+                            platform subscription. Configure keys once on the server; the publishable key enables checkout in the browser.
+                        </p>
                     </div>
 
                     <div className="p-6 space-y-6">
@@ -296,31 +386,21 @@ export default function Settings() {
                                     S
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-900">Stripe</h3>
-                                    <p className="text-xs text-gray-500">Accept credit cards and Apple Pay</p>
+                                    <h3 className="font-bold text-gray-900">Stripe (platform)</h3>
+                                    <p className="text-xs text-gray-500">
+                                        Flow donations → your GiveLive Stripe account
+                                    </p>
                                 </div>
                             </div>
                             <div>
                                 {status.stripe ? (
-                                    <div className="flex items-center gap-4">
-                                        <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                                            <Check size={14} /> Connected
-                                        </span>
-                                        <button
-                                            onClick={() => handleDisconnect('stripe')}
-                                            className="text-sm text-gray-400 hover:text-red-500 underline"
-                                        >
-                                            Disconnect
-                                        </button>
-                                    </div>
+                                    <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                        <Check size={14} /> Active
+                                    </span>
                                 ) : (
-                                    <button
-                                        onClick={() => handleConnectPayment('stripe')}
-                                        disabled={loading}
-                                        className="px-4 py-2 bg-[#635BFF] text-white rounded-lg font-medium hover:bg-[#544DCB] transition shadow-sm disabled:opacity-50"
-                                    >
-                                        {loading ? 'Connecting...' : 'Connect Stripe'}
-                                    </button>
+                                    <span className="text-xs text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-lg max-w-[200px] text-right leading-snug">
+                                        Set VITE_STRIPE_PUBLISHABLE_KEY (client) and STRIPE_SECRET_KEY (server / Vercel)
+                                    </span>
                                 )}
                             </div>
                         </div>

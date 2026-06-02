@@ -12,6 +12,7 @@ import TermsOfService from './pages/TermsOfService';
 import BlogIndex from './pages/BlogIndex';
 import BlogPost from './pages/BlogPost';
 import HowTo from './pages/HowTo';
+import Pricing from './pages/Pricing';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/blog" element={<BlogIndex />} />
         <Route path="/blog/:templateId" element={<BlogPost />} />
         <Route path="/how-to" element={<HowTo />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/template-preview/:templateId" element={<JourneyBuilder previewMode={true} />} />
         <Route
           path="/admin"

@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import Stripe from 'stripe';
 import { query } from '../db';
+import { getStripe } from '../lib/stripe';
+import { processBillingWebhookEvent } from './billing';
 
 interface DonationBody {
     event_id: string;
@@ -16,15 +18,11 @@ interface DonationBody {
 }
 
 export default async function donationRoutes(server: FastifyInstance) {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const stripe = getStripe();
 
-    if (!stripeSecretKey) {
+    if (!stripe) {
         server.log.warn('STRIPE_SECRET_KEY not set - payment processing will be in test mode');
     }
-
-    const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
-        apiVersion: '2025-12-15.clover',
-    }) : null;
 
     server.post<{ Body: DonationBody }>('/donations/create-intent', async (request, reply) => {
         try {
@@ -209,6 +207,14 @@ export default async function donationRoutes(server: FastifyInstance) {
             );
 
             server.log.info(`[Stripe Webhook] Received event: ${event.type}`);
+
+            const handledByBilling = await processBillingWebhookEvent(event, {
+                info: (msg) => server.log.info(msg),
+                error: (msg) => server.log.error(msg),
+            });
+            if (handledByBilling) {
+                return reply.send({ received: true });
+            }
 
             switch (event.type) {
                 case 'payment_intent.succeeded':

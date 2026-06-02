@@ -238,7 +238,7 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
 
                             {data.type === 'donation' && (
                                 <button onClick={() => {
-                                    const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
+                                    const stripeConnected = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
                                     const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
 
                                     if (!stripeConnected && !paypalConnected) {

@@ -558,28 +558,13 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
 
                 {section.type === 'payment' && (
                     <div className="space-y-4">
-                        {!localStorage.getItem('givelive_stripe_connected') ? (
-                            <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center space-y-4 mb-6">
-                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
-                                    <CreditCard size={24} />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="font-medium text-gray-900">Accept Payments</h3>
-                                    <p className="text-sm text-gray-500">Connect Stripe to configure donation options.</p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        const confirm = window.confirm("This would redirect to Stripe Connect. Simulating connection now?");
-                                        if (confirm) {
-                                            localStorage.setItem('givelive_stripe_connected', 'true');
-                                            window.location.reload(); // Reload to refresh state
-                                        }
-                                    }}
-                                    className="btn-primary w-full py-2 flex items-center justify-center gap-2"
-                                >
-                                    <CreditCard size={16} />
-                                    Connect Stripe
-                                </button>
+                        {!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 mb-6">
+                                <p className="font-medium">Stripe not configured</p>
+                                <p className="mt-1 text-amber-800/90">
+                                    Payment pages require <code className="text-xs">VITE_STRIPE_PUBLISHABLE_KEY</code> (client)
+                                    and <code className="text-xs">STRIPE_SECRET_KEY</code> (server). Both use the same GiveLive Stripe account.
+                                </p>
                             </div>
                         ) : (
                             <>

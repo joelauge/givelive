@@ -115,5 +115,45 @@ export const api = {
         });
         if (!res.ok) throw new Error('Failed to delete event');
         return res.json();
-    }
+    },
+
+    getBillingStatus: async (orgId: string) => {
+        const res = await fetch(`${API_URL}/billing/status?org_id=${encodeURIComponent(orgId)}`);
+        if (!res.ok) throw new Error('Failed to load billing status');
+        return res.json();
+    },
+
+    getBillingPlansAvailable: async () => {
+        const res = await fetch(`${API_URL}/billing/plans-available`);
+        if (!res.ok) throw new Error('Failed to load billing plans');
+        return res.json();
+    },
+
+    createBillingCheckout: async (data: {
+        org_id: string;
+        plan_id: 'starter' | 'growth' | 'pro';
+        email?: string;
+        name?: string;
+        include_ai_addon?: boolean;
+    }) => {
+        const res = await fetch(`${API_URL}/billing/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to start checkout');
+        return body as { url: string; sessionId: string };
+    },
+
+    createBillingPortal: async (orgId: string) => {
+        const res = await fetch(`${API_URL}/billing/portal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ org_id: orgId }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to open billing portal');
+        return body as { url: string };
+    },
 };

@@ -155,7 +155,11 @@ export default function Home() {
                     <div className="flex flex-col lg:flex-row gap-16 items-center">
                         <div className="lg:w-1/2">
                             <h2 className="text-3xl md:text-5xl font-bold font-display text-gray-900 mb-8 leading-tight">
-                                Real locations are powerful <span className="text-accent-blue">lead generators</span>.
+                                Live events and real-world experiences and locations are powerful{' '}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-blue via-accent-purple to-secondary">
+                                    lead-gen opportunities
+                                </span>
+                                .
                             </h2>
                             <div className="space-y-6 text-lg text-gray-500 leading-relaxed">
                                 <p>
@@ -322,7 +326,7 @@ export default function Home() {
                         <h4 className="font-bold text-white mb-4">Product</h4>
                         <ul className="space-y-2">
                             <li><a href="#" className="hover:text-white transition">Features</a></li>
-                            <li><a href="#" className="hover:text-white transition">Pricing</a></li>
+                            <li><Link to="/pricing" className="hover:text-white transition">Pricing</Link></li>
                             <li><a href="#" className="hover:text-white transition">Case Studies</a></li>
                             <li><Link to="/how-to" className="hover:text-white transition">How To</Link></li>
                         </ul>
