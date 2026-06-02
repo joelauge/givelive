@@ -45,7 +45,7 @@ export async function handleBillingStripeEvent(
             const customerId =
                 typeof sub.customer === 'string' ? sub.customer : sub.customer?.id;
 
-            let targetOrgId = orgId;
+            let targetOrgId: string | undefined = orgId;
             if (!targetOrgId && customerId) {
                 const org = await findOrganizationByStripeCustomer(customerId);
                 targetOrgId = org?.id;
@@ -93,7 +93,7 @@ export async function handleBillingStripeEvent(
             const customerId =
                 typeof sub.customer === 'string' ? sub.customer : sub.customer?.id;
 
-            let targetOrgId = orgId;
+            let targetOrgId: string | undefined = orgId;
             if (!targetOrgId && customerId) {
                 const org = await findOrganizationByStripeCustomer(customerId);
                 targetOrgId = org?.id;
