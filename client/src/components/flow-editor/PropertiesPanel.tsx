@@ -1,4 +1,4 @@
-import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2, CreditCard, Plus, Grid, X, Loader2, Link as LinkIcon, FileDown } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2, Plus, Grid, X, Loader2, Link as LinkIcon, FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { API_URL } from '../../api';
 

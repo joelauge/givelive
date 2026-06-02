@@ -168,7 +168,7 @@ export default function Settings() {
         window.location.href = `${API_URL}/auth/tiktok`;
     };
 
-    const handleConnectPayment = (gateway: 'paypal') => {
+    const handleConnectPayment = () => {
         setLoading(true);
         setTimeout(() => {
             localStorage.setItem('givelive_paypal_connected', 'true');
@@ -177,7 +177,7 @@ export default function Settings() {
         }, 1500);
     };
 
-    const handleDisconnect = (gateway: 'paypal') => {
+    const handleDisconnect = () => {
         if (window.confirm('Are you sure you want to disconnect PayPal? This will disable PayPal payments.')) {
             localStorage.removeItem('givelive_paypal_connected');
             setStatus((prev: any) => ({ ...prev, paypal: false }));
@@ -423,7 +423,7 @@ export default function Settings() {
                                             <Check size={14} /> Connected
                                         </span>
                                         <button
-                                            onClick={() => handleDisconnect('paypal')}
+                                            onClick={() => handleDisconnect()}
                                             className="text-sm text-gray-400 hover:text-red-500 underline"
                                         >
                                             Disconnect
@@ -431,7 +431,7 @@ export default function Settings() {
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => handleConnectPayment('paypal')}
+                                        onClick={() => handleConnectPayment()}
                                         disabled={loading}
                                         className="px-4 py-2 bg-[#003087] text-white rounded-lg font-medium hover:bg-[#002569] transition shadow-sm disabled:opacity-50"
                                     >
