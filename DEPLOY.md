@@ -18,6 +18,7 @@ Set the following variables in your Vercel Project Settings:
 - `DATABASE_URL`: Connection string to your production PostgreSQL database.
 - `givelive_POSTGRES_URL`: (Optional) Alternate connection string if using matching local setups.
 - `VITE_API_URL`: `/api` (Optional, defaults correctly).
+- `VITE_CLERK_PUBLISHABLE_KEY`: Your Clerk Publishable Key (from Clerk Dashboard).
 - Any other service keys (Twilio, SendGrid/Nodemailer, etc.) used in your `.env`.
 
 ## Database Migration

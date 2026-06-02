@@ -1,9 +1,15 @@
 import { FastifyInstance } from 'fastify';
 import { query } from '../db';
+import { IntegrationService } from '../services/integrations';
+import { validatePublishFlow } from '../lib/journeyValidation';
+
+function socialTriggersEnabledFromEnv(): boolean {
+    return process.env.SHOW_SOCIAL_TRIGGERS === 'true';
+}
 
 interface NodeBody {
     event_id: string;
-    type: 'page' | 'sms' | 'delay' | 'condition' | 'donation' | 'end';
+    type: 'page' | 'sms' | 'delay' | 'condition' | 'donation' | 'end' | 'fub' | 'salesforce' | 'hubspot' | 'constant_contact' | 'mailchimp' | 'brevo' | 'zapier' | 'make' | 'n8n';
     config?: any;
     next_nodes?: any[];
 }
@@ -108,6 +114,20 @@ export default async function journeyRoutes(server: FastifyInstance) {
             const { eventId } = request.params;
             const { nodes, edges } = request.body;
 
+            const validationErrors = validatePublishFlow({
+                nodes,
+                edges,
+                socialTriggersEnabled: socialTriggersEnabledFromEnv(),
+            });
+
+            if (validationErrors.length > 0) {
+                reply.code(400).send({
+                    error: 'Cannot publish journey',
+                    validationErrors,
+                });
+                return;
+            }
+
             // 1. Clear existing nodes
             await query('DELETE FROM journey_nodes WHERE event_id = $1', [eventId]);
 
@@ -146,24 +166,24 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 }
             }
 
-            // 4. Now update next_nodes with mapped UUIDs
+            // 4. Now update next_nodes with mapped UUIDs and Handles
             for (const node of nodes) {
                 const dbNodeId = idMapping.get(node.id);
                 if (!dbNodeId) continue;
 
                 // Find edges starting from this node
                 const outboundEdges = edges.filter((e: any) => e.source === node.id);
-                const frontendNextNodeIds = outboundEdges.map((e: any) => e.target);
 
-                // Map frontend IDs to database UUIDs
-                const dbNextNodeIds = frontendNextNodeIds
-                    .map((frontendId: string) => idMapping.get(frontendId))
-                    .filter((id): id is string => id !== undefined);
+                // Map to { nodeId, handle } to preserve branching logic
+                const nextNodesData = outboundEdges.map((e: any) => ({
+                    nodeId: idMapping.get(e.target),
+                    handle: e.sourceHandle || 'default'
+                })).filter((n: any) => n.nodeId);
 
                 // Update next_nodes
                 await query(
                     'UPDATE journey_nodes SET next_nodes = $1 WHERE id = $2',
-                    [JSON.stringify(dbNextNodeIds), dbNodeId]
+                    [JSON.stringify(nextNodesData), dbNodeId]
                 );
             }
 
@@ -185,6 +205,51 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 error: 'Failed to publish journey',
                 details: err.message || 'Internal Server Error'
             });
+        }
+    });
+
+    // Test Integration Connection
+    server.post<{ Body: { type: string; config: any } }>('/journey/test-connection', async (request, reply) => {
+        try {
+            const { type, config } = request.body;
+            const result = await IntegrationService.validateConnection(type, config);
+            return result;
+        } catch (err: any) {
+            server.log.error(err);
+            reply.code(200).send({ success: false, message: err.message || 'Validation failed' });
+        }
+    });
+
+    // Sync Lead to Integration
+    server.post<{ Body: { userId: string; nodeId: string } }>('/journey/sync-lead', async (request, reply) => {
+        try {
+            const { userId, nodeId } = request.body;
+
+            // 1. Get User Data
+            const userRes = await query('SELECT email, first_name, last_name, phone_number FROM users WHERE id = $1', [userId]);
+            if (userRes.rows.length === 0) {
+                return { success: false, message: 'User not found' };
+            }
+            const user = userRes.rows[0];
+
+            if (!user.email) {
+                return { success: false, message: 'User email missing, cannot sync' };
+            }
+
+            // 2. Get Node Config
+            const nodeRes = await query('SELECT * FROM journey_nodes WHERE id = $1', [nodeId]);
+            if (nodeRes.rows.length === 0) {
+                return { success: false, message: 'Node not found' };
+            }
+            const node = nodeRes.rows[0];
+            const config = node.config || {};
+
+            // 3. Sync
+            const result = await IntegrationService.syncLead(node.type, config, user);
+            return result;
+        } catch (err: any) {
+            server.log.error(err);
+            reply.code(500).send({ success: false, message: err.message || 'Sync failed' });
         }
     });
 }

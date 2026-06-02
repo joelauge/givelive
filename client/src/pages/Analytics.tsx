@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, Users as UsersIcon, Mail, Phone, Calendar, DollarSign, Activity } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Download, Users as UsersIcon, Mail, Phone, Calendar, DollarSign, Activity, ChevronDown, ChevronRight } from 'lucide-react';
 import Logo from '../components/Logo';
 import { api } from '../api';
 
@@ -18,15 +18,37 @@ interface User {
     total_donated: number;
 }
 
+interface GroupedUser {
+    key: string;
+    name: string;
+    email: string;
+    phone: string;
+    submissions: User[];
+    totalSessions: number;
+    totalDonated: number;
+    firstSeen: string;
+    lastSeen: string;
+}
+
 export default function Analytics() {
-    const [selectedEvent, setSelectedEvent] = useState('');
+    const { eventId } = useParams();
+    const navigate = useNavigate();
+    const [selectedEvent, setSelectedEvent] = useState(eventId || '');
     const [events, setEvents] = useState<any[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         loadEvents();
     }, []);
+
+    useEffect(() => {
+        // If URL param changes, update state
+        if (eventId) {
+            setSelectedEvent(eventId);
+        }
+    }, [eventId]);
 
     useEffect(() => {
         if (selectedEvent) {
@@ -38,8 +60,13 @@ export default function Analytics() {
         try {
             const eventList = await api.getEvents();
             setEvents(eventList);
-            if (eventList.length > 0) {
-                setSelectedEvent(eventList[0].id);
+
+            // If no event selected via URL, select the first one and navigate
+            if (!eventId && eventList.length > 0) {
+                const firstEventId = eventList[0].id;
+                setSelectedEvent(firstEventId);
+                // navigate(`/analytics/${firstEventId}`, { replace: true });
+                navigate(`/analytics/${firstEventId}`, { replace: true });
             }
         } catch (err) {
             console.error('Failed to load events:', err);
@@ -54,15 +81,13 @@ export default function Analytics() {
             const response = await fetch(`/api/users/event/${selectedEvent}`);
 
             if (!response.ok) {
-                // Database tables might not exist yet
                 console.error('Failed to load users:', response.status);
-                setUsers([]); // Set empty array instead of crashing
+                setUsers([]);
                 return;
             }
 
             const data = await response.json();
 
-            // Ensure we got an array
             if (Array.isArray(data)) {
                 setUsers(data);
             } else {
@@ -71,10 +96,74 @@ export default function Analytics() {
             }
         } catch (err) {
             console.error('Failed to load users:', err);
-            setUsers([]); // Set empty array on error
+            setUsers([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    // Group users by profile (phone/email match = same user profile)
+    const groupedUsers = useMemo(() => {
+        const groups = new Map<string, GroupedUser>();
+
+        users.forEach(user => {
+            // Profile-based grouping: phone or email creates the profile key
+            const key = user.phone_number || user.email || user.id;
+
+            if (groups.has(key)) {
+                const group = groups.get(key)!;
+                group.submissions.push(user);
+                group.totalSessions += user.total_sessions || 0;
+                group.totalDonated += Number(user.total_donated) || 0;
+
+                // Build up profile data across sessions
+                if (!group.name && (user.first_name || user.last_name)) {
+                    group.name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                }
+                if (!group.email && user.email) {
+                    group.email = user.email;
+                }
+                if (!group.phone && user.phone_number) {
+                    group.phone = user.phone_number;
+                }
+
+                // Update first/last seen
+                if (new Date(user.created_at) < new Date(group.firstSeen)) {
+                    group.firstSeen = user.created_at;
+                }
+                if (new Date(user.last_seen) > new Date(group.lastSeen)) {
+                    group.lastSeen = user.last_seen;
+                }
+            } else {
+                groups.set(key, {
+                    key,
+                    name: user.first_name || user.last_name
+                        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                        : 'Anonymous User',
+                    email: user.email,
+                    phone: user.phone_number,
+                    submissions: [user],
+                    totalSessions: user.total_sessions || 0,
+                    totalDonated: Number(user.total_donated) || 0,
+                    firstSeen: user.created_at,
+                    lastSeen: user.last_seen
+                });
+            }
+        });
+
+        return Array.from(groups.values());
+    }, [users]);
+
+    const toggleRow = (key: string) => {
+        setExpandedRows(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(key)) {
+                newSet.delete(key);
+            } else {
+                newSet.add(key);
+            }
+            return newSet;
+        });
     };
 
     const exportCSV = () => {
@@ -93,8 +182,8 @@ export default function Analytics() {
         });
     };
 
-    const totalDonations = users.reduce((sum, u) => sum + (Number(u.total_donated) || 0), 0);
-    const totalSessions = users.reduce((sum, u) => sum + (u.total_sessions || 0), 0);
+    const totalDonations = groupedUsers.reduce((sum, g) => sum + g.totalDonated, 0);
+    const totalSessions = groupedUsers.reduce((sum, g) => sum + g.totalSessions, 0);
 
     return (
         <div className="min-h-screen bg-background">
@@ -119,7 +208,7 @@ export default function Analytics() {
                         {/* Event Filter */}
                         <select
                             value={selectedEvent}
-                            onChange={(e) => setSelectedEvent(e.target.value)}
+                            onChange={(e) => navigate(`/analytics/${e.target.value}`)}
                             className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-primary transition"
                         >
                             {events.map(event => (
@@ -148,8 +237,8 @@ export default function Analytics() {
                                 <UsersIcon size={20} className="text-blue-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold text-gray-900">{users.length}</div>
-                                <div className="text-xs text-gray-500">Total Users</div>
+                                <div className="text-2xl font-bold text-gray-900">{groupedUsers.length}</div>
+                                <div className="text-xs text-gray-500">Unique Profiles</div>
                             </div>
                         </div>
                     </div>
@@ -185,7 +274,7 @@ export default function Analytics() {
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900">
-                                    {users.length > 0 ? (totalSessions / users.length).toFixed(1) : 0}
+                                    {groupedUsers.length > 0 ? (totalSessions / groupedUsers.length).toFixed(1) : 0}
                                 </div>
                                 <div className="text-xs text-gray-500">Avg Sessions</div>
                             </div>
@@ -197,7 +286,7 @@ export default function Analytics() {
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-gray-100">
                         <h2 className="font-bold text-gray-900">User Profiles</h2>
-                        <p className="text-sm text-gray-500">All users who have interacted with this event</p>
+                        <p className="text-sm text-gray-500">Profiles built from phone/email across all sessions</p>
                     </div>
 
                     {loading ? (
@@ -205,7 +294,7 @@ export default function Analytics() {
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                             <p className="mt-4">Loading users...</p>
                         </div>
-                    ) : users.length === 0 ? (
+                    ) : groupedUsers.length === 0 ? (
                         <div className="p-12 text-center">
                             <UsersIcon size={48} className="mx-auto mb-4 opacity-20 text-gray-400" />
                             <h3 className="text-lg font-bold text-gray-900 mb-2">No User Data Yet</h3>
@@ -226,6 +315,7 @@ export default function Analytics() {
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b border-gray-100">
                                     <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-8"></th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Contact</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sessions</th>
@@ -235,51 +325,98 @@ export default function Analytics() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {users.map(user => (
-                                        <tr key={user.id} className="hover:bg-gray-50 transition">
-                                            <td className="px-4 py-3">
-                                                <div className="font-medium text-gray-900">
-                                                    {user.first_name || user.last_name
-                                                        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-                                                        : 'Anonymous User'}
-                                                </div>
-                                                <div className="text-xs text-gray-500">ID: {user.id.slice(0, 8)}...</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="space-y-1">
-                                                    {user.email && (
-                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                            <Mail size={14} className="text-gray-400" />
-                                                            {user.email}
+                                    {groupedUsers.map(group => (
+                                        <>
+                                            <tr
+                                                key={group.key}
+                                                className="hover:bg-gray-50 transition cursor-pointer"
+                                                onClick={() => group.submissions.length > 1 && toggleRow(group.key)}
+                                            >
+                                                <td className="px-4 py-3">
+                                                    {group.submissions.length > 1 && (
+                                                        <button className="text-gray-400 hover:text-primary transition">
+                                                            {expandedRows.has(group.key) ? (
+                                                                <ChevronDown size={16} />
+                                                            ) : (
+                                                                <ChevronRight size={16} />
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="font-medium text-gray-900">{group.name}</div>
+                                                    {group.submissions.length > 1 && (
+                                                        <div className="text-xs text-primary font-medium">
+                                                            {group.submissions.length} submissions
                                                         </div>
                                                     )}
-                                                    {user.phone_number && (
-                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                            <Phone size={14} className="text-gray-400" />
-                                                            {user.phone_number}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="space-y-1">
+                                                        {group.email && (
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                <Mail size={14} className="text-gray-400" />
+                                                                {group.email}
+                                                            </div>
+                                                        )}
+                                                        {group.phone && (
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                <Phone size={14} className="text-gray-400" />
+                                                                {group.phone}
+                                                            </div>
+                                                        )}
+                                                        {!group.email && !group.phone && (
+                                                            <span className="text-xs text-gray-400">No contact info</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="text-sm font-medium text-gray-900">{group.totalSessions}</div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="text-sm font-medium text-green-600">
+                                                        ${group.totalDonated.toFixed(2)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="text-sm text-gray-600">{formatDate(group.firstSeen)}</div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="text-sm text-gray-600">{formatDate(group.lastSeen)}</div>
+                                                </td>
+                                            </tr>
+
+                                            {/* Expanded Submissions */}
+                                            {expandedRows.has(group.key) && group.submissions.map((submission, idx) => (
+                                                <tr key={submission.id} className="bg-gray-50">
+                                                    <td className="px-4 py-2"></td>
+                                                    <td className="px-4 py-2">
+                                                        <div className="text-xs text-gray-500 ml-6">
+                                                            └ Submission #{idx + 1}
                                                         </div>
-                                                    )}
-                                                    {!user.email && !user.phone_number && (
-                                                        <span className="text-xs text-gray-400">No contact info</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="text-sm font-medium text-gray-900">{user.total_sessions || 0}</div>
-                                                <div className="text-xs text-gray-500">{user.submission_count || 0} submissions</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="text-sm font-medium text-green-600">
-                                                    ${Number(user.total_donated || 0).toFixed(2)}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="text-sm text-gray-600">{formatDate(user.created_at)}</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="text-sm text-gray-600">{formatDate(user.last_seen)}</div>
-                                            </td>
-                                        </tr>
+                                                        <div className="text-xs text-gray-400 ml-6">
+                                                            ID: {submission.id.slice(0, 8)}...
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-2"></td>
+                                                    <td className="px-4 py-2">
+                                                        <div className="text-xs text-gray-600">{submission.total_sessions || 0}</div>
+                                                        <div className="text-xs text-gray-400">{submission.submission_count || 0} subs</div>
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <div className="text-xs text-green-600">
+                                                            ${Number(submission.total_donated || 0).toFixed(2)}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <div className="text-xs text-gray-600">{formatDate(submission.created_at)}</div>
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <div className="text-xs text-gray-600">{formatDate(submission.last_seen)}</div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </>
                                     ))}
                                 </tbody>
                             </table>

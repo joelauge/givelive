@@ -8,6 +8,7 @@ interface SmsEditorProps {
 
 export default function SmsEditor({ data, onUpdate }: SmsEditorProps) {
     const [message, setMessage] = useState(data.message || '');
+    const [isEndNode, setIsEndNode] = useState<boolean>(data.isEndNode || false);
 
     const onUpdateRef = useRef(onUpdate);
     useEffect(() => {
@@ -16,10 +17,10 @@ export default function SmsEditor({ data, onUpdate }: SmsEditorProps) {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            onUpdateRef.current({ message });
+            onUpdateRef.current({ message, isEndNode });
         }, 500);
         return () => clearTimeout(timer);
-    }, [message]);
+    }, [message, isEndNode]);
 
     return (
         <div className="p-6 space-y-6">
@@ -41,6 +42,30 @@ export default function SmsEditor({ data, onUpdate }: SmsEditorProps) {
                 <p className="text-xs text-gray-500 mt-2">
                     Standard SMS rates apply. Messages over 160 characters will be split.
                 </p>
+            </div>
+            {/* End Journey Toggle */}
+            <div className="mb-4 p-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-purple-300 transition">
+                <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex-1">
+                        <div className="text-sm font-bold text-gray-900 group-hover:text-purple-600 transition">End Journey Here</div>
+                        <p className="text-xs text-gray-500 mt-0.5">Mark this message as the final step in the user journey</p>
+                    </div>
+                    <div className="relative">
+                        <input
+                            type="checkbox"
+                            checked={isEndNode}
+                            onChange={(e) => setIsEndNode(e.target.checked)}
+                            className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </div>
+                </label>
+                {isEndNode && (
+                    <div className="mt-3 pt-3 border-t border-purple-100 flex items-center gap-2 text-xs text-purple-700 bg-purple-50 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
+                        <span className="text-base">✓</span>
+                        <span className="font-medium">This message will end the journey - no next steps needed</span>
+                    </div>
+                )}
             </div>
 
             {/* Preview */}

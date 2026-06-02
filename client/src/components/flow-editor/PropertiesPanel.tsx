@@ -1,4 +1,4 @@
-import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2, CreditCard, Plus } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Video, Layout, Check, Trash2, CreditCard, Plus, Grid, X, Loader2, Link as LinkIcon, FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { API_URL } from '../../api';
 
@@ -11,6 +11,25 @@ interface PropertiesPanelProps {
 
 export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }: PropertiesPanelProps) {
     const [uploading, setUploading] = useState(false);
+    const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+    const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+    const [loadingMedia, setLoadingMedia] = useState(false);
+
+    const openMediaLibrary = async () => {
+        setShowMediaLibrary(true);
+        setLoadingMedia(true);
+        try {
+            const res = await fetch(`${API_URL}/upload/list`);
+            if (res.ok) {
+                const data = await res.json();
+                setMediaFiles(data.files || []);
+            }
+        } catch (e) {
+            console.error('Failed to load media library', e);
+        } finally {
+            setLoadingMedia(false);
+        }
+    };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -64,6 +83,12 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                 });
             }
 
+            if (section.type === 'download') {
+                updates.fileUrl = publicUrl;
+                updates.fileName = file.name;
+                updates.fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+
             onUpdate(updates);
 
         } catch (error) {
@@ -83,6 +108,8 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                         {section.type === 'text' && <Type size={16} />}
                         {section.type === 'image' && <ImageIcon size={16} />}
                         {section.type === 'video' && <Video size={16} />}
+                        {section.type === 'link' && <LinkIcon size={16} />}
+                        {section.type === 'download' && <FileDown size={16} />}
                     </div>
                     <span className="font-bold text-gray-900 capitalize">{section.type} Settings</span>
                 </div>
@@ -246,40 +273,112 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                     </div>
                 )}
 
-                {(section.type === 'image' || section.type === 'video') && (
+                {(section.type === 'image' || section.type === 'video' || section.type === 'download') && (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Source</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                {section.type === 'download' ? 'File Asset' : 'Source'}
+                            </label>
                             <div className="relative">
                                 <input
                                     type="file"
-                                    accept={section.type === 'image' ? "image/*" : "video/*"}
+                                    accept={section.type === 'image' ? "image/*" : section.type === 'video' ? "video/*" : "*/*"}
                                     onChange={handleFileUpload}
                                     className="hidden"
                                     id="file-upload"
                                 />
                                 <label
                                     htmlFor="file-upload"
-                                    className="flex items-center justify-center gap-2 w-full p-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-primary hover:bg-primary/5 cursor-pointer transition text-gray-500"
+                                    className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-primary hover:bg-primary/5 cursor-pointer transition text-gray-500 group"
                                 >
                                     {uploading ? (
-                                        <span className="animate-pulse">Uploading...</span>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Loader2 size={24} className="animate-spin text-primary" />
+                                            <span className="text-xs font-medium">Uploading...</span>
+                                        </div>
+                                    ) : section.type === 'download' && section.content.fileUrl ? (
+                                        <div className="flex flex-col items-center gap-2 text-primary">
+                                            <div className="p-2 bg-primary/10 rounded-full">
+                                                <FileDown size={24} />
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-sm font-bold text-gray-900 line-clamp-1 break-all px-4">{section.content.fileName}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5">{section.content.fileSize || 'Ready to download'}</div>
+                                            </div>
+                                            <div className="text-[10px] text-gray-400 mt-2 bg-white px-2 py-1 rounded border border-gray-100 shadow-sm group-hover:border-primary/20">
+                                                Click to Replace
+                                            </div>
+                                        </div>
                                     ) : (
-                                        <>
-                                            <Upload size={16} />
-                                            <span className="text-sm font-medium">Upload File</span>
-                                        </>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Upload size={20} className="group-hover:scale-110 transition-transform" />
+                                            <span className="text-sm font-medium">Upload File (Max 50MB)</span>
+                                        </div>
                                     )}
                                 </label>
                             </div>
-                            <div className="text-center text-xs text-gray-400 my-2">- OR -</div>
-                            <input
-                                value={section.content.url}
-                                onChange={(e) => onUpdate({ url: e.target.value })}
-                                className="input-field"
-                                placeholder="Paste URL"
-                            />
+
+                            {section.type !== 'download' && (
+                                <>
+                                    <button
+                                        onClick={openMediaLibrary}
+                                        className="w-full py-2 mt-2 flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-medium transition border border-gray-200"
+                                    >
+                                        <Grid size={14} />
+                                        Select from Library
+                                    </button>
+                                    <div className="text-center text-xs text-gray-400 my-2">- OR -</div>
+                                    <input
+                                        value={section.content.url || ''}
+                                        onChange={(e) => onUpdate({ url: e.target.value })}
+                                        className="input-field"
+                                        placeholder="Paste URL"
+                                    />
+                                </>
+                            )}
                         </div>
+
+                        {section.type === 'download' && (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Button Configuration</label>
+                                    <div>
+                                        <label className="text-[10px] text-gray-400">Button Text</label>
+                                        <input
+                                            value={section.content.buttonText || ''}
+                                            onChange={(e) => onUpdate({ buttonText: e.target.value })}
+                                            className="input-field"
+                                            placeholder="Download Now"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-400">Button Color</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="color"
+                                                value={section.content.buttonColor || '#000000'}
+                                                onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                                className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                            />
+                                            <input
+                                                value={section.content.buttonColor || '#000000'}
+                                                onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                                className="input-field flex-1"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-400">File Name Label (Optional)</label>
+                                        <input
+                                            value={section.content.fileName || ''}
+                                            onChange={(e) => onUpdate({ fileName: e.target.value })}
+                                            className="input-field"
+                                            placeholder="e.g. 2024 Impact Report"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         {section.type === 'image' && (
                             <div className="space-y-2">
@@ -672,7 +771,180 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                         )}
                     </div>
                 )}
+
+                {section.type === 'link' && (
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Configuration</label>
+
+                            {/* URL */}
+                            <div>
+                                <label className="text-[10px] text-gray-400">URL</label>
+                                <input
+                                    value={section.content.url}
+                                    onChange={(e) => onUpdate({ url: e.target.value })}
+                                    className="input-field"
+                                    placeholder="https://"
+                                />
+                            </div>
+
+                            {/* Label */}
+                            <div>
+                                <label className="text-[10px] text-gray-400">Label (Text)</label>
+                                <input
+                                    value={section.content.label}
+                                    onChange={(e) => onUpdate({ label: e.target.value })}
+                                    className="input-field"
+                                    placeholder="Click Here"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Style Picker */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Style</label>
+                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => onUpdate({ style: 'button' })}
+                                    className={`flex-1 py-1 text-xs font-medium rounded-md transition ${section.content.style === 'button' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Button
+                                </button>
+                                <button
+                                    onClick={() => onUpdate({ style: 'text' })}
+                                    className={`flex-1 py-1 text-xs font-medium rounded-md transition ${section.content.style === 'text' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Text Link
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Colors based on style */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Appearance</label>
+
+                            {section.content.style === 'button' ? (
+                                <div>
+                                    <label className="text-[10px] text-gray-400">Button Color</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={section.content.buttonColor || '#000000'}
+                                            onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                            className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                        />
+                                        <input
+                                            value={section.content.buttonColor || '#000000'}
+                                            onChange={(e) => onUpdate({ buttonColor: e.target.value })}
+                                            className="input-field flex-1"
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="text-[10px] text-gray-400">Text Color</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={section.content.textColor || '#000000'}
+                                            onChange={(e) => onUpdate({ textColor: e.target.value })}
+                                            className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                        />
+                                        <input
+                                            value={section.content.textColor || '#000000'}
+                                            onChange={(e) => onUpdate({ textColor: e.target.value })}
+                                            className="input-field flex-1"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Alignment */}
+                            <div className="pt-2">
+                                <label className="text-[10px] text-gray-400 block mb-1">Alignment</label>
+                                <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200 w-fit">
+                                    <button
+                                        onClick={() => onUpdate({ textAlign: 'left' })}
+                                        className={`p-1.5 rounded ${section.content.textAlign === 'left' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        <AlignLeft size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => onUpdate({ textAlign: 'center' })}
+                                        className={`p-1.5 rounded ${section.content.textAlign === 'center' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        <AlignCenter size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => onUpdate({ textAlign: 'right' })}
+                                        className={`p-1.5 rounded ${section.content.textAlign === 'right' ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        <AlignRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
+            {/* Media Library Modal */}
+            {
+                showMediaLibrary && (
+                    <div className="absolute inset-0 z-50 bg-white flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                <Grid size={18} /> Media Library
+                            </h3>
+                            <button
+                                onClick={() => setShowMediaLibrary(false)}
+                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4">
+                            {loadingMedia ? (
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                                    <Loader2 size={24} className="animate-spin text-primary" />
+                                    <span className="text-xs">Loading files...</span>
+                                </div>
+                            ) : mediaFiles.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                                    <ImageIcon size={32} className="opacity-20" />
+                                    <span className="text-sm">No files uploaded yet</span>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {mediaFiles
+                                        .filter(f => section.type === 'video' ? f.type?.startsWith('video') : f.type?.startsWith('image'))
+                                        .map((file) => (
+                                            <button
+                                                key={file.name}
+                                                onClick={() => {
+                                                    onUpdate({ url: file.url });
+                                                    // Auto-detect aspect ratio for video if needed (reuse existing logic if possible, or simple close)
+                                                    // Since the existing logic is inside handleFileUpload, we skip detailed detection here for now,
+                                                    // or we could extract it.
+                                                    setShowMediaLibrary(false);
+                                                }}
+                                                className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary hover:ring-2 hover:ring-primary/20 transition text-left"
+                                            >
+                                                {file.type?.startsWith('video') ? (
+                                                    <video src={file.url} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
+                                                )}
+                                                <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2 text-[10px] text-white truncate opacity-0 group-hover:opacity-100 transition">
+                                                    {file.name.split('-').slice(1).join('-')}
+                                                </div>
+                                            </button>
+                                        ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }

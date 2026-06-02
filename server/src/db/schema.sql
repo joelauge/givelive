@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS journey_nodes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('page', 'sms', 'delay', 'condition', 'donation', 'end')),
+  type TEXT NOT NULL CHECK (type IN ('page', 'sms', 'delay', 'condition', 'donation', 'end', 'fub', 'salesforce', 'hubspot', 'constant_contact', 'mailchimp', 'brevo', 'zapier', 'make', 'n8n')),
   config JSONB DEFAULT '{}',
   next_nodes JSONB DEFAULT '[]', -- Array of node IDs or logic
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS journey_nodes (
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   phone_number TEXT,
-  event_id UUID REFERENCES events(id),
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   consent BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS user_progress (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
-  current_node_id UUID REFERENCES journey_nodes(id),
+  current_node_id UUID REFERENCES journey_nodes(id) ON DELETE CASCADE,
   completed_nodes JSONB DEFAULT '[]', -- Array of node IDs
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -45,10 +45,25 @@ CREATE TABLE IF NOT EXISTS user_progress (
 -- Donations Table
 CREATE TABLE IF NOT EXISTS donations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  event_id UUID REFERENCES events(id),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL,
   recurring BOOLEAN DEFAULT FALSE,
   stripe_charge_id TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Analytics Events Table
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  node_id TEXT,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL, 
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_events_node ON analytics_events(node_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_action ON analytics_events(action);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_date ON analytics_events(created_at);

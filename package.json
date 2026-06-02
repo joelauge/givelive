@@ -4,19 +4,25 @@
     "private": true,
     "scripts": {
         "build": "cd client && npm install && npm run build && cd .. && rm -rf dist && mv client/dist dist",
-        "postinstall": "cd server && npm install"
+        "postinstall": "cd server && npm install",
+        "test": "cd server && npm test"
     },
     "dependencies": {
+        "shared": "file:./shared",
         "fastify": "^4.26.1",
         "@fastify/cors": "^9.0.1",
-        "pg": "^8.11.3",
-        "dotenv": "^16.4.5",
-        "twilio": "^4.23.0",
         "@fastify/multipart": "^8.3.1",
         "@fastify/static": "^7.0.4",
+        "@supabase/supabase-js": "^2.87.1",
+        "pg": "^8.11.3",
+        "dotenv": "^16.4.5",
+        "twilio": "^5.10.7",
+        "axios": "^1.6.0",
         "multer": "^2.0.2",
         "nodemailer": "^7.0.11",
-        "uuid": "^13.0.0"
+        "openai": "^6.15.0",
+        "stripe": "^20.0.0",
+        "uuid": "^9.0.1"
     },
     "devDependencies": {
         "typescript": "^5.3.3",

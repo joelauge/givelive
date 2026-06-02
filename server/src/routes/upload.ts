@@ -101,4 +101,43 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             return reply.status(500).send({ error: 'Failed to generate upload URL', details: err.message });
         }
     });
+
+    // List uploaded files (Media Library)
+    fastify.get('/upload/list', async (req, reply) => {
+        try {
+            const bucketName = 'uploads';
+            const { data, error } = await supabase.storage
+                .from(bucketName)
+                .list(undefined, {
+                    limit: 100,
+                    offset: 0,
+                    sortBy: { column: 'created_at', order: 'desc' },
+                });
+
+            if (error) {
+                // If bucket doesn't exist yet, return empty list
+                if (error.message.includes('Bucket not found')) return { files: [] };
+                throw error;
+            }
+
+            // Map to public URLs
+            const files = data.map(file => {
+                const { data: publicUrlData } = supabase.storage
+                    .from(bucketName)
+                    .getPublicUrl(file.name);
+                return {
+                    name: file.name,
+                    url: publicUrlData.publicUrl,
+                    type: file.metadata?.mimetype,
+                    created_at: file.created_at
+                };
+            });
+
+            return { files };
+
+        } catch (err: any) {
+            console.error('List files error:', err);
+            return reply.status(500).send({ error: 'Failed to list files', details: err.message });
+        }
+    });
 }

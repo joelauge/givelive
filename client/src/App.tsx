@@ -7,6 +7,10 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
+import Privacy from './pages/Privacy';
+import TermsOfService from './pages/TermsOfService';
+import BlogIndex from './pages/BlogIndex';
+import BlogPost from './pages/BlogPost';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {
@@ -14,6 +18,9 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/blog" element={<BlogIndex />} />
+        <Route path="/blog/:templateId" element={<BlogPost />} />
+        <Route path="/template-preview/:templateId" element={<JourneyBuilder previewMode={true} />} />
         <Route
           path="/admin"
           element={
@@ -68,6 +75,21 @@ function App() {
           </>
         }
       />
+      <Route
+        path="/analytics/:eventId"
+        element={
+          <>
+            <SignedIn>
+              <Analytics />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/tos" element={<TermsOfService />} />
     </Routes>
   );
 }

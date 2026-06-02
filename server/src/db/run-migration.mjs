@@ -34,8 +34,14 @@ async function runMigration() {
 
         console.log('Running migration: 002_user_profiles.sql');
         console.log('----------------------------------------');
-
         await client.query(migrationSQL);
+
+        // Run Settings Migration
+        const settingsMigrationPath = join(__dirname, 'migrations', '003_settings.sql');
+        const settingsMigrationSQL = readFileSync(settingsMigrationPath, 'utf8');
+        console.log('Running migration: 003_settings.sql');
+        console.log('-----------------------------------');
+        await client.query(settingsMigrationSQL);
 
         console.log('✅ Migration completed successfully!');
         console.log('');

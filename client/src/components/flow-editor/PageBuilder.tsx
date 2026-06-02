@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign } from 'lucide-react';
+import { Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign, Link as LinkIcon, FileDown } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 
 interface PageBuilderProps {
@@ -7,7 +7,7 @@ interface PageBuilderProps {
     onUpdate: (data: any) => void;
 }
 
-export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice' | 'payment';
+export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice' | 'payment' | 'link' | 'download';
 
 interface Section {
     id: string;
@@ -102,6 +102,8 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
             case 'form': return { fields: ['name', 'phone'], buttonText: 'Sign Up', buttonColor: '#000000', paddingTop: 20, paddingBottom: 20 };
             case 'choice': return { choices: [{ label: 'Yes' }, { label: 'No' }] };
             case 'payment': return { frequencies: ['one-time', 'monthly'], defaultAmount: 50, buttonText: 'Donate Now', buttonColor: '#000000' };
+            case 'link': return { url: '#', label: 'Click Here', style: 'button', buttonColor: '#000000', textColor: '#000000', paddingTop: 10, paddingBottom: 10, textAlign: 'center' };
+            case 'download': return { fileUrl: '', fileName: 'Guide.pdf', buttonText: 'Download PDF', buttonColor: '#000000', paddingTop: 20, paddingBottom: 20 };
             default: return {};
         }
     };
@@ -224,6 +226,14 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                             <button onClick={() => addSection('choice')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
                                 <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><ListChecks size={18} /></div>
                                 <span className="text-[10px] font-medium text-gray-600">Choice</span>
+                            </button>
+                            <button onClick={() => addSection('link')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><LinkIcon size={18} /></div>
+                                <span className="text-[10px] font-medium text-gray-600">Link</span>
+                            </button>
+                            <button onClick={() => addSection('download')} className="p-2 hover:bg-gray-50 rounded-lg flex flex-col items-center gap-1 transition">
+                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><FileDown size={18} /></div>
+                                <span className="text-[10px] font-medium text-gray-600">File</span>
                             </button>
 
                             {data.type === 'donation' && (
@@ -413,6 +423,47 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                                                     {choice.label}
                                                 </button>
                                             ))}
+                                        </div>
+                                    )}
+
+                                    {section.type === 'link' && (
+                                        <div className="flex justify-center" style={{ textAlign: section.content.textAlign || 'center' }}>
+                                            {section.content.style === 'button' ? (
+                                                <a
+                                                    href={section.content.url}
+                                                    className="inline-block px-6 py-3 rounded-lg font-bold text-white transition hover:opacity-90 active:opacity-100"
+                                                    style={{ backgroundColor: section.content.buttonColor || '#000000' }}
+                                                    onClick={(e) => e.preventDefault()}
+                                                >
+                                                    {section.content.label}
+                                                </a>
+                                            ) : (
+                                                <a
+                                                    href={section.content.url}
+                                                    className="inline-block hover:underline"
+                                                    style={{ color: section.content.textColor || '#000000', fontWeight: 'bold' }}
+                                                    onClick={(e) => e.preventDefault()}
+                                                >
+                                                    {section.content.label}
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {section.type === 'download' && (
+                                        <div className="flex justify-center">
+                                            <div
+                                                className="flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg transition hover:scale-[1.02] active:scale-[0.98] w-full max-w-[280px] cursor-pointer"
+                                                style={{ backgroundColor: section.content.buttonColor || '#000000', color: '#ffffff' }}
+                                            >
+                                                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                                    <FileDown size={20} />
+                                                </div>
+                                                <div className="text-left flex-1 min-w-0">
+                                                    <div className="font-bold text-sm truncate">{section.content.buttonText || 'Download File'}</div>
+                                                    <div className="text-[10px] opacity-80 truncate">{section.content.fileName || 'File'}</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 

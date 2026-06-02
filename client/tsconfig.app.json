@@ -22,7 +22,11 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "@givelive/journey-validation": ["../server/src/lib/journeyValidation.ts"]
+    }
   },
   "include": ["src"]
 }

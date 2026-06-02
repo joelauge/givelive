@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { CreditCard } from 'lucide-react';
+import PaymentSection from './PaymentSection';
 
 interface NodeRendererProps {
     node: any;
     onNext: (action?: string) => void;
+    isSubmitting?: boolean;
+    eventId?: string;
+    userId?: string;
 }
 
-export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
+export default function NodeRenderer({ node, onNext, isSubmitting = false, eventId, userId }: NodeRendererProps) {
+
     const { data } = node;
     const type = data?.type || node.type; // Robust type detection
 
@@ -22,17 +27,21 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
         return <div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
     }
 
-    if (type === 'sms') {
+    const isSms = type === 'sms' || (type === 'message' && data?.messageType === 'sms');
+
+    if (isSms) {
         return (
             <div className="w-full min-h-screen bg-background flex items-center justify-center p-6">
                 <div className="text-center max-w-sm">
                     <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h2>
-                    <p className="text-gray-600 mb-4">{data.message || 'Check your phone for a text message to continue.'}</p>
+                    <p className="text-gray-600 mb-4">
+                        {data.smsMessage || data.smsMessages?.[0] || data.message || 'Check your phone for a text message to continue.'}
+                    </p>
                     <div className="text-sm text-gray-400">Waiting for your response...</div>
                 </div>
             </div>
@@ -59,7 +68,14 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
 
                         if (type === 'text') {
                             return (
-                                <div key={id} className="px-6 py-4 text-gray-600 leading-relaxed" style={{ textAlign: content.align as any }}>
+                                <div key={id} className="px-6 py-4 leading-relaxed" style={{
+                                    textAlign: content.textAlign || content.align as any,
+                                    color: content.color || '#4B5563',
+                                    fontFamily: content.fontFamily === 'serif' ? 'serif' : content.fontFamily === 'mono' ? 'monospace' : 'sans-serif',
+                                    fontWeight: content.fontWeight || 'normal',
+                                    fontSize: content.fontSize ? `${content.fontSize}px` : 'inherit',
+                                    whiteSpace: 'pre-wrap'
+                                }}>
                                     {content.text}
                                 </div>
                             );
@@ -67,8 +83,85 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
 
                         if (type === 'image') {
                             return (
-                                <div key={id} className="w-full overflow-hidden">
-                                    <img src={content.url || 'https://via.placeholder.com/400x200'} alt="Section" className="w-full h-auto object-cover" />
+                                <div key={id} className="w-full px-6 py-4 flex justify-center">
+                                    <div
+                                        className={`overflow-hidden flex justify-center`}
+                                        style={{
+                                            borderRadius: `${content.borderRadius || 0}px`,
+                                            height: (!content.sizeMode || content.sizeMode === 'fit') ? `${content.height || 200}px` : 'auto',
+                                            width: '100%',
+                                            maxWidth: '100%'
+                                        }}
+                                    >
+                                        <img
+                                            src={content.url || 'https://via.placeholder.com/400x200'}
+                                            alt={content.alt || "Section"}
+                                            className={`w-full h-full ${(!content.sizeMode || content.sizeMode === 'fit') ? 'object-cover' : 'object-contain'}`}
+                                            style={{
+                                                maxHeight: (!content.sizeMode || content.sizeMode === 'fit') ? 'none' : 'none',
+                                                width: (!content.sizeMode || content.sizeMode === 'fit') ? '100%' : '100%'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        if (type === 'columns') {
+                            return (
+                                <div key={id} className="grid grid-cols-2 gap-4 px-6 py-4">
+                                    <div className="text-sm whitespace-pre-wrap">{content.left}</div>
+                                    <div className="text-sm whitespace-pre-wrap">{content.right}</div>
+                                </div>
+                            );
+                        }
+
+                        if (type === 'link') {
+                            return (
+                                <div key={id} className="px-6 py-4 flex justify-center" style={{ textAlign: content.textAlign || 'center' }}>
+                                    {content.style === 'button' ? (
+                                        <a
+                                            href={content.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-block px-6 py-3 rounded-xl font-bold text-white shadow-lg transition hover:-translate-y-0.5"
+                                            style={{ backgroundColor: content.buttonColor || '#000000' }}
+                                        >
+                                            {content.label}
+                                        </a>
+                                    ) : (
+                                        <a
+                                            href={content.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-block hover:underline"
+                                            style={{ color: content.textColor || '#000000', fontWeight: 'bold' }}
+                                        >
+                                            {content.label}
+                                        </a>
+                                    )}
+                                </div>
+                            );
+                        }
+
+                        if (type === 'download') {
+                            return (
+                                <div key={id} className="px-6 py-4 flex justify-center">
+                                    <a
+                                        href={content.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg transition hover:scale-[1.02] active:scale-[0.98] w-full max-w-[280px]"
+                                        style={{ backgroundColor: content.buttonColor || '#000000', color: '#ffffff' }}
+                                    >
+                                        <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                                        </div>
+                                        <div className="text-left flex-1 min-w-0">
+                                            <div className="font-bold text-sm truncate">{content.buttonText || 'Download File'}</div>
+                                            <div className="text-[10px] opacity-80 truncate">{content.fileName || 'File'}</div>
+                                        </div>
+                                    </a>
                                 </div>
                             );
                         }
@@ -138,74 +231,29 @@ export default function NodeRenderer({ node, onNext }: NodeRendererProps) {
                                         ))}
                                         <button
                                             type="submit"
-                                            className="w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+                                            disabled={isSubmitting}
+                                            className="w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                                             style={{ backgroundColor: content.buttonColor || '#000000' }}
                                         >
-                                            {content.buttonText || 'Submit'}
+                                            {isSubmitting ? 'Processing...' : (content.buttonText || 'Submit')}
                                         </button>
                                     </form>
                                 </div>
                             );
                         }
 
+
                         if (type === 'payment') {
-                            const [frequency, setFrequency] = useState('one-time');
-                            const [amount, setAmount] = useState(content.defaultAmount || 50);
-
-                            const handleDonate = () => {
-                                // Check for payment gateway
-                                const stripeConnected = localStorage.getItem('givelive_stripe_connected') === 'true';
-                                const paypalConnected = localStorage.getItem('givelive_paypal_connected') === 'true';
-
-                                if (!stripeConnected && !paypalConnected) {
-                                    setFormState({ ...formState, amount, frequency });
-                                    setShowMockCheckout(true);
-                                    return;
-                                }
-
-                                onNext(`donate_${amount}_${frequency}`);
-                            };
-
                             return (
-                                <div key={id} className="p-6">
-                                    {/* Frequency Toggle */}
-                                    <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
-                                        {['one-time', 'monthly', 'yearly'].map(freq => (
-                                            <button
-                                                key={freq}
-                                                onClick={() => setFrequency(freq)}
-                                                className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition ${frequency === freq ? 'bg-white shadow-sm text-primary' : 'text-gray-500 hover:text-gray-700'}`}
-                                            >
-                                                {freq}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Amount Grid */}
-                                    <div className="grid grid-cols-3 gap-3 mb-6">
-                                        {[10, 25, 50, 100, 250, 500].map(amt => (
-                                            <button
-                                                key={amt}
-                                                onClick={() => setAmount(amt)}
-                                                className={`py-3 rounded-xl border-2 font-bold transition ${amount === amt ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 text-gray-600 hover:border-gray-200'}`}
-                                            >
-                                                ${amt}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        onClick={handleDonate}
-                                        className="w-full py-4 rounded-xl font-bold text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-                                        style={{ backgroundColor: content.buttonColor || '#000000' }}
-                                    >
-                                        {content.buttonText || 'Donate Now'}
-                                    </button>
-
-                                    <div className="mt-4 flex justify-center items-center gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider">
-                                        <CreditCard size={12} /> Secure Payment
-                                    </div>
-                                </div>
+                                <PaymentSection
+                                    key={id}
+                                    id={id}
+                                    content={content}
+                                    formState={formState}
+                                    setFormState={setFormState}
+                                    eventId={eventId || ''}
+                                    userId={userId || ''}
+                                />
                             );
                         }
 

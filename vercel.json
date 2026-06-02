@@ -5,6 +5,10 @@
             "destination": "/api/index.ts"
         },
         {
+            "source": "/event/(.*)",
+            "destination": "/api/index.ts"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
