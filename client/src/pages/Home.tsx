@@ -1,4 +1,4 @@
-import { ArrowRight, Workflow, BarChart3, QrCode, Zap, Play, Globe2, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
@@ -39,12 +39,15 @@ export default function Home() {
                             <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
                                 Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <button className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group">
+                            <Link
+                                to="/how-to"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                            >
                                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
-                                    <Play className="w-4 h-4 fill-white ml-0.5" />
+                                    <BookOpen className="w-4 h-4" />
                                 </span>
-                                Watch Demo
-                            </button>
+                                How To
+                            </Link>
                             <Link to="/admin" className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group">
                                 Free Templates
                             </Link>
@@ -321,7 +324,7 @@ export default function Home() {
                             <li><a href="#" className="hover:text-white transition">Features</a></li>
                             <li><a href="#" className="hover:text-white transition">Pricing</a></li>
                             <li><a href="#" className="hover:text-white transition">Case Studies</a></li>
-                            <li><a href="#" className="hover:text-white transition">Documentation</a></li>
+                            <li><Link to="/how-to" className="hover:text-white transition">How To</Link></li>
                         </ul>
                     </div>
                     <div>
