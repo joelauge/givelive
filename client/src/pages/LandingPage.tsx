@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import NodeRenderer from '../components/NodeRenderer';
-import GiveLiveScannerShell from '../components/GiveLiveScannerShell';
+import GiveLiveScannerShell, { type EmbedMode } from '../components/GiveLiveScannerShell';
 import type { Event, JourneyNode } from '../types';
 
 export default function LandingPage() {
@@ -21,6 +21,7 @@ export default function LandingPage() {
     const [sendingProgress, setSendingProgress] = useState('');
     const [showWatermark, setShowWatermark] = useState(false);
     const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
+    const [embedMode, setEmbedMode] = useState<EmbedMode>('iframe');
 
     useEffect(() => {
         const loadEventAndJourney = async () => {
@@ -400,7 +401,15 @@ export default function LandingPage() {
                 console.log('[LandingPage] Auto-forwarding to:', url);
 
                 if (showWatermark) {
-                    setEmbeddedUrl(url);
+                    void (async () => {
+                        try {
+                            const { embeddable } = await api.checkEmbeddable(url);
+                            setEmbedMode(embeddable ? 'iframe' : 'redirect-only');
+                        } catch {
+                            setEmbedMode('redirect-only');
+                        }
+                        setEmbeddedUrl(url);
+                    })();
                 } else {
                     window.location.replace(url);
                 }
@@ -442,6 +451,7 @@ export default function LandingPage() {
             showBanner={showWatermark}
             eventId={eventId}
             embedUrl={embeddedUrl}
+            embedMode={embedMode}
             overlay={
                 isSending ? (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">

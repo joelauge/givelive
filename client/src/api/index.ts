@@ -9,6 +9,12 @@ export const api = {
         return res.json();
     },
 
+    checkEmbeddable: async (url: string): Promise<{ embeddable: boolean; reason?: string }> => {
+        const res = await fetch(`${API_URL}/embed/check?url=${encodeURIComponent(url)}`);
+        if (!res.ok) return { embeddable: false, reason: 'check-failed' };
+        return res.json();
+    },
+
     getEvents: async () => {
         const res = await fetch(`${API_URL}/events`, {
             headers: await buildAuthHeaders(),

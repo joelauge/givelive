@@ -8,12 +8,15 @@ import {
     isIframeEmbedBlocked,
 } from '../lib/iframeEmbed';
 
+export type EmbedMode = 'iframe' | 'redirect-only';
+
 type Props = {
     children: ReactNode;
     showBanner: boolean;
     eventId?: string;
     overlay?: ReactNode;
     embedUrl?: string | null;
+    embedMode?: EmbedMode;
 };
 
 type EmbedState = 'loading' | 'embedded' | 'blocked';
@@ -24,6 +27,7 @@ export default function GiveLiveScannerShell({
     eventId,
     overlay,
     embedUrl,
+    embedMode = 'iframe',
 }: Props) {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const embedStartedAt = useRef<number>(0);
@@ -101,8 +105,15 @@ export default function GiveLiveScannerShell({
 
         embedStartedAt.current = Date.now();
         resolvedRef.current = false;
-        setEmbedState('loading');
         setSecondsLeft(Math.ceil(BLOCKED_REDIRECT_DWELL_MS / 1000));
+
+        if (embedMode === 'redirect-only') {
+            resolvedRef.current = true;
+            scheduleBlockedRedirect();
+            return () => clearRedirectTimer();
+        }
+
+        setEmbedState('loading');
 
         loadTimeoutRef.current = window.setTimeout(() => {
             resolveEmbed('blocked');
@@ -112,7 +123,14 @@ export default function GiveLiveScannerShell({
             clearLoadTimeout();
             clearRedirectTimer();
         };
-    }, [embedUrl, clearRedirectTimer, clearLoadTimeout, resolveEmbed]);
+    }, [
+        embedUrl,
+        embedMode,
+        clearRedirectTimer,
+        clearLoadTimeout,
+        resolveEmbed,
+        scheduleBlockedRedirect,
+    ]);
 
     useEffect(() => {
         if (embedState !== 'blocked') return;
@@ -125,34 +143,39 @@ export default function GiveLiveScannerShell({
     }, [embedState]);
 
     const handleIframeLoad = () => {
-        if (resolvedRef.current) return;
+        if (resolvedRef.current || embedMode === 'redirect-only') return;
         checkEmbedStatus();
     };
+
+    const showBlockedUi = embedState === 'blocked';
+    const showLoadingUi = embedMode === 'iframe' && embedState === 'loading';
 
     return (
         <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
             <div className="flex-1 min-h-0 w-full relative">
                 {embedUrl ? (
                     <>
-                        <iframe
-                            ref={iframeRef}
-                            src={embedUrl}
-                            title="Destination"
-                            onLoad={handleIframeLoad}
-                            className={`absolute inset-0 w-full h-full border-0 bg-white ${
-                                embedState === 'blocked' ? 'opacity-0 pointer-events-none' : ''
-                            }`}
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation allow-presentation"
-                            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                        />
+                        {embedMode === 'iframe' && (
+                            <iframe
+                                ref={iframeRef}
+                                src={embedUrl}
+                                title="Destination"
+                                onLoad={handleIframeLoad}
+                                className={`absolute inset-0 w-full h-full border-0 bg-white ${
+                                    showBlockedUi ? 'opacity-0 pointer-events-none' : ''
+                                }`}
+                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation allow-presentation"
+                                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                            />
+                        )}
 
-                        {embedState === 'loading' && (
+                        {showLoadingUi && (
                             <div className="absolute inset-0 flex items-center justify-center bg-white">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                             </div>
                         )}
 
-                        {embedState === 'blocked' && (
+                        {showBlockedUi && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center bg-white">
                                 <img src={logoBlue} alt="GiveLive" className="h-12 w-auto mb-6" />
                                 <p className="text-gray-600 text-sm leading-relaxed max-w-xs mb-6">
