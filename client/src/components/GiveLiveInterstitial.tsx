@@ -1,5 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import logoBlue from '../assets/givelive_logo_blue.png';
 import { watermarkUrl } from '../lib/watermark';
+
+const COUNTDOWN_SECONDS = 3;
 
 type Props = {
     eventId?: string;
@@ -8,15 +11,32 @@ type Props = {
 
 export default function GiveLiveInterstitial({ eventId, onContinue }: Props) {
     const signupUrl = watermarkUrl('page', eventId);
+    const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
+    const finishedRef = useRef(false);
+
+    const finish = () => {
+        if (finishedRef.current) return;
+        finishedRef.current = true;
+        onContinue();
+    };
+
+    useEffect(() => {
+        if (secondsLeft <= 0) {
+            finish();
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            setSecondsLeft((prev) => prev - 1);
+        }, 1000);
+
+        return () => window.clearTimeout(timer);
+    }, [secondsLeft]);
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-12 text-center">
             <div className="max-w-sm w-full flex flex-col items-center gap-8 animate-in fade-in zoom-in-95 duration-500">
-                <img
-                    src={logoBlue}
-                    alt="GiveLive"
-                    className="h-16 w-auto"
-                />
+                <img src={logoBlue} alt="GiveLive" className="h-16 w-auto" />
 
                 <p className="text-gray-600 text-base leading-relaxed">
                     Provided by{' '}
@@ -42,10 +62,12 @@ export default function GiveLiveInterstitial({ eventId, onContinue }: Props) {
 
                 <button
                     type="button"
-                    onClick={onContinue}
+                    onClick={finish}
                     className="w-full max-w-xs py-3.5 px-6 rounded-full bg-primary text-white font-bold text-base hover:bg-primary/90 transition shadow-lg shadow-primary/20"
                 >
-                    Continue
+                    {secondsLeft > 0
+                        ? `Continue to Destination (${secondsLeft}s)`
+                        : 'Continue to Destination…'}
                 </button>
             </div>
         </div>
