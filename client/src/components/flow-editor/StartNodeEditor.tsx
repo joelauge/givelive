@@ -168,7 +168,9 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
                         placeholder="e.g. Scan to Donate"
                         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-sm"
                     />
-                    <p className="text-[10px] text-gray-400 mt-1">This text often appears in the camera viewfinder when the QR code is scanned.</p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                        iOS uses this as the link title in the Camera viewfinder. Publish your flow so scanners fetch the updated page metadata.
+                    </p>
                 </div>
             )}
 

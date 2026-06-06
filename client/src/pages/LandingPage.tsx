@@ -103,30 +103,30 @@ export default function LandingPage() {
         const qrDisplayText = startNode?.config?.qrDisplayText || (startNode as any)?.data?.qrDisplayText;
         const displayName = qrDisplayText || event.name || 'GiveLive';
 
-        // Update page title
         document.title = displayName;
 
-        // Update Open Graph tags
-        const updateMetaTag = (property: string, content: string) => {
-            let meta = document.querySelector(`meta[property="${property}"]`);
+        const updateMetaTag = (selector: 'property' | 'name', key: string, content: string) => {
+            let meta = document.querySelector(`meta[${selector}="${key}"]`);
             if (!meta) {
-                meta = document.querySelector(`meta[name="${property}"]`);
+                meta = document.createElement('meta');
+                meta.setAttribute(selector, key);
+                document.head.appendChild(meta);
             }
-            if (meta) {
-                meta.setAttribute('content', content);
-            }
+            meta.setAttribute('content', content);
         };
 
-        updateMetaTag('og:title', displayName);
-        updateMetaTag('og:description', `Join us for ${event.name}`);
-        updateMetaTag('og:url', window.location.href);
-
-        updateMetaTag('twitter:title', displayName);
-        updateMetaTag('twitter:description', `Join us for ${event.name}`);
+        updateMetaTag('name', 'description', displayName);
+        updateMetaTag('name', 'apple-mobile-web-app-title', displayName);
+        updateMetaTag('property', 'og:title', displayName);
+        updateMetaTag('property', 'og:description', `Join us for ${event.name}`);
+        updateMetaTag('property', 'og:url', window.location.href);
+        updateMetaTag('property', 'og:site_name', 'GiveLive');
+        updateMetaTag('name', 'twitter:title', displayName);
+        updateMetaTag('name', 'twitter:description', `Join us for ${event.name}`);
 
         if (campaignImage) {
-            updateMetaTag('og:image', campaignImage);
-            updateMetaTag('twitter:image', campaignImage);
+            updateMetaTag('property', 'og:image', campaignImage);
+            updateMetaTag('name', 'twitter:image', campaignImage);
         }
     }, [event, allNodes]);
 

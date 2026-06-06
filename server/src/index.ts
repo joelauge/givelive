@@ -8,6 +8,12 @@ import * as querystring from 'querystring';
 import path from 'path';
 import fs from 'fs/promises';
 import { query } from './db';
+import {
+    buildEventPageUrl,
+    findIndexHtmlPath,
+    injectEventPageMeta,
+    parseNodeConfig,
+} from './services/eventPageMeta';
 
 import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
@@ -103,57 +109,55 @@ export const createApp = () => {
     server.register(tiktokWebhookRoutes, { prefix: '/api' });
     server.register(require('./routes/settings').default, { prefix: '/api' });
 
-    // Serving dynamic HTML for events (for QR viewfinders and SEO)
+    // Dynamic HTML for event entry URLs — iOS reads these tags before JavaScript runs.
     server.get<{ Params: { eventId: string } }>('/event/:eventId', async (request, reply) => {
         const { eventId } = request.params;
-        const indexPath = path.join(__dirname, '../../dist/index.html');
 
         try {
-            // 1. Fetch Event and Nodes to find Start Node
-            const eventRes = await query('SELECT name FROM events WHERE id = $1', [eventId]);
-            const nodeRes = await query('SELECT * FROM journey_nodes WHERE event_id = $1', [eventId]);
+            const indexPath = findIndexHtmlPath();
+            const htmlTemplate = await fs.readFile(indexPath, 'utf-8');
 
+            const eventRes = await query('SELECT name FROM events WHERE id = $1', [eventId]);
             if (eventRes.rows.length === 0) {
-                // Return default if event not found
-                const html = await fs.readFile(indexPath, 'utf-8');
-                return reply.type('text/html').send(html);
+                return reply
+                    .header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+                    .type('text/html')
+                    .send(htmlTemplate);
             }
 
             const event = eventRes.rows[0];
-            const startNode = nodeRes.rows.find(n => n.type === 'start' || n.config?.type === 'start');
-            const startNodeConfig = startNode?.config || {};
+            const nodeRes = await query('SELECT * FROM journey_nodes WHERE event_id = $1', [eventId]);
+            const startNode = nodeRes.rows.find(
+                (n) => n.type === 'start' || parseNodeConfig(n.config).type === 'start'
+            );
+            const startNodeConfig = parseNodeConfig(startNode?.config);
 
-            const displayName = startNodeConfig.qrDisplayText || event.name || 'GiveLive';
-            const campaignImage = startNodeConfig.campaignImage;
+            const displayName =
+                (typeof startNodeConfig.qrDisplayText === 'string' && startNodeConfig.qrDisplayText.trim()) ||
+                event.name ||
+                'GiveLive';
 
-            // 2. Read index.html template
-            let html = await fs.readFile(indexPath, 'utf-8');
+            const html = injectEventPageMeta(htmlTemplate, {
+                displayName,
+                eventName: event.name || 'GiveLive',
+                eventUrl: buildEventPageUrl(eventId),
+                campaignImage:
+                    typeof startNodeConfig.campaignImage === 'string'
+                        ? startNodeConfig.campaignImage
+                        : undefined,
+            });
 
-            // 3. Inject metadata (regex replacements for robustness)
-            // Replace Title
-            html = html.replace(/<title>.*?<\/title>/, `<title>${displayName}</title>`);
-
-            // Replace OG Tags
-            html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${displayName}" />`);
-            html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="Join us for ${event.name}" />`);
-
-            // Replace Twitter Tags
-            html = html.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${displayName}" />`);
-            html = html.replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="Join us for ${event.name}" />`);
-
-            if (campaignImage) {
-                html = html.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${campaignImage}" />`);
-                html = html.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${campaignImage}" />`);
-            }
-
-            return reply.type('text/html').send(html);
+            return reply
+                .header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+                .type('text/html')
+                .send(html);
         } catch (err) {
-            console.error('[DynamicHTML] Error serving event page:', err);
-            // Safe fallback to static HTML
+            server.log.error({ err, eventId }, '[EventPageMeta] Failed to serve event page');
             try {
-                const html = await fs.readFile(indexPath, 'utf-8');
+                const html = await fs.readFile(findIndexHtmlPath(), 'utf-8');
                 return reply.type('text/html').send(html);
-            } catch (e) {
+            } catch (fallbackErr) {
+                server.log.error({ err: fallbackErr, eventId }, '[EventPageMeta] Fallback HTML missing');
                 return reply.code(500).send('Internal Server Error');
             }
         }
