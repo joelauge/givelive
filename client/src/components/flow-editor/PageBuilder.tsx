@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign, Link as LinkIcon, FileDown } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
+import GiveLiveWatermark from '../GiveLiveWatermark';
 
 interface PageBuilderProps {
     data: any;
     onUpdate: (data: any) => void;
+    showWatermark?: boolean;
+    eventId?: string;
 }
 
 export type SectionType = 'header' | 'text' | 'image' | 'video' | 'columns' | 'form' | 'choice' | 'payment' | 'link' | 'download';
@@ -15,7 +18,7 @@ interface Section {
     content: any;
 }
 
-export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
+export default function PageBuilder({ data, onUpdate, showWatermark = false, eventId }: PageBuilderProps) {
     const [sections, setSections] = useState<Section[]>(data.sections || []);
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [editingSectionSnapshot, setEditingSectionSnapshot] = useState<Section | null>(null);
@@ -527,6 +530,9 @@ export default function PageBuilder({ data, onUpdate }: PageBuilderProps) {
                             </div>
                         ))}
                     </div>
+                    {showWatermark && (
+                        <GiveLiveWatermark eventId={eventId} preview className="rounded-b-2xl" />
+                    )}
                 </div>
             </div>
             {/* Payment Gateway Warning Modal */}

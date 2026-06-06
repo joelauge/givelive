@@ -15,9 +15,21 @@ interface NodeEditorProps {
     onUpdate: (nodeId: string, data: any) => void;
     onDelete: (nodeId: string) => void;
     onDuplicate: (nodeId: string) => void;
+    showWatermark?: boolean;
+    eventId?: string;
 }
 
-export default function NodeEditor({ node, nodes, edges, onClose, onUpdate, onDelete, onDuplicate }: NodeEditorProps) {
+export default function NodeEditor({
+    node,
+    nodes,
+    edges,
+    onClose,
+    onUpdate,
+    onDelete,
+    onDuplicate,
+    showWatermark = false,
+    eventId,
+}: NodeEditorProps) {
     if (!node) return null;
 
     const handleUpdate = (newData: any) => {
@@ -72,7 +84,12 @@ export default function NodeEditor({ node, nodes, edges, onClose, onUpdate, onDe
                     </ErrorBoundary>
                 ) : (node.data.type === 'page' || node.data.type === 'donation') ? (
                     <ErrorBoundary key={node.id} componentName="PageBuilder">
-                        <PageBuilder data={node.data} onUpdate={handleUpdate} />
+                        <PageBuilder
+                            data={node.data}
+                            onUpdate={handleUpdate}
+                            showWatermark={showWatermark}
+                            eventId={eventId}
+                        />
                     </ErrorBoundary>
                 ) : (['fub', 'salesforce', 'hubspot', 'constant_contact', 'mailchimp', 'brevo', 'zapier', 'make', 'n8n', 'shopify', 'instagram', 'facebook', 'tiktok'].includes(node.data.type)) ? (
                     <ErrorBoundary key={node.id} componentName="IntegrationNode">

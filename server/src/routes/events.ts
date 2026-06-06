@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { query } from '../db';
 import { getCampaignLimitForPlan } from '../config/planLimits';
 import { getOrCreateOrganization } from '../services/organizationBilling';
+import { shouldShowWatermarkForPlan } from '../services/watermark';
 
 interface EventBody {
     org_id: string;
@@ -32,7 +33,19 @@ export default async function eventRoutes(server: FastifyInstance) {
                 reply.code(404).send({ error: 'Event not found' });
                 return;
             }
-            return result.rows[0];
+
+            const event = result.rows[0];
+            const orgId = event.org_id as string | undefined;
+            let planId = 'free';
+            let showWatermark = true;
+
+            if (orgId) {
+                const org = await getOrCreateOrganization(orgId);
+                planId = org.plan_id;
+                showWatermark = shouldShowWatermarkForPlan(org.plan_id);
+            }
+
+            return { ...event, planId, showWatermark };
         } catch (err) {
             server.log.error(err);
             reply.code(500).send({ error: 'Internal Server Error' });

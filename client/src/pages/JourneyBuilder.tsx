@@ -38,6 +38,7 @@ import AIBuilder from '../components/flow-editor/AIBuilder';
 import UpgradeModal from '../components/UpgradeModal';
 import type { PlanId } from '../data/pricingPlans';
 import { getCampaignLimit } from '../lib/billingLimits';
+import { shouldShowWatermarkForPlan } from '../lib/watermark';
 
 // Create a context to share functionality with nodes
 interface JourneyContextType {
@@ -3065,6 +3066,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     onUpdate={updateNodeData}
                     onDelete={handleDeleteClick}
                     onDuplicate={duplicateNode}
+                    showWatermark={previewMode || shouldShowWatermarkForPlan(planId)}
+                    eventId={eventId}
                 />
 
                 <Modal

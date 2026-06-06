@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CreditCard } from 'lucide-react';
 import PaymentSection from './PaymentSection';
+import GiveLiveWatermark from './GiveLiveWatermark';
 
 interface NodeRendererProps {
     node: any;
@@ -8,9 +9,17 @@ interface NodeRendererProps {
     isSubmitting?: boolean;
     eventId?: string;
     userId?: string;
+    showWatermark?: boolean;
 }
 
-export default function NodeRenderer({ node, onNext, isSubmitting = false, eventId, userId }: NodeRendererProps) {
+export default function NodeRenderer({
+    node,
+    onNext,
+    isSubmitting = false,
+    eventId,
+    userId,
+    showWatermark = false,
+}: NodeRendererProps) {
 
     const { data } = node;
     const type = data?.type || node.type; // Robust type detection
@@ -50,9 +59,9 @@ export default function NodeRenderer({ node, onNext, isSubmitting = false, event
 
     if (['page', 'donation'].includes(type)) {
         return (
-            <div className="w-full min-h-screen bg-white">
+            <div className="w-full min-h-screen bg-white flex flex-col">
                 {/* Render Sections */}
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1 pb-2">
                     {data.sections?.map((section: any) => {
                         const { type, content, id } = section;
 
@@ -277,6 +286,8 @@ export default function NodeRenderer({ node, onNext, isSubmitting = false, event
                         return null;
                     })}
                 </div>
+
+                {showWatermark && <GiveLiveWatermark eventId={eventId} />}
 
                 {/* Mock Checkout Modal */}
                 {showMockCheckout && (

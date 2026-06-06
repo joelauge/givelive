@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import twilio from 'twilio';
 import { query } from '../db';
 import { sendEmail } from '../services/email';
+import { appendSmsWatermark, shouldShowWatermarkForEvent } from '../services/watermark';
 
 interface SMSBody {
     to: string;
@@ -36,16 +37,24 @@ export default async function smsRoutes(server: FastifyInstance) {
         server.log.warn(`Twilio credentials missing: SID=${!!accountSid}, Token=${!!authToken}, Phone=${!!fromNumber}`);
     }
 
+    const prepareSmsBody = async (body: string, eventId?: string) => {
+        if (!eventId) return body;
+        const showWatermark = await shouldShowWatermarkForEvent(eventId);
+        return appendSmsWatermark(body, showWatermark);
+    };
+
     // Helper: Send SMS
-    const sendSms = async (to: string, body: string) => {
+    const sendSms = async (to: string, body: string, eventId?: string) => {
         if (!fromNumber) {
             server.log.error('TWILIO_PHONE_NUMBER environment variable is MISSING. Cannot send SMS.');
             throw new Error('Server configuration error: TWILIO_PHONE_NUMBER not set');
         }
 
+        const finalBody = await prepareSmsBody(body, eventId);
+
         if (client) {
             try {
-                const message = await client.messages.create({ body, from: fromNumber, to });
+                const message = await client.messages.create({ body: finalBody, from: fromNumber, to });
                 server.log.info(`[Twilio] Sent message SID ${message.sid} to ${to}`);
                 return { success: true, sid: message.sid };
             } catch (err: any) {
@@ -58,7 +67,7 @@ export default async function smsRoutes(server: FastifyInstance) {
                 throw err;
             }
         } else {
-            const mockMsg = `[MOCK SMS] To: ${to}, Body: ${body}`;
+            const mockMsg = `[MOCK SMS] To: ${to}, Body: ${finalBody}`;
             server.log.info(mockMsg);
             return { success: true, mock: true, body: mockMsg };
         }
@@ -90,8 +99,8 @@ export default async function smsRoutes(server: FastifyInstance) {
                 return reply.code(400).send({ error: 'Missing "to" or "body" in request' });
             }
 
-            // Send
-            const result = await sendSms(to, body);
+            // Send (watermark applied server-side from event plan)
+            const result = await sendSms(to, body, eventId);
 
             // Update State if context provided
             if (nodeId && eventId) {
@@ -218,7 +227,7 @@ export default async function smsRoutes(server: FastifyInstance) {
                         return match; // Keep unmodified if target not found
                     });
 
-                    await sendSms(From, resolvedMsgBody);
+                    await sendSms(From, resolvedMsgBody, event_id);
                 }
 
                 // Send Email if configuration allows
@@ -228,7 +237,12 @@ export default async function smsRoutes(server: FastifyInstance) {
                     const subject = nextConfig.emailSubject || 'Update from GiveLive';
                     const body = nextConfig.emailBody || '';
                     const sections = nextConfig.emailSections || [];
-                    const context = { link: `${clientUrl}/event/${event_id}` };
+                    const showWatermark = await shouldShowWatermarkForEvent(event_id);
+                    const context = {
+                        link: `${clientUrl}/event/${event_id}`,
+                        showWatermark,
+                        eventId: event_id,
+                    };
 
                     await sendEmail(toEmail, subject, body, sections, context);
                 }
@@ -236,7 +250,7 @@ export default async function smsRoutes(server: FastifyInstance) {
                 // Send standard continuation link
                 const link = `${clientUrl}/event/${event_id}?nodeId=${nextNodeId}`;
                 const msgBody = `Tap here to continue: ${link}`;
-                await sendSms(From, msgBody);
+                await sendSms(From, msgBody, event_id);
             }
 
             return reply.type('text/xml').send('<Response></Response>');

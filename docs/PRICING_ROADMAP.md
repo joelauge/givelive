@@ -53,7 +53,7 @@ Source of truth for copy: `client/src/data/pricingPlans.ts`
 | Active campaigns | 1 | 10 | ∞ | ∞ | ∞ | 🟡 Events exist, no cap |
 | QR codes | 1 | ∞ | ∞ | ∞ | ∞ | 🟡 Per-event QR, no cap |
 | Leads / month | 100 | 1,000 | 10,000 | 50,000 | ∞ | 🟡 Users captured, no monthly rollup |
-| GiveLive branding | On | Off | Off | Off | Off | 🔲 |
+| GiveLive branding | On | Off | Off | Off | Off | ✅ |
 | Analytics | Basic | Basic | Advanced | Advanced | Advanced | 🟡 Analytics page exists |
 | Email notifications | — | ✅ | ✅ | ✅ | ✅ | 🟡 SMTP settings |
 | CSV export | — | 🔲 | 🔲 | 🔲 | 🔲 | |
@@ -80,7 +80,7 @@ Source of truth for copy: `client/src/data/pricingPlans.ts`
 ## Phase 4 — Tier feature delivery
 
 ### Free
-- [ ] Force GiveLive badge on published landing pages
+- [x] Force GiveLive badge on published landing pages, SMS, and emails
 - [ ] Restrict analytics to scans + lead count only
 
 ### Starter ($19)

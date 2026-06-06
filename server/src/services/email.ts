@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { query } from '../db';
+import { emailWatermarkHtml } from './watermark';
 
 interface EmailConfig {
     provider: string;
@@ -120,6 +121,10 @@ function generateHtml(body: string, sections: any[], context?: any) {
         });
     }
 
+    const footerHtml = context?.showWatermark
+        ? emailWatermarkHtml(context?.eventId)
+        : '';
+
     // Wrapper
     return `
         <!DOCTYPE html>
@@ -131,9 +136,7 @@ function generateHtml(body: string, sections: any[], context?: any) {
         <body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f4f4f4;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
                 ${contentHtml}
-            </div>
-            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-                Sent via GiveLive
+                ${footerHtml}
             </div>
         </body>
         </html>

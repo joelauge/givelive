@@ -343,7 +343,7 @@ export default function Settings() {
                             <p className="text-xs text-gray-500 mt-2">
                                 {billing?.hasSubscription
                                     ? 'Manage payment method, invoices, or cancel in Stripe.'
-                                    : 'Upgrade on the pricing page to unlock more campaigns and leads.'}
+                                    : 'Free plans show a “Made with GiveLive.app” badge on pages, texts, and emails. Upgrade to remove it and unlock more campaigns.'}
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">

@@ -18,6 +18,7 @@ export default function LandingPage() {
     const [userPhone, setUserPhone] = useState<string>('');
     const [isSending, setIsSending] = useState(false);
     const [sendingProgress, setSendingProgress] = useState('');
+    const [showWatermark, setShowWatermark] = useState(false);
 
     useEffect(() => {
         const loadEventAndJourney = async () => {
@@ -32,6 +33,7 @@ export default function LandingPage() {
                 setLoadingStep('Loading Event...');
                 const eventData = await api.getEvent(eventId!);
                 setEvent(eventData);
+                setShowWatermark(Boolean(eventData.showWatermark));
 
                 // 2. Start Journey (or resume)
                 setLoadingStep('Starting Journey...');
@@ -438,6 +440,7 @@ export default function LandingPage() {
                     isSubmitting={isSending}
                     eventId={eventId}
                     userId={userId}
+                    showWatermark={showWatermark}
                 />
             ) : (
                 <div className="flex items-center justify-center min-h-screen p-8">
