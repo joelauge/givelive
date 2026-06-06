@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import logoBlue from '../assets/givelive_logo_blue.png';
 import { watermarkUrl } from '../lib/watermark';
 
-const COUNTDOWN_SECONDS = 3;
+const COUNTDOWN_SECONDS = 5;
 
 type Props = {
     eventId?: string;
