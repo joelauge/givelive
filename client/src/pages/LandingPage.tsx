@@ -20,6 +20,7 @@ export default function LandingPage() {
     const [isSending, setIsSending] = useState(false);
     const [sendingProgress, setSendingProgress] = useState('');
     const [showWatermark, setShowWatermark] = useState(false);
+    const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const loadEventAndJourney = async () => {
@@ -395,10 +396,14 @@ export default function LandingPage() {
             // Check for auto-forward URL
             const autoForwardUrl = currentNode.config?.autoForwardUrl || (currentNode as any).data?.autoForwardUrl;
             if (autoForwardUrl) {
-                console.log('[LandingPage] Auto-forwarding to:', autoForwardUrl);
-                // Ensure URL has protocol
                 const url = autoForwardUrl.startsWith('http') ? autoForwardUrl : `https://${autoForwardUrl}`;
-                window.location.replace(url);
+                console.log('[LandingPage] Auto-forwarding to:', url);
+
+                if (showWatermark) {
+                    setEmbeddedUrl(url);
+                } else {
+                    window.location.replace(url);
+                }
                 return;
             }
 
@@ -407,7 +412,7 @@ export default function LandingPage() {
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [currentNode, allNodes, handleNext]);
+    }, [currentNode, allNodes, handleNext, showWatermark]);
 
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -436,6 +441,7 @@ export default function LandingPage() {
         <GiveLiveScannerShell
             showBanner={showWatermark}
             eventId={eventId}
+            embedUrl={embeddedUrl}
             overlay={
                 isSending ? (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
