@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import NodeRenderer from '../components/NodeRenderer';
-import GiveLiveInterstitial from '../components/GiveLiveInterstitial';
+import GiveLiveScannerShell from '../components/GiveLiveScannerShell';
 import type { Event, JourneyNode } from '../types';
-
-function interstitialStorageKey(eventId: string) {
-    return `givelive_interstitial_${eventId}`;
-}
 
 export default function LandingPage() {
     const { eventId } = useParams();
@@ -24,7 +20,6 @@ export default function LandingPage() {
     const [isSending, setIsSending] = useState(false);
     const [sendingProgress, setSendingProgress] = useState('');
     const [showWatermark, setShowWatermark] = useState(false);
-    const [showInterstitial, setShowInterstitial] = useState(false);
 
     useEffect(() => {
         const loadEventAndJourney = async () => {
@@ -39,14 +34,7 @@ export default function LandingPage() {
                 setLoadingStep('Loading Event...');
                 const eventData = await api.getEvent(eventId!);
                 setEvent(eventData);
-                const isFreeTier = Boolean(eventData.showWatermark);
-                setShowWatermark(isFreeTier);
-
-                const alreadySeen =
-                    sessionStorage.getItem(interstitialStorageKey(eventId!)) === '1';
-                if (isFreeTier && !urlNodeId && !alreadySeen) {
-                    setShowInterstitial(true);
-                }
+                setShowWatermark(Boolean(eventData.showWatermark));
 
                 // 2. Start Journey (or resume)
                 setLoadingStep('Starting Journey...');
@@ -401,17 +389,8 @@ export default function LandingPage() {
         setCurrentNode(nodeForRender as any);
     };
 
-    const dismissInterstitial = () => {
-        if (eventId) {
-            sessionStorage.setItem(interstitialStorageKey(eventId), '1');
-        }
-        setShowInterstitial(false);
-    };
-
     // Auto-advance Start Node
     useEffect(() => {
-        if (showInterstitial) return;
-
         if (currentNode && currentNode.type === 'start') {
             // Check for auto-forward URL
             const autoForwardUrl = currentNode.config?.autoForwardUrl || (currentNode as any).data?.autoForwardUrl;
@@ -428,7 +407,7 @@ export default function LandingPage() {
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [currentNode, allNodes, handleNext, showInterstitial]);
+    }, [currentNode, allNodes, handleNext]);
 
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -453,12 +432,22 @@ export default function LandingPage() {
 
     if (!event) return <div className="min-h-screen flex items-center justify-center">Event not found</div>;
 
-    if (showInterstitial) {
-        return <GiveLiveInterstitial eventId={eventId} onContinue={dismissInterstitial} />;
-    }
-
     return (
-        <div className="min-h-screen bg-background">
+        <GiveLiveScannerShell
+            showBanner={showWatermark}
+            eventId={eventId}
+            overlay={
+                isSending ? (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm mx-4 animate-in zoom-in-95 duration-200">
+                            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-1">Just a moment</h3>
+                            <p className="text-gray-500 text-sm">{sendingProgress || 'Processing your request...'}</p>
+                        </div>
+                    </div>
+                ) : null
+            }
+        >
             {currentNode ? (
                 <NodeRenderer
                     node={currentNode}
@@ -466,7 +455,7 @@ export default function LandingPage() {
                     isSubmitting={isSending}
                     eventId={eventId}
                     userId={userId}
-                    showWatermark={showWatermark}
+                    showWatermark={false}
                 />
             ) : (
                 <div className="flex items-center justify-center min-h-screen p-8">
@@ -476,17 +465,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             )}
-
-            {/* Sending Progress Overlay */}
-            {isSending && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm mx-4 animate-in zoom-in-95 duration-200">
-                        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">Just a moment</h3>
-                        <p className="text-gray-500 text-sm">{sendingProgress || 'Processing your request...'}</p>
-                    </div>
-                </div>
-            )}
-        </div>
+        </GiveLiveScannerShell>
     );
 }
