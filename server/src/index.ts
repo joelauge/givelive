@@ -148,8 +148,7 @@ export const createApp = () => {
             const startNodeConfig =
                 typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
 
-            const displayName =
-                (startNodeConfig.qrDisplayText || '').trim() || event.name || 'GiveLive';
+            const displayName = event.name || 'GiveLive';
             const campaignImage = startNodeConfig.campaignImage;
             const safeName = escapeHtml(displayName);
             const safeEventName = escapeHtml(event.name || 'GiveLive');

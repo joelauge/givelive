@@ -76,10 +76,6 @@ const sections: Section[] = [
                 body: 'Click the Start node on the canvas, then in the right panel confirm Trigger Source is QR / Link. This is the default for new flows.',
             },
             {
-                title: 'Set QR display text',
-                body: 'Add QR Display Text (e.g. "Scan to register"). This can appear in the camera viewfinder on some phones when the code is scanned.',
-            },
-            {
                 title: 'Add a campaign image',
                 body: 'Upload or choose a Campaign Image (recommended 1200×630px). It powers link previews when you share the flow URL in SMS, iMessage, or social posts.',
             },

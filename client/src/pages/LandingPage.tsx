@@ -100,8 +100,7 @@ export default function LandingPage() {
         // Find the start node to get campaign image and QR text
         const startNode = allNodes.find(n => n.type === 'start' || n.config?.type === 'start');
         const campaignImage = startNode?.config?.campaignImage || (startNode as any)?.data?.campaignImage;
-        const qrDisplayText = startNode?.config?.qrDisplayText || (startNode as any)?.data?.qrDisplayText;
-        const displayName = qrDisplayText || event.name || 'GiveLive';
+        const displayName = event.name || 'GiveLive';
 
         document.title = displayName;
 
