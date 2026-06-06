@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import NodeRenderer from '../components/NodeRenderer';
+import GiveLiveInterstitial from '../components/GiveLiveInterstitial';
 import type { Event, JourneyNode } from '../types';
+
+function interstitialStorageKey(eventId: string) {
+    return `givelive_interstitial_${eventId}`;
+}
 
 export default function LandingPage() {
     const { eventId } = useParams();
@@ -19,6 +24,7 @@ export default function LandingPage() {
     const [isSending, setIsSending] = useState(false);
     const [sendingProgress, setSendingProgress] = useState('');
     const [showWatermark, setShowWatermark] = useState(false);
+    const [showInterstitial, setShowInterstitial] = useState(false);
 
     useEffect(() => {
         const loadEventAndJourney = async () => {
@@ -33,7 +39,14 @@ export default function LandingPage() {
                 setLoadingStep('Loading Event...');
                 const eventData = await api.getEvent(eventId!);
                 setEvent(eventData);
-                setShowWatermark(Boolean(eventData.showWatermark));
+                const isFreeTier = Boolean(eventData.showWatermark);
+                setShowWatermark(isFreeTier);
+
+                const alreadySeen =
+                    sessionStorage.getItem(interstitialStorageKey(eventId!)) === '1';
+                if (isFreeTier && !urlNodeId && !alreadySeen) {
+                    setShowInterstitial(true);
+                }
 
                 // 2. Start Journey (or resume)
                 setLoadingStep('Starting Journey...');
@@ -388,8 +401,17 @@ export default function LandingPage() {
         setCurrentNode(nodeForRender as any);
     };
 
+    const dismissInterstitial = () => {
+        if (eventId) {
+            sessionStorage.setItem(interstitialStorageKey(eventId), '1');
+        }
+        setShowInterstitial(false);
+    };
+
     // Auto-advance Start Node
     useEffect(() => {
+        if (showInterstitial) return;
+
         if (currentNode && currentNode.type === 'start') {
             // Check for auto-forward URL
             const autoForwardUrl = currentNode.config?.autoForwardUrl || (currentNode as any).data?.autoForwardUrl;
@@ -406,7 +428,7 @@ export default function LandingPage() {
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [currentNode, allNodes, handleNext]); // Added handleNext to dependencies
+    }, [currentNode, allNodes, handleNext, showInterstitial]);
 
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -430,6 +452,10 @@ export default function LandingPage() {
     );
 
     if (!event) return <div className="min-h-screen flex items-center justify-center">Event not found</div>;
+
+    if (showInterstitial) {
+        return <GiveLiveInterstitial eventId={eventId} onContinue={dismissInterstitial} />;
+    }
 
     return (
         <div className="min-h-screen bg-background">
