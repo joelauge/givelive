@@ -31,9 +31,13 @@ import { useUndoRedo } from '../hooks/useUndoRedo';
 import { SHOW_SOCIAL_TRIGGERS } from '../config/features';
 import { validatePublishFlow } from '@givelive/journey-validation';
 import { Undo, Globe, Sparkles } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 import { api, API_URL } from '../api';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
 import AIBuilder from '../components/flow-editor/AIBuilder';
+import UpgradeModal from '../components/UpgradeModal';
+import type { PlanId } from '../data/pricingPlans';
+import { getCampaignLimit } from '../lib/billingLimits';
 
 // Create a context to share functionality with nodes
 interface JourneyContextType {
@@ -778,6 +782,7 @@ const initialNodes: Node<NodeData>[] = [
 const initialEdges: Edge[] = [];
 
 export default function JourneyBuilder({ previewMode = false, templateId: propTemplateId }: { previewMode?: boolean; templateId?: string }) {
+    const { user } = useUser();
     const { eventId, templateId: paramTemplateId } = useParams();
     const templateId = propTemplateId || paramTemplateId;
     const navigate = useNavigate();
@@ -785,6 +790,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isPublished, setIsPublished] = useState(false);
+    const [planId, setPlanId] = useState<PlanId>('free');
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     const [isDeleteFlowModalOpen, setIsDeleteFlowModalOpen] = useState(false);
 
@@ -948,6 +955,13 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
         };
         fetchEventName();
     }, [eventId]);
+
+    useEffect(() => {
+        if (!user?.id || previewMode) return;
+        api.getBillingStatus(user.id)
+            .then((data) => setPlanId((data.planId as PlanId) || 'free'))
+            .catch(() => setPlanId('free'));
+    }, [user?.id, previewMode]);
 
     const [saving, setSaving] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
@@ -2554,6 +2568,19 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
             return;
         }
 
+        // Block publishing an additional live flow on free tier (re-publishing the same flow is allowed)
+        if (!isPublished && user?.id) {
+            try {
+                const limitCheck = await api.checkCanPublish(user.id, eventId);
+                if (!limitCheck.canPublish) {
+                    setShowUpgradeModal(true);
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to check publish limit', e);
+            }
+        }
+
         // All validation passed, proceed with publish
         try {
             setSaving(true);
@@ -2568,6 +2595,11 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
             });
         } catch (err: any) {
             console.error(err);
+
+            if (err.message === 'plan_limit' || err.planLimit) {
+                setShowUpgradeModal(true);
+                return;
+            }
 
             if (err.validationErrors?.length) {
                 setModal({
@@ -3288,6 +3320,14 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     onClose={() => setIsAIBuilderOpen(false)}
                     onGenerate={handleAIGenerate}
                 />
+                {!previewMode && (
+                    <UpgradeModal
+                        isOpen={showUpgradeModal}
+                        onClose={() => setShowUpgradeModal(false)}
+                        limit={getCampaignLimit(planId) ?? 1}
+                        reason="publish"
+                    />
+                )}
             </div >
         </JourneyContext.Provider>
     );

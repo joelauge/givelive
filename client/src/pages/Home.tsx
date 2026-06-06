@@ -1,4 +1,4 @@
-import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldCheck, Users, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
@@ -50,6 +50,15 @@ export default function Home() {
                             </Link>
                             <Link to="/admin" className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group">
                                 Free Templates
+                            </Link>
+                            <Link
+                                to="/pricing"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                            >
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                    <Tag className="w-4 h-4" />
+                                </span>
+                                Pricing
                             </Link>
                         </div>
                     </div>
@@ -300,10 +309,16 @@ export default function Home() {
                         <Link to="/admin" className="h-16 px-10 rounded-full bg-white text-primary font-bold text-xl hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl shadow-white/10 flex items-center gap-2">
                             Get Started for Free <ArrowRight size={24} />
                         </Link>
+                        <Link
+                            to="/pricing"
+                            className="h-16 px-10 rounded-full bg-white/5 text-white border border-white/20 font-bold text-xl hover:bg-white/10 hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                        >
+                            View Pricing
+                        </Link>
                     </div>
 
                     <p className="mt-8 text-gray-500 text-sm">
-                        No credit card required · 14-day free trial · Cancel anytime
+                        Start free with 1 QR code · Upgrade when you need more campaigns
                     </p>
                 </div>
             </section>

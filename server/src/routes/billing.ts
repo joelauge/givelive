@@ -14,6 +14,7 @@ import {
     updateOrganizationPlan,
 } from '../services/organizationBilling';
 import { handleBillingStripeEvent } from '../services/stripeBillingWebhooks';
+import { checkPublishLimit } from '../services/planEnforcement';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -42,6 +43,25 @@ export default async function billingRoutes(server: FastifyInstance) {
             reply.code(500).send({ error: err.message || 'Failed to load billing status' });
         }
     });
+
+    /** Whether org can publish another live QR flow (excludes current event when re-publishing) */
+    server.get<{ Querystring: { org_id: string; event_id: string } }>(
+        '/billing/can-publish',
+        async (request, reply) => {
+            try {
+                const { org_id, event_id } = request.query;
+                if (!org_id || !event_id) {
+                    return reply.code(400).send({ error: 'org_id and event_id are required' });
+                }
+
+                const result = await checkPublishLimit(org_id, event_id);
+                return result;
+            } catch (err: any) {
+                server.log.error(err);
+                reply.code(500).send({ error: err.message || 'Failed to check publish limit' });
+            }
+        }
+    );
 
     /** Create Stripe Checkout for a paid plan */
     server.post<{

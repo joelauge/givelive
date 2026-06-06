@@ -19,8 +19,12 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
-        if (!res.ok) throw new Error('Failed to create event');
-        return res.json();
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 403 && body.error === 'plan_limit') {
+            throw new Error('plan_limit');
+        }
+        if (!res.ok) throw new Error(body.message || 'Failed to create event');
+        return body;
     },
 
     updateEvent: async (id: string, data: { name?: string;[key: string]: any }) => {
@@ -60,14 +64,32 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 403 && body.error === 'plan_limit') {
+            const err = new Error('plan_limit') as Error & { planLimit?: boolean };
+            err.planLimit = true;
+            throw err;
+        }
         if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
             const message = body.error || 'Failed to publish journey';
             const err = new Error(message) as Error & { validationErrors?: string[] };
             err.validationErrors = body.validationErrors;
             throw err;
         }
-        return res.json();
+        return body;
+    },
+
+    checkCanPublish: async (orgId: string, eventId: string) => {
+        const res = await fetch(
+            `${API_URL}/billing/can-publish?org_id=${encodeURIComponent(orgId)}&event_id=${encodeURIComponent(eventId)}`
+        );
+        if (!res.ok) throw new Error('Failed to check publish limit');
+        return res.json() as Promise<{
+            canPublish: boolean;
+            planId: string;
+            limit: number | null;
+            publishedCount: number;
+        }>;
     },
 
     saveFlow: async (eventId: string, data: { nodes: any[], edges: any[], isPublished?: boolean }) => {

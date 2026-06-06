@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { templates } from '../data/templateLibrary';
 import { Check, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { api } from '../api';
+import { api, API_URL } from '../api';
+import UpgradeModal from '../components/UpgradeModal';
+import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
+import type { PlanId } from '../data/pricingPlans';
 
 // Import local image (this path is a placeholder relative to where images are served)
 // For now we will use a computed path or import if it's in assets
@@ -27,6 +30,22 @@ export default function BlogPost() {
 
     const { isSignedIn, user } = useUser();
     const [creating, setCreating] = useState(false);
+    const [eventCount, setEventCount] = useState(0);
+    const [planId, setPlanId] = useState<PlanId>('free');
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+    useEffect(() => {
+        if (!isSignedIn || !user?.id) return;
+
+        fetch(`${API_URL}/events`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => setEventCount(Array.isArray(data) ? data.length : 0))
+            .catch(() => setEventCount(0));
+
+        api.getBillingStatus(user.id)
+            .then((data) => setPlanId((data.planId as PlanId) || 'free'))
+            .catch(() => setPlanId('free'));
+    }, [isSignedIn, user?.id]);
 
     const handleUseTemplate = async () => {
         if (!isSignedIn) {
@@ -35,23 +54,31 @@ export default function BlogPost() {
             return;
         }
 
+        if (!canCreateCampaign(planId, eventCount)) {
+            setShowUpgradeModal(true);
+            return;
+        }
+
         // Authenticated: Create project and redirect
         try {
             setCreating(true);
             const res = await api.createEvent({
-                org_id: user.id, // Using user ID as org for now
+                org_id: user.id,
                 name: `My ${template?.name} Flow`,
                 date: new Date().toISOString(),
                 qr_url: 'https://example.com/placeholder'
             });
 
             if (res && res.id) {
-                // Redirect to builder with template param
                 navigate(`/admin/event/${res.id}?template=${template?.id}&new=true`);
             }
         } catch (err) {
+            if (err instanceof Error && err.message === 'plan_limit') {
+                setShowUpgradeModal(true);
+                return;
+            }
             console.error(err);
-            alert('Failed to start project (Backend might be offline locally). Try signing up!');
+            alert('Failed to start project. Please try again.');
         } finally {
             setCreating(false);
         }
@@ -170,6 +197,12 @@ export default function BlogPost() {
                     </div>
                 </div>
             </article>
+
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                limit={getCampaignLimit(planId) ?? 1}
+            />
         </div>
     );
 }

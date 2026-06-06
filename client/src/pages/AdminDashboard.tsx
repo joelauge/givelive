@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import { API_URL, api } from '../api';
 import Modal from '../components/Modal';
+import UpgradeModal from '../components/UpgradeModal';
+import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
+import type { PlanId } from '../data/pricingPlans';
 import QRCode from 'react-qr-code';
 import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
@@ -66,6 +70,7 @@ const CustomNodePreview = ({ data }: { data: any }) => {
 const nodeTypes = { start: StartNodePreview, default: CustomNodePreview };
 
 export default function AdminDashboard() {
+    const { user } = useUser();
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -83,10 +88,37 @@ export default function AdminDashboard() {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [templateSearch, setTemplateSearch] = useState('');
     const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
+    const [planId, setPlanId] = useState<PlanId>('free');
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+    const orgId = user?.id || 'default-org';
+
+    useEffect(() => {
+        if (!user?.id) return;
+        api.getBillingStatus(user.id)
+            .then((data) => setPlanId((data.planId as PlanId) || 'free'))
+            .catch(() => setPlanId('free'));
+    }, [user?.id]);
+
+    const isAtCampaignLimit = () => !canCreateCampaign(planId, events.length);
+
+    const openCreateFlow = () => {
+        if (isAtCampaignLimit()) {
+            setShowUpgradeModal(true);
+            return;
+        }
+        setPendingTemplateId(null);
+        setNewEventName('');
+        setIsModalOpen(true);
+    };
 
     const handleTemplateClick = (templateId: string) => {
         const template = templates.find(t => t.id === templateId);
         if (template) {
+            if (isAtCampaignLimit()) {
+                setShowUpgradeModal(true);
+                return;
+            }
             setNewEventName(template.name);
             setPendingTemplateId(template.id);
             setIsModalOpen(true);
@@ -140,18 +172,32 @@ export default function AdminDashboard() {
         e.preventDefault();
         if (!newEventName.trim()) return;
 
+        if (isAtCampaignLimit()) {
+            setIsModalOpen(false);
+            setShowUpgradeModal(true);
+            return;
+        }
+
         try {
             setCreating(true);
             const res = await fetch(`${API_URL}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    org_id: 'default-org', // Mock org ID
+                    org_id: orgId,
                     name: newEventName,
                     date: new Date().toISOString(),
                     qr_url: 'https://example.com/qr-placeholder'
                 })
             });
+            if (res.status === 403) {
+                const body = await res.json().catch(() => ({}));
+                if (body.error === 'plan_limit') {
+                    setIsModalOpen(false);
+                    setShowUpgradeModal(true);
+                    return;
+                }
+            }
             if (res.ok) {
                 const newEvent = await res.json();
                 setNewEventName('');
@@ -186,18 +232,31 @@ export default function AdminDashboard() {
     const handleDuplicate = async (eventToDuplicate: any, e: React.MouseEvent) => {
         e.preventDefault();
 
+        if (isAtCampaignLimit()) {
+            setShowUpgradeModal(true);
+            return;
+        }
+
         try {
             setLoading(true);
             const res = await fetch(`${API_URL}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    org_id: 'default-org',
+                    org_id: orgId,
                     name: `${eventToDuplicate.name} (Copy)`,
                     date: new Date().toISOString(),
                     qr_url: 'https://example.com/qr-placeholder' // Do not copy the original QR URL
                 })
             });
+            if (res.status === 403) {
+                const body = await res.json().catch(() => ({}));
+                if (body.error === 'plan_limit') {
+                    setShowUpgradeModal(true);
+                    setLoading(false);
+                    return;
+                }
+            }
             if (res.ok) {
                 const newEvent = await res.json();
 
@@ -437,11 +496,7 @@ export default function AdminDashboard() {
                             <p className="text-gray-600 text-lg">Manage your QR Events and Projects</p>
                         </div>
                         <button
-                            onClick={() => {
-                                setPendingTemplateId(null);
-                                setNewEventName('');
-                                setIsModalOpen(true);
-                            }}
+                            onClick={openCreateFlow}
                             className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
                         >
                             <span className="text-xl">+</span> Create Project
@@ -704,11 +759,7 @@ export default function AdminDashboard() {
                                     <h3 className="text-2xl font-bold text-gray-900 mb-3">No projects yet</h3>
                                     <p className="text-gray-500 mb-8 text-lg">Create your first QR Event project to get started</p>
                                     <button
-                                        onClick={() => {
-                                            setPendingTemplateId(null);
-                                            setNewEventName('');
-                                            setIsModalOpen(true);
-                                        }}
+                                        onClick={openCreateFlow}
                                         className="bg-gradient-to-r from-black to-gray-800 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                                     >
                                         Create Project
@@ -755,6 +806,12 @@ export default function AdminDashboard() {
                         </div>
                     </form>
                 </Modal>
+
+                <UpgradeModal
+                    isOpen={showUpgradeModal}
+                    onClose={() => setShowUpgradeModal(false)}
+                    limit={getCampaignLimit(planId) ?? 1}
+                />
             </div>
         </div>
     );

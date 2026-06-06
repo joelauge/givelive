@@ -171,31 +171,31 @@ export default function Pricing() {
             <section className="py-16 md:py-20">
                 <div className="container mx-auto px-4 max-w-4xl">
                     <h2 className="text-2xl md:text-3xl font-bold font-display text-gray-900 text-center mb-10">
-                        Why we price this way
+                        Does this sound familiar?
                     </h2>
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="p-6 rounded-2xl bg-surface border border-gray-100">
                             <Zap className="text-accent-blue mb-4" size={28} />
-                            <h3 className="font-bold text-gray-900 mb-2">Free tier converts</h3>
+                            <h3 className="font-bold text-gray-900 mb-2">Looking for proof this works?</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                One campaign and 100 leads let scanners prove ROI before you upgrade — built for
-                                organic sharing.
+                                Start free with one campaign and 100 leads — enough real scans at your location to
+                                see if it fits your team before you spend anything.
                             </p>
                         </div>
                         <div className="p-6 rounded-2xl bg-surface border border-gray-100">
                             <Check className="text-green-600 mb-4" size={28} />
-                            <h3 className="font-bold text-gray-900 mb-2">Starter removes friction</h3>
+                            <h3 className="font-bold text-gray-900 mb-2">Lead gen tech too hard?</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                Custom branding and CSV export matter more than charging per QR — local businesses
-                                stay on $19.
+                                Starter keeps it simple: your branding, CSV export, and flat pricing — no juggling
+                                tools or paying again every time someone scans a code.
                             </p>
                         </div>
                         <div className="p-6 rounded-2xl bg-surface border border-gray-100">
                             <Bot className="text-accent-purple mb-4" size={28} />
-                            <h3 className="font-bold text-gray-900 mb-2">AI sells itself</h3>
+                            <h3 className="font-bold text-gray-900 mb-2">No time to follow up after the event?</h3>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                The Follow-Up Assistant is a separate add-on because customers see immediate value
-                                in saved time, not more codes.
+                                Add the Follow-Up Assistant when you need it — optional and separate from your plan,
+                                so you only pay when help nurturing leads actually matters.
                             </p>
                         </div>
                     </div>

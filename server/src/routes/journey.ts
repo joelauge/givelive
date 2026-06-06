@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { query } from '../db';
 import { IntegrationService } from '../services/integrations';
 import { validatePublishFlow } from '../lib/journeyValidation';
+import { checkPublishLimit } from '../services/planEnforcement';
 
 function socialTriggersEnabledFromEnv(): boolean {
     return process.env.SHOW_SOCIAL_TRIGGERS === 'true';
@@ -126,6 +127,21 @@ export default async function journeyRoutes(server: FastifyInstance) {
                     validationErrors,
                 });
                 return;
+            }
+
+            const eventResult = await query('SELECT org_id FROM events WHERE id = $1::uuid', [eventId]);
+            const orgId = eventResult.rows[0]?.org_id;
+            if (orgId) {
+                const publishLimit = await checkPublishLimit(orgId, eventId);
+                if (!publishLimit.canPublish) {
+                    return reply.code(403).send({
+                        error: 'plan_limit',
+                        message: `Your ${publishLimit.planId} plan allows ${publishLimit.limit} live QR campaign${publishLimit.limit === 1 ? '' : 's'}. Upgrade to publish more.`,
+                        planId: publishLimit.planId,
+                        limit: publishLimit.limit,
+                        publishedCount: publishLimit.publishedCount,
+                    });
+                }
             }
 
             // 1. Clear existing nodes

@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { query } from '../db';
+import { getCampaignLimitForPlan } from '../config/planLimits';
+import { getOrCreateOrganization } from '../services/organizationBilling';
 
 interface EventBody {
     org_id: string;
@@ -53,6 +55,27 @@ export default async function eventRoutes(server: FastifyInstance) {
     server.post<{ Body: EventBody }>('/events', async (request, reply) => {
         try {
             const { org_id, name, date, qr_url, root_node_id } = request.body;
+
+            if (org_id) {
+                const org = await getOrCreateOrganization(org_id);
+                const limit = getCampaignLimitForPlan(org.plan_id);
+                if (limit !== null) {
+                    const countResult = await query(
+                        'SELECT COUNT(*)::int AS count FROM events WHERE org_id = $1',
+                        [org_id]
+                    );
+                    const count = countResult.rows[0]?.count ?? 0;
+                    if (count >= limit) {
+                        return reply.code(403).send({
+                            error: 'plan_limit',
+                            message: `Your ${org.plan_id} plan allows ${limit} active campaign${limit === 1 ? '' : 's'}. Upgrade to add more.`,
+                            planId: org.plan_id,
+                            limit,
+                        });
+                    }
+                }
+            }
+
             const result = await query(
                 'INSERT INTO events (org_id, name, date, qr_url, root_node_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
                 [org_id, name, date, qr_url, root_node_id]
