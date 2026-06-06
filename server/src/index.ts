@@ -18,6 +18,7 @@ import donationRoutes from './routes/donations';
 import billingRoutes from './routes/billing';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
+import { ensureUserProfilesSchema } from './db/ensureUserProfiles';
 import aiRoutes from './routes/ai';
 import webhookRoutes from './routes/webhooks';
 import { integrationRoutes } from './routes/integrations';
@@ -78,10 +79,15 @@ export const createApp = () => {
         server.log.warn(`Uploads directory not found at ${uploadsDir}. Static file serving disabled.`);
     }
 
+    ensureUserProfilesSchema().catch((err) => {
+        server.log.error({ err }, 'Failed to ensure user profiles schema');
+    });
+
     server.register(eventRoutes, { prefix: '/api' });
     server.register(journeyRoutes, { prefix: '/api' });
     server.register(smsRoutes, { prefix: '/api' });
     server.register(analyticsRoutes, { prefix: '/api' });
+    server.register(userRoutes, { prefix: '/api' });
     server.register(demoRoutes, { prefix: '/api' });
     server.register(donationRoutes, { prefix: '/api' });
     server.register(billingRoutes, { prefix: '/api' });

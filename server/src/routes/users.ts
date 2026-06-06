@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { query } from '../db';
+import { ensureUserProfilesSchema } from '../db/ensureUserProfiles';
+import { requireEventAccess } from '../lib/eventAccess';
 
 interface UpdateProfileBody {
     event_id: string;
@@ -12,9 +14,10 @@ interface UpdateProfileBody {
 }
 
 export default async function userRoutes(server: FastifyInstance) {
-    // Update/merge user profile with new form data
+    // Update/merge user profile with new form data (public — called from scanner flows)
     server.post<{ Body: UpdateProfileBody }>('/users/profile', async (request, reply) => {
         try {
+            await ensureUserProfilesSchema();
             const { event_id, user_id, phone_number, email, form_data, node_id, session_id } = request.body;
 
             let userId = user_id;
@@ -104,10 +107,14 @@ export default async function userRoutes(server: FastifyInstance) {
         }
     });
 
-    // Get all users for an event (for analytics)
+    // Get all users for an event (for analytics — organizer only)
     server.get<{ Params: { eventId: string } }>('/users/event/:eventId', async (request, reply) => {
         try {
             const { eventId } = request.params;
+            const access = await requireEventAccess(request, reply, eventId);
+            if (!access) return;
+
+            await ensureUserProfilesSchema();
             const result = await query(
                 `SELECT 
                     u.id,
@@ -136,10 +143,14 @@ export default async function userRoutes(server: FastifyInstance) {
         }
     });
 
-    // Export users as CSV
+    // Export users as CSV (organizer only)
     server.get<{ Params: { eventId: string } }>('/users/event/:eventId/export', async (request, reply) => {
         try {
             const { eventId } = request.params;
+            const access = await requireEventAccess(request, reply, eventId);
+            if (!access) return;
+
+            await ensureUserProfilesSchema();
             const result = await query(
                 `SELECT 
                     u.email,

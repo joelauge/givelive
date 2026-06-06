@@ -37,6 +37,7 @@ export default function Analytics() {
     const [events, setEvents] = useState<any[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
     useEffect(() => {
@@ -77,26 +78,18 @@ export default function Analytics() {
         if (!selectedEvent) return;
 
         setLoading(true);
+        setLoadError(null);
         try {
-            const response = await fetch(`/api/users/event/${selectedEvent}`);
-
-            if (!response.ok) {
-                console.error('Failed to load users:', response.status);
-                setUsers([]);
-                return;
-            }
-
-            const data = await response.json();
-
-            if (Array.isArray(data)) {
-                setUsers(data);
-            } else {
-                console.error('Expected array, got:', data);
-                setUsers([]);
-            }
+            const data = await api.getEventUsers(selectedEvent);
+            setUsers(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to load users:', err);
             setUsers([]);
+            setLoadError(
+                err instanceof Error && err.message === 'Unauthorized'
+                    ? 'Sign in again to view analytics for this event.'
+                    : 'Could not load user data. Try refreshing the page.'
+            );
         } finally {
             setLoading(false);
         }
@@ -166,9 +159,21 @@ export default function Analytics() {
         });
     };
 
-    const exportCSV = () => {
+    const exportCSV = async () => {
         if (!selectedEvent) return;
-        window.open(`/api/users/event/${selectedEvent}/export`, '_blank');
+        try {
+            const csv = await api.exportEventUsersCsv(selectedEvent);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `users-${selectedEvent}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export failed:', err);
+            alert('Could not export CSV. Please try again.');
+        }
     };
 
     const formatDate = (dateStr: string) => {
@@ -294,21 +299,25 @@ export default function Analytics() {
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                             <p className="mt-4">Loading users...</p>
                         </div>
+                    ) : loadError ? (
+                        <div className="p-12 text-center">
+                            <p className="text-sm text-red-600 mb-2">{loadError}</p>
+                            <button
+                                type="button"
+                                onClick={loadUsers}
+                                className="text-sm font-medium text-primary hover:underline"
+                            >
+                                Try again
+                            </button>
+                        </div>
                     ) : groupedUsers.length === 0 ? (
                         <div className="p-12 text-center">
                             <UsersIcon size={48} className="mx-auto mb-4 opacity-20 text-gray-400" />
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">No User Data Yet</h3>
-                            <p className="text-sm text-gray-500 mb-4">User profiles will appear here once people start interacting with your events.</p>
-
-                            <div className="max-w-md mx-auto bg-blue-50 border border-blue-200 rounded-xl p-4 text-left">
-                                <p className="text-xs font-bold text-blue-900 mb-2">📋 Database Setup Required</p>
-                                <p className="text-xs text-blue-700 mb-3">
-                                    To enable user tracking, run the database migration:
-                                </p>
-                                <code className="block bg-blue-100 text-blue-900 px-3 py-2 rounded text-[10px] font-mono">
-                                    psql $DATABASE_URL -f server/src/db/migrations/002_user_profiles.sql
-                                </code>
-                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">No user data yet</h3>
+                            <p className="text-sm text-gray-500 max-w-md mx-auto">
+                                Profiles appear here when scanners submit forms, share contact info, or donate on
+                                your published flow.
+                            </p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">

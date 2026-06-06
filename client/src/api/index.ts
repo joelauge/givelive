@@ -148,6 +148,25 @@ export const api = {
         return res.json();
     },
 
+    getEventUsers: async (eventId: string) => {
+        const res = await fetch(`${API_URL}/users/event/${eventId}`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 401 || res.status === 403) {
+            throw new Error('Unauthorized');
+        }
+        if (!res.ok) throw new Error('Failed to load users');
+        return res.json();
+    },
+
+    exportEventUsersCsv: async (eventId: string) => {
+        const res = await fetch(`${API_URL}/users/event/${eventId}/export`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (!res.ok) throw new Error('Failed to export users');
+        return res.text();
+    },
+
     deleteEvent: async (id: string) => {
         const res = await fetch(`${API_URL}/events/${id}`, {
             method: 'DELETE',
