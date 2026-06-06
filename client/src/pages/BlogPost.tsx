@@ -4,7 +4,7 @@ import { templates } from '../data/templateLibrary';
 import { Check, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { api, API_URL } from '../api';
+import { api } from '../api';
 import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
 import type { PlanId } from '../data/pricingPlans';
@@ -37,8 +37,7 @@ export default function BlogPost() {
     useEffect(() => {
         if (!isSignedIn || !user?.id) return;
 
-        fetch(`${API_URL}/events`)
-            .then((res) => (res.ok ? res.json() : []))
+        api.getEvents()
             .then((data) => setEventCount(Array.isArray(data) ? data.length : 0))
             .catch(() => setEventCount(0));
 
@@ -63,7 +62,6 @@ export default function BlogPost() {
         try {
             setCreating(true);
             const res = await api.createEvent({
-                org_id: user.id,
                 name: `My ${template?.name} Flow`,
                 date: new Date().toISOString(),
                 qr_url: 'https://example.com/placeholder'

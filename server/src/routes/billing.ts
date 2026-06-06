@@ -15,6 +15,7 @@ import {
 } from '../services/organizationBilling';
 import { handleBillingStripeEvent } from '../services/stripeBillingWebhooks';
 import { checkPublishLimit } from '../services/planEnforcement';
+import { requireOrgAccess } from '../lib/auth';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -26,6 +27,9 @@ export default async function billingRoutes(server: FastifyInstance) {
             if (!org_id) {
                 return reply.code(400).send({ error: 'org_id is required' });
             }
+
+            const userId = await requireOrgAccess(request, reply, org_id);
+            if (!userId) return;
 
             await ensureBillingSchema();
             const org = await getOrCreateOrganization(org_id);
@@ -54,6 +58,9 @@ export default async function billingRoutes(server: FastifyInstance) {
                     return reply.code(400).send({ error: 'org_id and event_id are required' });
                 }
 
+                const userId = await requireOrgAccess(request, reply, org_id);
+                if (!userId) return;
+
                 const result = await checkPublishLimit(org_id, event_id);
                 return result;
             } catch (err: any) {
@@ -80,6 +87,9 @@ export default async function billingRoutes(server: FastifyInstance) {
             if (!org_id || !plan_id) {
                 return reply.code(400).send({ error: 'org_id and plan_id are required' });
             }
+
+            const userId = await requireOrgAccess(request, reply, org_id);
+            if (!userId) return;
 
             const priceId = getPriceIdForPlan(plan_id);
             if (!priceId) {
@@ -141,6 +151,9 @@ export default async function billingRoutes(server: FastifyInstance) {
             if (!org_id) {
                 return reply.code(400).send({ error: 'org_id is required' });
             }
+
+            const userId = await requireOrgAccess(request, reply, org_id);
+            if (!userId) return;
 
             const org = await getOrganization(org_id);
             if (!org?.stripe_customer_id) {

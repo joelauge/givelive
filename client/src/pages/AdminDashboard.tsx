@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { API_URL, api } from '../api';
+import { api } from '../api';
 import Modal from '../components/Modal';
 import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
@@ -91,8 +91,6 @@ export default function AdminDashboard() {
     const [planId, setPlanId] = useState<PlanId>('free');
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-    const orgId = user?.id || 'default-org';
-
     useEffect(() => {
         if (!user?.id) return;
         api.getBillingStatus(user.id)
@@ -129,14 +127,12 @@ export default function AdminDashboard() {
         loadEvents();
     }, []);
 
+    const [claimingLegacy, setClaimingLegacy] = useState(false);
+
     const loadEvents = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_URL}/events`);
-            if (!res.ok) {
-                throw new Error('Failed to fetch events');
-            }
-            const data = await res.json();
+            const data = await api.getEvents();
             const eventsData = Array.isArray(data) ? data : [];
             setEvents(eventsData);
 
@@ -180,37 +176,26 @@ export default function AdminDashboard() {
 
         try {
             setCreating(true);
-            const res = await fetch(`${API_URL}/events`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    org_id: orgId,
-                    name: newEventName,
-                    date: new Date().toISOString(),
-                    qr_url: 'https://example.com/qr-placeholder'
-                })
+            const newEvent = await api.createEvent({
+                name: newEventName,
+                date: new Date().toISOString(),
+                qr_url: 'https://example.com/qr-placeholder',
             });
-            if (res.status === 403) {
-                const body = await res.json().catch(() => ({}));
-                if (body.error === 'plan_limit') {
-                    setIsModalOpen(false);
-                    setShowUpgradeModal(true);
-                    return;
-                }
-            }
-            if (res.ok) {
-                const newEvent = await res.json();
-                setNewEventName('');
-                setIsModalOpen(false);
+            setNewEventName('');
+            setIsModalOpen(false);
 
-                if (pendingTemplateId) {
-                    setPendingTemplateId(null);
-                    window.location.href = `/admin/event/${newEvent.id}?new=true&template=${pendingTemplateId}`;
-                } else {
-                    loadEvents();
-                }
+            if (pendingTemplateId) {
+                setPendingTemplateId(null);
+                window.location.href = `/admin/event/${newEvent.id}?new=true&template=${pendingTemplateId}`;
+            } else {
+                loadEvents();
             }
         } catch (err) {
+            if (err instanceof Error && err.message === 'plan_limit') {
+                setIsModalOpen(false);
+                setShowUpgradeModal(true);
+                return;
+            }
             console.error(err);
             alert('Failed to create event');
         } finally {
@@ -239,68 +224,68 @@ export default function AdminDashboard() {
 
         try {
             setLoading(true);
-            const res = await fetch(`${API_URL}/events`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    org_id: orgId,
-                    name: `${eventToDuplicate.name} (Copy)`,
-                    date: new Date().toISOString(),
-                    qr_url: 'https://example.com/qr-placeholder' // Do not copy the original QR URL
-                })
+            const newEvent = await api.createEvent({
+                name: `${eventToDuplicate.name} (Copy)`,
+                date: new Date().toISOString(),
+                qr_url: 'https://example.com/qr-placeholder',
             });
-            if (res.status === 403) {
-                const body = await res.json().catch(() => ({}));
-                if (body.error === 'plan_limit') {
-                    setShowUpgradeModal(true);
-                    setLoading(false);
-                    return;
-                }
+
+            const flowData = eventFlows[eventToDuplicate.id];
+            if (flowData) {
+                const idMapping: Record<string, string> = {};
+                const newNodes = flowData.nodes.map((n: any) => {
+                    const newId = `node_${Math.random().toString(36).substring(2, 9)}`;
+                    idMapping[n.id] = newId;
+
+                    let newData = { ...n.data };
+                    if (n.type === 'start' || newData?.type === 'start' || newData?.triggerType === 'qr') {
+                        delete newData.qrDisplayText;
+                        delete newData.campaignImage;
+                    }
+
+                    return { ...n, id: newId, data: newData };
+                });
+
+                const newEdges = flowData.edges.map((e: any) => ({
+                    ...e,
+                    id: `edge_${Math.random().toString(36).substring(2, 9)}`,
+                    source: idMapping[e.source] || e.source,
+                    target: idMapping[e.target] || e.target,
+                }));
+
+                await api.saveFlow(newEvent.id, {
+                    nodes: newNodes,
+                    edges: newEdges,
+                    isPublished: false,
+                });
             }
-            if (res.ok) {
-                const newEvent = await res.json();
 
-                // Now copy the flow
-                const flowData = eventFlows[eventToDuplicate.id];
-                if (flowData) {
-                    // Generate new IDs for all nodes to prevent ReactFlow duplicate DOM ID crashes
-                    const idMapping: Record<string, string> = {};
-                    const newNodes = flowData.nodes.map((n: any) => {
-                        const newId = `node_${Math.random().toString(36).substring(2, 9)}`;
-                        idMapping[n.id] = newId;
-
-                        // Clear QR specific data for start nodes so it's not duplicated
-                        let newData = { ...n.data };
-                        if (n.type === 'start' || newData?.type === 'start' || (newData?.triggerType === 'qr')) {
-                            delete newData.qrDisplayText;
-                            delete newData.campaignImage;
-                        }
-
-                        return { ...n, id: newId, data: newData };
-                    });
-
-                    const newEdges = flowData.edges.map((e: any) => ({
-                        ...e,
-                        id: `edge_${Math.random().toString(36).substring(2, 9)}`,
-                        source: idMapping[e.source] || e.source,
-                        target: idMapping[e.target] || e.target
-                    }));
-
-                    await fetch(`${API_URL}/events/${newEvent.id}/flow`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nodes: newNodes, edges: newEdges, isPublished: false })
-                    });
-                }
-
-                loadEvents();
-            } else {
-                throw new Error('Failed to create copy');
-            }
+            loadEvents();
         } catch (err) {
+            if (err instanceof Error && err.message === 'plan_limit') {
+                setShowUpgradeModal(true);
+                setLoading(false);
+                return;
+            }
             console.error(err);
             alert('Failed to duplicate event');
             setLoading(false);
+        }
+    };
+
+    const handleClaimLegacy = async () => {
+        try {
+            setClaimingLegacy(true);
+            const result = await api.claimLegacyProjects();
+            if (result.migrated > 0) {
+                await loadEvents();
+            } else {
+                alert(result.message);
+            }
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Could not import legacy projects');
+        } finally {
+            setClaimingLegacy(false);
         }
     };
 
@@ -764,6 +749,17 @@ export default function AdminDashboard() {
                                     >
                                         Create Project
                                     </button>
+                                    <p className="text-sm text-gray-400 mt-6">
+                                        Had projects before this update?{' '}
+                                        <button
+                                            type="button"
+                                            onClick={handleClaimLegacy}
+                                            disabled={claimingLegacy}
+                                            className="text-primary font-medium hover:underline disabled:opacity-50"
+                                        >
+                                            {claimingLegacy ? 'Importing…' : 'Import them to your account'}
+                                        </button>
+                                    </p>
                                 </div>
                             </div>
                         )}

@@ -3,9 +3,11 @@ import { query } from '../db';
 import { getCampaignLimitForPlan } from '../config/planLimits';
 import { getOrCreateOrganization } from '../services/organizationBilling';
 import { shouldShowWatermarkForPlan } from '../services/watermark';
+import { requireAuth } from '../lib/auth';
+import { requireEventAccess } from '../lib/eventAccess';
 
 interface EventBody {
-    org_id: string;
+    org_id?: string;
     name: string;
     date?: string;
     qr_url?: string;
@@ -13,10 +15,16 @@ interface EventBody {
 }
 
 export default async function eventRoutes(server: FastifyInstance) {
-    // Get all events
+    // List events for the authenticated organizer only
     server.get('/events', async (request, reply) => {
         try {
-            const result = await query('SELECT * FROM events ORDER BY created_at DESC');
+            const userId = await requireAuth(request, reply);
+            if (!userId) return;
+
+            const result = await query(
+                'SELECT * FROM events WHERE org_id = $1 ORDER BY created_at DESC',
+                [userId]
+            );
             return result.rows;
         } catch (err) {
             server.log.error(err);
@@ -24,7 +32,46 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Get single event
+    // One-time: move legacy default-org projects to the signed-in user (register before /:id)
+    server.post('/events/claim-legacy', async (request, reply) => {
+        try {
+            const userId = await requireAuth(request, reply);
+            if (!userId) return;
+
+            const ownCount = await query(
+                'SELECT COUNT(*)::int AS count FROM events WHERE org_id = $1',
+                [userId]
+            );
+            if ((ownCount.rows[0]?.count ?? 0) > 0) {
+                return reply.code(400).send({
+                    error: 'already_claimed',
+                    message: 'You already have projects under your account.',
+                });
+            }
+
+            const legacyCount = await query(
+                "SELECT COUNT(*)::int AS count FROM events WHERE org_id = 'default-org'"
+            );
+            if ((legacyCount.rows[0]?.count ?? 0) === 0) {
+                return { migrated: 0, message: 'No legacy projects to claim.' };
+            }
+
+            const result = await query(
+                "UPDATE events SET org_id = $1 WHERE org_id = 'default-org' RETURNING id",
+                [userId]
+            );
+
+            return {
+                migrated: result.rows.length,
+                message: `Moved ${result.rows.length} legacy project(s) to your account.`,
+            };
+        } catch (err: any) {
+            server.log.error(err);
+            reply.code(500).send({ error: err.message || 'Failed to claim legacy projects' });
+        }
+    });
+
+    // Get single event (public — scanners need metadata for published flows)
     server.get<{ Params: { id: string } }>('/events/:id', async (request, reply) => {
         try {
             const { id } = request.params;
@@ -52,7 +99,7 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Get all nodes for an event
+    // Get all nodes for an event (public — used by live journeys / link resolution)
     server.get<{ Params: { id: string } }>('/events/:id/nodes', async (request, reply) => {
         try {
             const { id } = request.params;
@@ -64,28 +111,30 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Create event
+    // Create event (org_id always taken from Clerk user — never trust client)
     server.post<{ Body: EventBody }>('/events', async (request, reply) => {
         try {
-            const { org_id, name, date, qr_url, root_node_id } = request.body;
+            const userId = await requireAuth(request, reply);
+            if (!userId) return;
 
-            if (org_id) {
-                const org = await getOrCreateOrganization(org_id);
-                const limit = getCampaignLimitForPlan(org.plan_id);
-                if (limit !== null) {
-                    const countResult = await query(
-                        'SELECT COUNT(*)::int AS count FROM events WHERE org_id = $1',
-                        [org_id]
-                    );
-                    const count = countResult.rows[0]?.count ?? 0;
-                    if (count >= limit) {
-                        return reply.code(403).send({
-                            error: 'plan_limit',
-                            message: `Your ${org.plan_id} plan allows ${limit} active campaign${limit === 1 ? '' : 's'}. Upgrade to add more.`,
-                            planId: org.plan_id,
-                            limit,
-                        });
-                    }
+            const { name, date, qr_url, root_node_id } = request.body;
+            const org_id = userId;
+
+            const org = await getOrCreateOrganization(org_id);
+            const limit = getCampaignLimitForPlan(org.plan_id);
+            if (limit !== null) {
+                const countResult = await query(
+                    'SELECT COUNT(*)::int AS count FROM events WHERE org_id = $1',
+                    [org_id]
+                );
+                const count = countResult.rows[0]?.count ?? 0;
+                if (count >= limit) {
+                    return reply.code(403).send({
+                        error: 'plan_limit',
+                        message: `Your ${org.plan_id} plan allows ${limit} active campaign${limit === 1 ? '' : 's'}. Upgrade to add more.`,
+                        planId: org.plan_id,
+                        limit,
+                    });
                 }
             }
 
@@ -100,27 +149,27 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Update event (partial update - only updates provided fields)
+    // Update event (owner only)
     server.put<{ Params: { id: string }; Body: Partial<EventBody> }>('/events/:id', async (request, reply) => {
         try {
             const { id } = request.params;
-            const updates = request.body;
+            const access = await requireEventAccess(request, reply, id);
+            if (!access) return;
 
-            // Build dynamic SQL query based on provided fields
+            const updates = { ...request.body };
+            delete updates.org_id;
+
             const fields = Object.keys(updates);
             if (fields.length === 0) {
                 reply.code(400).send({ error: 'No fields to update' });
                 return;
             }
 
-            // Create SET clause with proper parameter indexing
             const setClause = fields.map((field, index) => `"${field}" = $${index + 1}`).join(', ');
-            const values = fields.map(field => updates[field as keyof EventBody]);
-            values.push(id); // Add id as the last parameter
+            const values = fields.map((field) => updates[field as keyof EventBody]);
+            values.push(id);
 
             const sql = `UPDATE events SET ${setClause}, updated_at = NOW() WHERE id = $${values.length}::uuid RETURNING *`;
-
-            server.log.info({ sql, values }, 'Executing update query');
 
             const result = await query(sql, values);
 
@@ -135,33 +184,41 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Save flow (nodes and edges) for an event
-    server.put<{ Params: { id: string }; Body: { nodes: any[], edges: any[], isPublished?: boolean } }>('/events/:id/flow', async (request, reply) => {
-        try {
-            const { id } = request.params;
-            const { nodes, edges, isPublished } = request.body;
+    // Save flow draft (owner only)
+    server.put<{ Params: { id: string }; Body: { nodes: any[]; edges: any[]; isPublished?: boolean } }>(
+        '/events/:id/flow',
+        async (request, reply) => {
+            try {
+                const { id } = request.params;
+                const access = await requireEventAccess(request, reply, id);
+                if (!access) return;
 
-            // JSONB column accepts object directly, no need to stringify
-            const result = await query(
-                'UPDATE events SET flow_data = $1, updated_at = NOW() WHERE id = $2::uuid RETURNING *',
-                [{ nodes, edges, isPublished }, id]
-            );
+                const { nodes, edges, isPublished } = request.body;
 
-            if (result.rows.length === 0) {
-                reply.code(404).send({ error: 'Event not found' });
-                return;
+                const result = await query(
+                    'UPDATE events SET flow_data = $1, updated_at = NOW() WHERE id = $2::uuid RETURNING *',
+                    [{ nodes, edges, isPublished }, id]
+                );
+
+                if (result.rows.length === 0) {
+                    reply.code(404).send({ error: 'Event not found' });
+                    return;
+                }
+                return { success: true, event: result.rows[0] };
+            } catch (err: any) {
+                server.log.error(err);
+                reply.code(500).send({ error: 'Failed to save flow', details: err.message });
             }
-            return { success: true, event: result.rows[0] };
-        } catch (err: any) {
-            server.log.error(err);
-            reply.code(500).send({ error: 'Failed to save flow', details: err.message });
         }
-    });
+    );
 
-    // Get flow (nodes and edges) for an event
+    // Get flow draft (owner only)
     server.get<{ Params: { id: string } }>('/events/:id/flow', async (request, reply) => {
         try {
             const { id } = request.params;
+            const access = await requireEventAccess(request, reply, id);
+            if (!access) return;
+
             const result = await query('SELECT flow_data FROM events WHERE id = $1::uuid', [id]);
 
             if (result.rows.length === 0) {
@@ -171,12 +228,10 @@ export default async function eventRoutes(server: FastifyInstance) {
 
             const flowData = result.rows[0].flow_data;
 
-            // If no flow data yet, return empty flow instead of 404 to avoid console errors
             if (!flowData) {
                 return { nodes: [], edges: [] };
             }
 
-            // JSONB column returns object directly, no need to parse
             return flowData;
         } catch (err: any) {
             server.log.error(err);
@@ -184,10 +239,13 @@ export default async function eventRoutes(server: FastifyInstance) {
         }
     });
 
-    // Delete event
+    // Delete event (owner only)
     server.delete<{ Params: { id: string } }>('/events/:id', async (request, reply) => {
         try {
             const { id } = request.params;
+            const access = await requireEventAccess(request, reply, id);
+            if (!access) return;
+
             const result = await query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
             if (result.rows.length === 0) {
                 reply.code(404).send({ error: 'Event not found' });
@@ -199,4 +257,5 @@ export default async function eventRoutes(server: FastifyInstance) {
             reply.code(500).send({ error: 'Internal Server Error' });
         }
     });
+
 }

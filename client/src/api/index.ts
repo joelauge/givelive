@@ -1,5 +1,7 @@
 export const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
 
+import { buildAuthHeaders } from './authHeaders';
+
 export const api = {
     getEvent: async (id: string) => {
         const res = await fetch(`${API_URL}/events/${id}`);
@@ -8,18 +10,32 @@ export const api = {
     },
 
     getEvents: async () => {
-        const res = await fetch(`${API_URL}/events`);
+        const res = await fetch(`${API_URL}/events`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 401) throw new Error('Unauthorized');
         if (!res.ok) throw new Error('Failed to fetch events');
         return res.json();
     },
 
-    createEvent: async (data: { name: string; org_id: string; date: string; qr_url: string;[key: string]: any }) => {
+    claimLegacyProjects: async () => {
+        const res = await fetch(`${API_URL}/events/claim-legacy`, {
+            method: 'POST',
+            headers: await buildAuthHeaders(),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || body.error || 'Failed to import legacy projects');
+        return body as { migrated: number; message: string };
+    },
+
+    createEvent: async (data: { name: string; date: string; qr_url: string; org_id?: string;[key: string]: any }) => {
         const res = await fetch(`${API_URL}/events`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         const body = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('Unauthorized');
         if (res.status === 403 && body.error === 'plan_limit') {
             throw new Error('plan_limit');
         }
@@ -30,7 +46,7 @@ export const api = {
     updateEvent: async (id: string, data: { name?: string;[key: string]: any }) => {
         const res = await fetch(`${API_URL}/events/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to update event');
@@ -51,17 +67,15 @@ export const api = {
     },
 
     getNode: async (eventId: string) => {
-        // This might need to be adjusted to get a specific node or next node
-        // For now, let's assume we fetch all nodes and filter client side or have a specific endpoint
         const res = await fetch(`${API_URL}/journey/${eventId}/nodes`);
         if (!res.ok) throw new Error('Failed to fetch nodes');
         return res.json();
     },
 
-    publishJourney: async (eventId: string, data: { nodes: any[], edges: any[] }) => {
+    publishJourney: async (eventId: string, data: { nodes: any[]; edges: any[] }) => {
         const res = await fetch(`${API_URL}/journey/${eventId}/publish`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         const body = await res.json().catch(() => ({}));
@@ -81,7 +95,8 @@ export const api = {
 
     checkCanPublish: async (orgId: string, eventId: string) => {
         const res = await fetch(
-            `${API_URL}/billing/can-publish?org_id=${encodeURIComponent(orgId)}&event_id=${encodeURIComponent(eventId)}`
+            `${API_URL}/billing/can-publish?org_id=${encodeURIComponent(orgId)}&event_id=${encodeURIComponent(eventId)}`,
+            { headers: await buildAuthHeaders() }
         );
         if (!res.ok) throw new Error('Failed to check publish limit');
         return res.json() as Promise<{
@@ -92,10 +107,10 @@ export const api = {
         }>;
     },
 
-    saveFlow: async (eventId: string, data: { nodes: any[], edges: any[], isPublished?: boolean }) => {
+    saveFlow: async (eventId: string, data: { nodes: any[]; edges: any[]; isPublished?: boolean }) => {
         const res = await fetch(`${API_URL}/events/${eventId}/flow`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to save flow');
@@ -103,9 +118,11 @@ export const api = {
     },
 
     getFlow: async (eventId: string) => {
-        const res = await fetch(`${API_URL}/events/${eventId}/flow`);
+        const res = await fetch(`${API_URL}/events/${eventId}/flow`, {
+            headers: await buildAuthHeaders(),
+        });
         if (!res.ok) {
-            if (res.status === 404) return null; // No flow saved yet
+            if (res.status === 404) return null;
             throw new Error('Failed to fetch flow');
         }
         return res.json();
@@ -114,7 +131,7 @@ export const api = {
     testConnection: async (data: { type: string; config: any }) => {
         const res = await fetch(`${API_URL}/journey/test-connection`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to test connection');
@@ -124,7 +141,7 @@ export const api = {
     syncLead: async (data: { userId: string; nodeId: string }) => {
         const res = await fetch(`${API_URL}/journey/sync-lead`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to sync lead');
@@ -133,14 +150,17 @@ export const api = {
 
     deleteEvent: async (id: string) => {
         const res = await fetch(`${API_URL}/events/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: await buildAuthHeaders(),
         });
         if (!res.ok) throw new Error('Failed to delete event');
         return res.json();
     },
 
     getBillingStatus: async (orgId: string) => {
-        const res = await fetch(`${API_URL}/billing/status?org_id=${encodeURIComponent(orgId)}`);
+        const res = await fetch(`${API_URL}/billing/status?org_id=${encodeURIComponent(orgId)}`, {
+            headers: await buildAuthHeaders(),
+        });
         if (!res.ok) throw new Error('Failed to load billing status');
         return res.json();
     },
@@ -160,7 +180,7 @@ export const api = {
     }) => {
         const res = await fetch(`${API_URL}/billing/checkout`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify(data),
         });
         const body = await res.json().catch(() => ({}));
@@ -171,7 +191,7 @@ export const api = {
     createBillingPortal: async (orgId: string) => {
         const res = await fetch(`${API_URL}/billing/portal`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await buildAuthHeaders(),
             body: JSON.stringify({ org_id: orgId }),
         });
         const body = await res.json().catch(() => ({}));

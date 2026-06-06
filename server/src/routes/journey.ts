@@ -3,6 +3,7 @@ import { query } from '../db';
 import { IntegrationService } from '../services/integrations';
 import { validatePublishFlow } from '../lib/journeyValidation';
 import { checkPublishLimit } from '../services/planEnforcement';
+import { requireEventAccess } from '../lib/eventAccess';
 
 function socialTriggersEnabledFromEnv(): boolean {
     return process.env.SHOW_SOCIAL_TRIGGERS === 'true';
@@ -113,6 +114,9 @@ export default async function journeyRoutes(server: FastifyInstance) {
     server.post<{ Params: { eventId: string }; Body: { nodes: any[]; edges: any[] } }>('/journey/:eventId/publish', async (request, reply) => {
         try {
             const { eventId } = request.params;
+            const access = await requireEventAccess(request, reply, eventId);
+            if (!access) return;
+
             const { nodes, edges } = request.body;
 
             const validationErrors = validatePublishFlow({
@@ -129,8 +133,7 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 return;
             }
 
-            const eventResult = await query('SELECT org_id FROM events WHERE id = $1::uuid', [eventId]);
-            const orgId = eventResult.rows[0]?.org_id;
+            const orgId = access.event.org_id;
             if (orgId) {
                 const publishLimit = await checkPublishLimit(orgId, eventId);
                 if (!publishLimit.canPublish) {
