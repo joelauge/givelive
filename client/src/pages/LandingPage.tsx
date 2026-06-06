@@ -105,28 +105,24 @@ export default function LandingPage() {
 
         document.title = displayName;
 
-        const updateMetaTag = (selector: 'property' | 'name', key: string, content: string) => {
-            let meta = document.querySelector(`meta[${selector}="${key}"]`);
+        const updateMetaTag = (property: string, content: string) => {
+            let meta = document.querySelector(`meta[property="${property}"]`);
             if (!meta) {
-                meta = document.createElement('meta');
-                meta.setAttribute(selector, key);
-                document.head.appendChild(meta);
+                meta = document.querySelector(`meta[name="${property}"]`);
             }
-            meta.setAttribute('content', content);
+            if (meta) {
+                meta.setAttribute('content', content);
+            }
         };
 
-        updateMetaTag('name', 'description', displayName);
-        updateMetaTag('name', 'apple-mobile-web-app-title', displayName);
-        updateMetaTag('property', 'og:title', displayName);
-        updateMetaTag('property', 'og:description', `Join us for ${event.name}`);
-        updateMetaTag('property', 'og:url', window.location.href);
-        updateMetaTag('property', 'og:site_name', 'GiveLive');
-        updateMetaTag('name', 'twitter:title', displayName);
-        updateMetaTag('name', 'twitter:description', `Join us for ${event.name}`);
+        updateMetaTag('og:title', displayName);
+        updateMetaTag('og:description', `Join us for ${event.name}`);
+        updateMetaTag('twitter:title', displayName);
+        updateMetaTag('twitter:description', `Join us for ${event.name}`);
 
         if (campaignImage) {
-            updateMetaTag('property', 'og:image', campaignImage);
-            updateMetaTag('name', 'twitter:image', campaignImage);
+            updateMetaTag('og:image', campaignImage);
+            updateMetaTag('twitter:image', campaignImage);
         }
     }, [event, allNodes]);
 

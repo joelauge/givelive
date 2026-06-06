@@ -7,13 +7,28 @@ import fastifyStatic from '@fastify/static';
 import * as querystring from 'querystring';
 import path from 'path';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import { query } from './db';
-import {
-    buildEventPageUrl,
-    findIndexHtmlPath,
-    injectEventPageMeta,
-    parseNodeConfig,
-} from './services/eventPageMeta';
+
+function findIndexHtmlPath(): string {
+    const candidates = [
+        path.join(process.cwd(), 'dist/index.html'),
+        path.join(__dirname, '../../dist/index.html'),
+        path.join(__dirname, '../../../dist/index.html'),
+    ];
+    for (const candidate of candidates) {
+        if (fsSync.existsSync(candidate)) return candidate;
+    }
+    throw new Error('index.html not found');
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
 
 import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
@@ -109,55 +124,74 @@ export const createApp = () => {
     server.register(tiktokWebhookRoutes, { prefix: '/api' });
     server.register(require('./routes/settings').default, { prefix: '/api' });
 
-    // Dynamic HTML for event entry URLs — iOS reads these tags before JavaScript runs.
+    // Event entry HTML — inject title/OG for sharing, but leave og:url generic so iOS Camera
+    // shows "Open in [Browser]" instead of an unfamiliar domain banner.
     server.get<{ Params: { eventId: string } }>('/event/:eventId', async (request, reply) => {
         const { eventId } = request.params;
 
         try {
             const indexPath = findIndexHtmlPath();
-            const htmlTemplate = await fs.readFile(indexPath, 'utf-8');
+            let html = await fs.readFile(indexPath, 'utf-8');
 
             const eventRes = await query('SELECT name FROM events WHERE id = $1', [eventId]);
+            const nodeRes = await query('SELECT * FROM journey_nodes WHERE event_id = $1', [eventId]);
+
             if (eventRes.rows.length === 0) {
-                return reply
-                    .header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-                    .type('text/html')
-                    .send(htmlTemplate);
+                return reply.type('text/html').send(html);
             }
 
             const event = eventRes.rows[0];
-            const nodeRes = await query('SELECT * FROM journey_nodes WHERE event_id = $1', [eventId]);
             const startNode = nodeRes.rows.find(
-                (n) => n.type === 'start' || parseNodeConfig(n.config).type === 'start'
+                (n) => n.type === 'start' || n.config?.type === 'start'
             );
-            const startNodeConfig = parseNodeConfig(startNode?.config);
+            const rawConfig = startNode?.config || {};
+            const startNodeConfig =
+                typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
 
             const displayName =
-                (typeof startNodeConfig.qrDisplayText === 'string' && startNodeConfig.qrDisplayText.trim()) ||
-                event.name ||
-                'GiveLive';
+                (startNodeConfig.qrDisplayText || '').trim() || event.name || 'GiveLive';
+            const campaignImage = startNodeConfig.campaignImage;
+            const safeName = escapeHtml(displayName);
+            const safeEventName = escapeHtml(event.name || 'GiveLive');
 
-            const html = injectEventPageMeta(htmlTemplate, {
-                displayName,
-                eventName: event.name || 'GiveLive',
-                eventUrl: buildEventPageUrl(eventId),
-                campaignImage:
-                    typeof startNodeConfig.campaignImage === 'string'
-                        ? startNodeConfig.campaignImage
-                        : undefined,
-            });
+            html = html.replace(/<title>.*?<\/title>/, `<title>${safeName}</title>`);
+            html = html.replace(
+                /<meta property="og:title" content=".*?" \/>/,
+                `<meta property="og:title" content="${safeName}" />`
+            );
+            html = html.replace(
+                /<meta property="og:description" content=".*?" \/>/,
+                `<meta property="og:description" content="Join us for ${safeEventName}" />`
+            );
+            html = html.replace(
+                /<meta name="twitter:title" content=".*?" \/>/,
+                `<meta name="twitter:title" content="${safeName}" />`
+            );
+            html = html.replace(
+                /<meta name="twitter:description" content=".*?" \/>/,
+                `<meta name="twitter:description" content="Join us for ${safeEventName}" />`
+            );
 
-            return reply
-                .header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-                .type('text/html')
-                .send(html);
+            if (campaignImage) {
+                const safeImage = escapeHtml(campaignImage);
+                html = html.replace(
+                    /<meta property="og:image" content=".*?" \/>/,
+                    `<meta property="og:image" content="${safeImage}" />`
+                );
+                html = html.replace(
+                    /<meta name="twitter:image" content=".*?" \/>/,
+                    `<meta name="twitter:image" content="${safeImage}" />`
+                );
+            }
+
+            return reply.type('text/html').send(html);
         } catch (err) {
-            server.log.error({ err, eventId }, '[EventPageMeta] Failed to serve event page');
+            server.log.error({ err, eventId }, '[EventPage] Failed to serve event page');
             try {
                 const html = await fs.readFile(findIndexHtmlPath(), 'utf-8');
                 return reply.type('text/html').send(html);
             } catch (fallbackErr) {
-                server.log.error({ err: fallbackErr, eventId }, '[EventPageMeta] Fallback HTML missing');
+                server.log.error({ err: fallbackErr, eventId }, '[EventPage] Fallback HTML missing');
                 return reply.code(500).send('Internal Server Error');
             }
         }

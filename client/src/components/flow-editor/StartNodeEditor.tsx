@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { API_URL } from '../../api';
 import { SHOW_SOCIAL_TRIGGERS } from '../../config/features';
+import { buildQrSvgWithCaption, renderQrPngWithCaption } from '../../lib/qrDownload';
 
 interface StartNodeEditorProps {
     data: any;
@@ -103,7 +104,10 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
         const svg = qrRef.current?.querySelector('svg');
         if (!svg) return;
 
-        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgData = buildQrSvgWithCaption(
+            new XMLSerializer().serializeToString(svg),
+            data.qrDisplayText
+        );
         const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -114,29 +118,25 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
         document.body.removeChild(link);
     };
 
-    const downloadPng = () => {
+    const downloadPng = async () => {
         const svg = qrRef.current?.querySelector('svg');
         if (!svg) return;
 
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx?.drawImage(img, 0, 0);
-            const pngFile = canvas.toDataURL('image/png');
+        try {
+            const pngFile = await renderQrPngWithCaption(
+                new XMLSerializer().serializeToString(svg),
+                data.qrDisplayText
+            );
             const link = document.createElement('a');
             link.download = `event-${eventId}-qr.png`;
             link.href = pngFile;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        };
-
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        } catch (error) {
+            console.error('QR PNG export failed:', error);
+            alert('Could not export PNG. Please try SVG instead.');
+        }
     };
 
     return (
@@ -161,15 +161,16 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
 
             {!isSocialTrigger && (
                 <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">QR Display Text (Viewfinder tooltip)</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">QR Display Text</label>
                     <input
                         value={data.qrDisplayText || ''}
                         onChange={(e) => onUpdate({ ...data, qrDisplayText: e.target.value })}
-                        placeholder="e.g. Scan to Donate"
+                        placeholder="e.g. Scan to Save"
                         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-sm"
                     />
-                    <p className="text-[10px] text-gray-400 mt-1">
-                        iOS uses this as the link title in the Camera viewfinder. Publish your flow so scanners fetch the updated page metadata.
+                    <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                        Used as the page title and link preview when your flow URL is shared (iMessage, SMS, social),
+                        and included on downloaded QR images for print. iPhone Camera shows “Open in [Browser]” — not this text or our domain.
                     </p>
                 </div>
             )}
