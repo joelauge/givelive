@@ -66,6 +66,47 @@ interface NodeData {
     [key: string]: any;
 }
 
+const MESSAGE_NODE_TYPES = new Set(['message', 'sms', 'email']);
+
+function isMessageNode(node: Node<NodeData>): boolean {
+    const type = (node.data?.type || '').toLowerCase();
+    if (MESSAGE_NODE_TYPES.has(type)) return true;
+    const label = (node.data?.label || '').toLowerCase();
+    return label.includes('send message') || label.includes('sms') || label === 'email';
+}
+
+function flowHasMessageNode(nodes: Node<NodeData>[]): boolean {
+    return nodes.some(isMessageNode);
+}
+
+function hasDownstreamMessageNode(
+    startNodeId: string,
+    nodes: Node<NodeData>[],
+    edges: Edge[]
+): boolean {
+    const nodeById = new Map(nodes.map((n) => [n.id, n]));
+    const visited = new Set<string>();
+    const queue = [startNodeId];
+
+    while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        if (visited.has(currentId)) continue;
+        visited.add(currentId);
+
+        const node = nodeById.get(currentId);
+        if (node && currentId !== startNodeId && isMessageNode(node)) {
+            return true;
+        }
+
+        for (const edge of edges) {
+            if (edge.source === currentId && !visited.has(edge.target)) {
+                queue.push(edge.target);
+            }
+        }
+    }
+    return false;
+}
+
 interface SavedFlow {
     id: string;
     name: string;
@@ -1136,22 +1177,17 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
 
             if (sections) {
                 const hasForm = sections.some((s: any) => s.type === 'form');
+                const hadForm = node.data.sections?.some((s: any) => s.type === 'form') ?? false;
+                const formNewlyAdded = hasForm && !hadForm;
 
-                if (hasForm) {
-                    // Check existing connections
-                    const connectedEdges = edges.filter(e => e.source === nodeId);
-                    const hasMessageConnection = connectedEdges.some(edge => {
-                        const targetNode = nodes.find(n => n.id === edge.target);
-                        return targetNode && ['message', 'sms', 'email'].includes(targetNode.data.type || '');
-                    });
+                const alreadyHasMessage =
+                    flowHasMessageNode(nodes) ||
+                    hasDownstreamMessageNode(nodeId, nodes, edges);
 
-                    if (!hasMessageConnection) {
-                        // PROMPT USER
-                        // We use setTimeout to ensure this runs after the current update cycle finishes
-                        setTimeout(() => {
-                            setMessageConfirmation({ isOpen: true, nodeId });
-                        }, 0);
-                    }
+                if (formNewlyAdded && !alreadyHasMessage) {
+                    setTimeout(() => {
+                        setMessageConfirmation({ isOpen: true, nodeId });
+                    }, 0);
                 }
             }
         }
