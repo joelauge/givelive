@@ -115,6 +115,18 @@ export const createApp = () => {
         server.log.error({ err }, 'Failed to ensure analytics schema');
     });
 
+    if (process.env.STRIPE_SECRET_KEY?.trim()) {
+        import('./lib/stripe').then(({ getStripe }) => {
+            const stripe = getStripe();
+            if (!stripe) return;
+            import('./services/billingPriceResolver').then(({ warmBillingPriceCache }) =>
+                warmBillingPriceCache(stripe).catch((err) => {
+                    server.log.error({ err }, 'Failed to warm Stripe billing price cache');
+                })
+            );
+        });
+    }
+
     server.register(eventRoutes, { prefix: '/api' });
     server.register(journeyRoutes, { prefix: '/api' });
     server.register(smsRoutes, { prefix: '/api' });

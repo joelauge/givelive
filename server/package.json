@@ -9,7 +9,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "setup-stripe-billing": "ts-node src/scripts/setup-stripe-billing.ts"
+    "setup-stripe-billing": "ts-node src/scripts/setup-stripe-billing.ts",
+    "resolve-stripe-billing-prices": "ts-node src/scripts/resolve-stripe-billing-prices.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,12 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { requireStripe } from '../lib/stripe';
+import { type BillablePlanId, billablePlans } from '../config/billingPlans';
 import {
-    type BillablePlanId,
-    aiFollowUpAddon,
-    billablePlans,
-    getAiFollowUpPriceId,
-    getPriceIdForPlan,
-} from '../config/billingPlans';
+    ensureBillingPriceCache,
+    getBillingCatalog,
+    getCheckoutAiAddonPriceId,
+    getCheckoutPriceId,
+    warmBillingPriceCache,
+} from '../services/billingPriceResolver';
 import {
     ensureBillingSchema,
     getOrCreateOrganization,
@@ -91,10 +92,13 @@ export default async function billingRoutes(server: FastifyInstance) {
             const userId = await requireOrgAccess(request, reply, org_id);
             if (!userId) return;
 
-            const priceId = getPriceIdForPlan(plan_id);
+            await ensureBillingPriceCache(stripe);
+
+            const priceId = getCheckoutPriceId(plan_id);
             if (!priceId) {
+                const plan = billablePlans.find((p) => p.id === plan_id);
                 return reply.code(400).send({
-                    error: `Stripe Price ID not configured for plan "${plan_id}". Set ${billablePlans.find((p) => p.id === plan_id)?.priceIdEnv} in server env.`,
+                    error: `No active Stripe price for plan "${plan_id}". Check product ${plan?.stripeProductId} in Stripe Dashboard.`,
                 });
             }
 
@@ -116,7 +120,7 @@ export default async function billingRoutes(server: FastifyInstance) {
             ];
 
             if (include_ai_addon) {
-                const addonPrice = getAiFollowUpPriceId();
+                const addonPrice = getCheckoutAiAddonPriceId();
                 if (addonPrice) {
                     lineItems.push({ price: addonPrice, quantity: 1 });
                 }
@@ -174,20 +178,22 @@ export default async function billingRoutes(server: FastifyInstance) {
         }
     });
 
-    /** Which plans can be purchased (price IDs configured) */
+    /** Which plans can be purchased (resolved from live Stripe products) */
     server.get('/billing/plans-available', async (_request, reply) => {
-        const plans = billablePlans.map((p) => ({
-            id: p.id,
-            name: p.name,
-            available: Boolean(process.env[p.priceIdEnv]?.trim()),
-        }));
+        const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+        if (stripeConfigured) {
+            try {
+                const stripe = requireStripe();
+                await ensureBillingPriceCache(stripe);
+            } catch (err: any) {
+                server.log.error(err);
+            }
+        }
+
+        const catalog = getBillingCatalog();
         return {
-            plans,
-            aiFollowUpAddon: {
-                name: aiFollowUpAddon.name,
-                available: Boolean(getAiFollowUpPriceId()),
-            },
-            stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
+            ...catalog,
+            stripeConfigured,
         };
     });
 }

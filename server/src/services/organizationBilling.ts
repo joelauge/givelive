@@ -1,5 +1,5 @@
 import { query } from '../db';
-import { planIdFromPriceId } from '../config/billingPlans';
+import { resolvePlanIdFromPriceId } from './billingPriceResolver';
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS organizations (
@@ -123,7 +123,7 @@ export function resolvePlanFromSubscriptionItems(
         const priceId =
             typeof item.price === 'string' ? item.price : item.price?.id;
         if (!priceId) continue;
-        const mapped = planIdFromPriceId(priceId);
+        const mapped = resolvePlanIdFromPriceId(priceId);
         if (mapped === 'ai_followup_addon') {
             ai_followup_addon = true;
         } else if (['starter', 'growth', 'pro'].includes(mapped)) {

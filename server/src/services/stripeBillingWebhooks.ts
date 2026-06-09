@@ -1,10 +1,22 @@
 import Stripe from 'stripe';
+import { getStripe } from '../lib/stripe';
 import {
     findOrganizationByStripeCustomer,
     getOrganization,
     resolvePlanFromSubscriptionItems,
     updateOrganizationPlan,
 } from './organizationBilling';
+import { ensureBillingPriceCache } from './billingPriceResolver';
+
+async function ensurePriceCacheForWebhook(log: { error: (msg: string) => void }) {
+    const stripe = getStripe();
+    if (!stripe) return;
+    try {
+        await ensureBillingPriceCache(stripe);
+    } catch (err) {
+        log.error(`[Billing] Failed to warm price cache: ${err instanceof Error ? err.message : err}`);
+    }
+}
 
 export async function handleBillingStripeEvent(
     event: Stripe.Event,
@@ -40,6 +52,7 @@ export async function handleBillingStripeEvent(
 
         case 'customer.subscription.updated':
         case 'customer.subscription.created': {
+            await ensurePriceCacheForWebhook(log);
             const sub = event.data.object as Stripe.Subscription;
             const orgId = sub.metadata?.org_id;
             const customerId =
