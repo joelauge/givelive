@@ -51,40 +51,40 @@ export default function Home() {
                             GiveLive is the operating system for high-impact acquisition. Create immersive digital-to-physical journeys, capture leads instantly, and automate your follow-up workflows.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                             <SignedOut>
-                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
+                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group whitespace-nowrap">
                                     Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </SignedOut>
                             <SignedIn>
-                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
+                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group whitespace-nowrap">
                                     Your Account <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </SignedIn>
                             <Link
                                 to="/how-to"
-                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group whitespace-nowrap"
                             >
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                <span className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
                                     <BookOpen className="w-4 h-4" />
                                 </span>
                                 How To
                             </Link>
                             <Link
                                 to="/blog"
-                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group whitespace-nowrap"
                             >
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                <span className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
                                     <BookOpen className="w-4 h-4" />
                                 </span>
                                 Template Guides
                             </Link>
                             <Link
                                 to="/pricing"
-                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group whitespace-nowrap"
                             >
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                <span className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
                                     <Tag className="w-4 h-4" />
                                 </span>
                                 Pricing
@@ -92,9 +92,9 @@ export default function Home() {
                             <button
                                 type="button"
                                 onClick={() => setIsDemoModalOpen(true)}
-                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group whitespace-nowrap"
                             >
-                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                <span className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
                                     <CalendarCheck className="w-4 h-4" />
                                 </span>
                                 Book a Demo

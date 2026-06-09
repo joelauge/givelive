@@ -235,23 +235,23 @@ export default function Pricing() {
                         </Link>{' '}
                         for setup help.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4">
                         <Link
                             to="/admin"
-                            className="h-12 px-8 rounded-full bg-primary text-white font-bold hover:bg-primary-light transition flex items-center gap-2"
+                            className="h-12 px-8 rounded-full bg-primary text-white font-bold hover:bg-primary-light transition flex items-center gap-2 whitespace-nowrap"
                         >
                             Start building free <ArrowRight size={18} />
                         </Link>
                         <Link
                             to="/how-to"
-                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center"
+                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center whitespace-nowrap"
                         >
                             Read How To
                         </Link>
                         <button
                             type="button"
                             onClick={() => setIsDemoModalOpen(true)}
-                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center gap-2 whitespace-nowrap"
                         >
                             <CalendarCheck size={18} />
                             Book a demo
