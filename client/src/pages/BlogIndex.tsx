@@ -2,8 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ArrowRight } from 'lucide-react';
 import { templates, categories } from '../data/templateLibrary';
+import { usePageSeo } from '../lib/seo';
 
 export default function BlogIndex() {
+    usePageSeo({
+        title: 'Free QR Flow Templates',
+        description:
+            'Browse professionally designed GiveLive templates for fundraising, real locations, lead capture, tickets, raffles, and more. Start from a proven flow in minutes.',
+        path: '/blog',
+    });
+
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 

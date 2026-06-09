@@ -2,8 +2,16 @@ import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldC
 import { Link } from 'react-router-dom';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
+import { SITE, usePageSeo } from '../lib/seo';
 
 export default function Home() {
+    usePageSeo({
+        title: SITE.defaultTitle,
+        description: SITE.defaultDescription,
+        path: '/',
+        rawTitle: true,
+    });
+
     return (
         <div className="bg-white min-h-screen font-sans selection:bg-secondary selection:text-white">
             {/* Hero Section */}

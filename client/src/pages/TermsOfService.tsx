@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Logo from '../components/Logo';
+import { usePageSeo } from '../lib/seo';
 
 export default function TermsOfService() {
+    usePageSeo({
+        title: 'Terms of Service',
+        description:
+            'Read the terms and conditions for using GiveLive, including account registration, acceptable use, payments, and service availability.',
+        path: '/tos',
+    });
+
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}

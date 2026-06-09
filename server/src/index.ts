@@ -30,6 +30,11 @@ function escapeHtml(value: string): string {
         .replace(/"/g, '&quot;');
 }
 
+function eventMetaDescription(eventName: string): string {
+    const name = eventName?.trim() || 'this experience';
+    return `Scan to begin ${name}. Complete the journey on your phone—no app download required.`;
+}
+
 import eventRoutes from './routes/events';
 import journeyRoutes from './routes/journey';
 import smsRoutes from './routes/sms';
@@ -151,16 +156,20 @@ export const createApp = () => {
             const displayName = event.name || 'GiveLive';
             const campaignImage = startNodeConfig.campaignImage;
             const safeName = escapeHtml(displayName);
-            const safeEventName = escapeHtml(event.name || 'GiveLive');
+            const safeDescription = escapeHtml(eventMetaDescription(event.name));
 
             html = html.replace(/<title>.*?<\/title>/, `<title>${safeName}</title>`);
+            html = html.replace(
+                /<meta name="description" content=".*?" \/>/,
+                `<meta name="description" content="${safeDescription}" />`
+            );
             html = html.replace(
                 /<meta property="og:title" content=".*?" \/>/,
                 `<meta property="og:title" content="${safeName}" />`
             );
             html = html.replace(
                 /<meta property="og:description" content=".*?" \/>/,
-                `<meta property="og:description" content="Join us for ${safeEventName}" />`
+                `<meta property="og:description" content="${safeDescription}" />`
             );
             html = html.replace(
                 /<meta name="twitter:title" content=".*?" \/>/,
@@ -168,7 +177,7 @@ export const createApp = () => {
             );
             html = html.replace(
                 /<meta name="twitter:description" content=".*?" \/>/,
-                `<meta name="twitter:description" content="Join us for ${safeEventName}" />`
+                `<meta name="twitter:description" content="${safeDescription}" />`
             );
 
             if (campaignImage) {

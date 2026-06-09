@@ -4,6 +4,7 @@ import { api } from '../api';
 import NodeRenderer from '../components/NodeRenderer';
 import GiveLiveScannerShell, { type EmbedMode } from '../components/GiveLiveScannerShell';
 import type { Event, JourneyNode } from '../types';
+import { applyPageSeo, eventMetaDescription, SITE } from '../lib/seo';
 
 export default function LandingPage() {
     const { eventId } = useParams();
@@ -93,36 +94,19 @@ export default function LandingPage() {
         }
     }, [eventId]);
 
-    // Update meta tags when event data is loaded
     useEffect(() => {
         if (!event || !allNodes.length) return;
 
-        // Find the start node to get campaign image and QR text
         const startNode = allNodes.find(n => n.type === 'start' || n.config?.type === 'start');
         const campaignImage = startNode?.config?.campaignImage || (startNode as any)?.data?.campaignImage;
-        const displayName = event.name || 'GiveLive';
 
-        document.title = displayName;
-
-        const updateMetaTag = (property: string, content: string) => {
-            let meta = document.querySelector(`meta[property="${property}"]`);
-            if (!meta) {
-                meta = document.querySelector(`meta[name="${property}"]`);
-            }
-            if (meta) {
-                meta.setAttribute('content', content);
-            }
-        };
-
-        updateMetaTag('og:title', displayName);
-        updateMetaTag('og:description', `Join us for ${event.name}`);
-        updateMetaTag('twitter:title', displayName);
-        updateMetaTag('twitter:description', `Join us for ${event.name}`);
-
-        if (campaignImage) {
-            updateMetaTag('og:image', campaignImage);
-            updateMetaTag('twitter:image', campaignImage);
-        }
+        applyPageSeo({
+            title: event.name || 'GiveLive',
+            description: eventMetaDescription(event.name),
+            ogImage: campaignImage || SITE.defaultOgImage,
+            rawTitle: true,
+            omitUrl: true,
+        });
     }, [event, allNodes]);
 
     const handleNext = async (formData?: any) => {

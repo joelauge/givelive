@@ -1,0 +1,93 @@
+# GiveLive
+
+> GiveLive is a QR-powered acquisition platform. Build intelligent journeys from scan to lead capture, payments, SMS/email follow-up, and CRM integrations.
+
+GiveLive is for marketers, nonprofits, venues, churches, real-estate teams, and local businesses turning physical touchpoints into automated digital workflows. Start free; paid plans scale campaigns, leads, branding, and automation.
+
+Markdown versions of key pages are available at `{path}.md` (e.g. https://givelive.app/pricing.md).
+
+## Product
+
+- [Home](https://givelive.app/index.md): Product overview, features, integrations, and getting started
+- [Pricing](https://givelive.app/pricing.md): Free, Starter, Growth, Pro, and Enterprise plans with limits
+- [How to use GiveLive](https://givelive.app/how-to.md): Step-by-step guide from first QR to publish and analytics
+- [Free template library](https://givelive.app/blog.md): Browse all pre-built QR flow templates
+
+## Templates
+
+## Churches
+
+- [New Member](https://givelive.app/blog/new-member.md): Welcome new visitors and connect (Churches)
+- [Get Baptised](https://givelive.app/blog/get-baptised.md): Baptism signup and information (Churches)
+- [Small Groups](https://givelive.app/blog/small-groups.md): Connect people to small groups (Churches)
+
+## Concerts
+
+- [Concert Tickets](https://givelive.app/blog/concert-tickets.md): Ticket sales with seat selection (Concerts)
+- [Backstage Pass](https://givelive.app/blog/backstage-pass.md): VIP experience upgrade (Concerts)
+- [Fan Meetup](https://givelive.app/blog/fan-meetup.md): Meet and greet registration (Concerts)
+
+## Fundraising
+
+- [Simple Donation](https://givelive.app/blog/simple-donation.md): Quick donation flow with thank you (Fundraising)
+- [Monthly Giving](https://givelive.app/blog/monthly-giving.md): Recurring donation signup (Fundraising)
+- [Matching Campaign](https://givelive.app/blog/matching-campaign.md): Donation with matching incentive (Fundraising)
+
+## Lead Capture
+
+- [Lead Magnet](https://givelive.app/blog/lead-magnet.md): Free resource in exchange for email (Lead Capture)
+- [Demo Request](https://givelive.app/blog/demo-request.md): Schedule product demo (Lead Capture)
+- [Waitlist Signup](https://givelive.app/blog/waitlist-signup.md): Join waitlist for launch (Lead Capture)
+
+## Online Webinar
+
+- [Webinar Registration](https://givelive.app/blog/webinar-registration.md): Register for online webinar (Online Webinar)
+- [Workshop Series](https://givelive.app/blog/workshop-series.md): Multi-part workshop signup (Online Webinar)
+- [Masterclass](https://givelive.app/blog/masterclass.md): Premium training session (Online Webinar)
+
+## Quiz Games
+
+- [Trivia Quiz](https://givelive.app/blog/trivia-quiz.md): Interactive trivia game (Quiz Games)
+- [Personality Quiz](https://givelive.app/blog/personality-quiz.md): Fun personality assessment (Quiz Games)
+- [Leaderboard Challenge](https://givelive.app/blog/leaderboard-challenge.md): Competitive quiz with prizes (Quiz Games)
+
+## Raffles
+
+- [Raffle Entry](https://givelive.app/blog/raffle-entry.md): Simple raffle entry form (Raffles)
+- [Grand Prize](https://givelive.app/blog/grand-prize.md): Multi-prize raffle (Raffles)
+- [Charity Raffle](https://givelive.app/blog/charity-raffle.md): Fundraising raffle with donation (Raffles)
+
+## Real Estate
+
+- [Open House Sign-in](https://givelive.app/blog/open-house.md): Digital register for open house visitors (Real Estate)
+- [New Lead Speed-to-Lead](https://givelive.app/blog/real-estate-lead.md): Immediate response for new inquiries (Real Estate)
+
+## Real Locations
+
+- [Event Check-in](https://givelive.app/blog/event-checkin.md): Simple check-in with follow-up (Real Locations)
+- [Networking Event](https://givelive.app/blog/networking-event.md): Connect scanners and collect contacts (Real Locations)
+- [Conference Agenda](https://givelive.app/blog/conference-agenda.md): Event schedule with session selection (Real Locations)
+
+## Surveys
+
+- [Feedback Survey](https://givelive.app/blog/feedback-survey.md): Collect feedback with follow-up (Surveys)
+- [NPS Survey](https://givelive.app/blog/nps-survey.md): Net Promoter Score measurement (Surveys)
+- [Market Research](https://givelive.app/blog/market-research.md): Product feedback survey (Surveys)
+- [Share Testimonial](https://givelive.app/blog/share-testimonial.md): Video testimonial collection (Surveys)
+- [Google Review](https://givelive.app/blog/google-review.md): Ask happy customers for a review (Surveys)
+
+## Tickets
+
+- [Event Ticket](https://givelive.app/blog/event-ticket.md): Standard ticket sales (Tickets)
+- [Early Bird](https://givelive.app/blog/early-bird.md): Discount ticket with countdown (Tickets)
+- [Group Tickets](https://givelive.app/blog/group-tickets.md): Group discount booking (Tickets)
+
+## Legal
+
+- [Privacy Policy](https://givelive.app/privacy.md): Data collection, use, and your rights
+- [Terms of Service](https://givelive.app/tos.md): Account, payments, acceptable use, and liability
+
+## Optional
+
+- [Sitemap](https://givelive.app/sitemap.xml): Machine-readable list of public HTML URLs
+- [Robots](https://givelive.app/robots.txt): Crawl rules for search engines

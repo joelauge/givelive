@@ -11,8 +11,16 @@ import {
 import Logo from '../components/Logo';
 import PlanCheckoutButton from '../components/PlanCheckoutButton';
 import { aiFollowUpAddon, pricingPlans } from '../data/pricingPlans';
+import { usePageSeo } from '../lib/seo';
 
 export default function Pricing() {
+    usePageSeo({
+        title: 'Pricing',
+        description:
+            'Start free, upgrade when you are ready. Every GiveLive plan includes the journey builder, QR entry, and lead capture — you only pay as volume and automation needs grow.',
+        path: '/pricing',
+    });
+
     return (
         <div className="min-h-screen bg-background">
             <div className="bg-white border-b border-gray-100 sticky top-0 z-40">

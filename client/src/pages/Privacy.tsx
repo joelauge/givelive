@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Logo from '../components/Logo';
+import { usePageSeo } from '../lib/seo';
 
 export default function Privacy() {
+    usePageSeo({
+        title: 'Privacy Policy',
+        description:
+            'Learn how GiveLive collects, uses, and protects your information when you use our QR journey builder and acquisition platform.',
+        path: '/privacy',
+    });
+
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}

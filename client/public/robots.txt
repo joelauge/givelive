@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /settings
+Disallow: /analytics
+Disallow: /template-preview/
+
+Sitemap: https://givelive.app/sitemap.xml
+
+# LLM-friendly site index: https://givelive.app/llms.txt

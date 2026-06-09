@@ -8,31 +8,28 @@ import { api } from '../api';
 import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
 import type { PlanId } from '../data/pricingPlans';
-
-// Import local image (this path is a placeholder relative to where images are served)
-// For now we will use a computed path or import if it's in assets
-// Since we are generating images into an artifact folder, we need to move them to public or src/assets to use them in build.
-// For development, we'll assume they are available or use online placeholder if missing.
+import { getTemplateOgImageUrl, usePageSeo } from '../lib/seo';
 
 export default function BlogPost() {
     const { templateId } = useParams();
     const navigate = useNavigate();
     const template = templates.find(t => t.id === templateId);
-
-    if (!template) {
-        return (
-            <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-                <h1 className="text-2xl font-bold">Template not found</h1>
-                <Link to="/blog" className="text-primary hover:underline">Back to Blog</Link>
-            </div>
-        );
-    }
-
     const { isSignedIn, user } = useUser();
     const [creating, setCreating] = useState(false);
     const [eventCount, setEventCount] = useState(0);
     const [planId, setPlanId] = useState<PlanId>('free');
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [imageAttempt, setImageAttempt] = useState(0);
+
+    usePageSeo({
+        title: template ? `Free ${template.name} Template` : 'Template not found',
+        description: template
+            ? `${template.description}. Use this free ${template.category.toLowerCase()} QR flow template to launch in minutes with GiveLive.`
+            : 'This template could not be found. Browse our library of free QR flow templates.',
+        path: templateId ? `/blog/${templateId}` : '/blog',
+        ogImage: template ? getTemplateOgImageUrl(template.id) : undefined,
+        noIndex: !template,
+    });
 
     useEffect(() => {
         if (!isSignedIn || !user?.id) return;
@@ -45,6 +42,15 @@ export default function BlogPost() {
             .then((data) => setPlanId((data.planId as PlanId) || 'free'))
             .catch(() => setPlanId('free'));
     }, [isSignedIn, user?.id]);
+
+    if (!template) {
+        return (
+            <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+                <h1 className="text-2xl font-bold">Template not found</h1>
+                <Link to="/blog" className="text-primary hover:underline">Back to Blog</Link>
+            </div>
+        );
+    }
 
     const handleUseTemplate = async () => {
         if (!isSignedIn) {
@@ -81,8 +87,6 @@ export default function BlogPost() {
             setCreating(false);
         }
     };
-
-    const [imageAttempt, setImageAttempt] = useState(0); // 0: specific.png, 1: specific.jpg, 2: category.png, 3: category.jpg
 
     const getImageUrl = () => {
         const baseName = template.id.replace(/-/g, '_');

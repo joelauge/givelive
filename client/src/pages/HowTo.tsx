@@ -16,6 +16,7 @@ import {
     Zap,
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { usePageSeo } from '../lib/seo';
 
 type Step = { title: string; body: string };
 
@@ -233,6 +234,13 @@ const quickLinks = [
 ];
 
 export default function HowTo() {
+    usePageSeo({
+        title: 'How to use GiveLive',
+        description:
+            'Step-by-step guides for building QR-powered acquisition flows—from your first scan to automated follow-up and CRM sync.',
+        path: '/how-to',
+    });
+
     return (
         <div className="min-h-screen bg-background">
             <div className="bg-white border-b border-gray-100">
