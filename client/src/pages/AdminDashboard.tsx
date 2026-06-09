@@ -300,8 +300,10 @@ export default function AdminDashboard() {
 
     const closeMobileSidebar = () => mobileSidebar?.close();
 
+    // No width/display utilities here — they're set per usage to avoid
+    // conflicting with the responsive wrapper classes (w-full beat w-64 in CSS order).
     const sidebarPanelClass =
-        'w-full h-full bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 bg-white overflow-y-auto';
+        'h-full bg-white border-r border-gray-100 flex flex-col p-4 gap-2 overflow-y-auto';
 
     const sidebarNav = (
         <>
@@ -444,13 +446,13 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex relative">
             <MobileDrawer open={Boolean(mobileSidebar?.isOpen)} onClose={closeMobileSidebar}>
-                <div className={sidebarPanelClass}>{sidebarNav}</div>
+                <div className={`${sidebarPanelClass} w-full`}>{sidebarNav}</div>
             </MobileDrawer>
 
             {/* Left Sidebar Menu — desktop only */}
-            <div className={`hidden lg:flex ${sidebarPanelClass} w-64 shrink-0 z-10 h-screen sticky top-0`}>
-                {sidebarNav}
-            </div>
+            <aside className="hidden lg:block w-64 shrink-0 z-10 h-screen sticky top-0">
+                <div className={`${sidebarPanelClass} w-full`}>{sidebarNav}</div>
+            </aside>
 
             {/* Main Content Area */}
             <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen lg:h-screen w-full min-w-0">
