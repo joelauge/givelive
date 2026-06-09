@@ -61,7 +61,7 @@ export default function Layout() {
         <div className="min-h-screen flex flex-col bg-background font-sans text-primary">
             {/* Header */}
             {!isHomePage ? (
-                <header className="bg-surface border-b border-gray-100 sticky top-0 z-40">
+                <header className="bg-surface border-b border-gray-100 sticky top-0 z-[60]">
                     <div className="w-full px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <MobileMenuButton />

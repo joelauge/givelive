@@ -46,7 +46,8 @@ export function useRegisterMobileSidebar() {
             context.setEnabled(false);
             context.close();
         };
-    }, [context]);
+        // Register once per page mount — do not depend on `context` (it changes when isOpen toggles).
+    }, []);
 
     return context;
 }

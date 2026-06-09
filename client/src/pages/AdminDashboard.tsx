@@ -10,6 +10,7 @@ import QRCode from 'react-qr-code';
 import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
 import { useRegisterMobileSidebar } from '../contexts/MobileSidebarContext';
+import MobileDrawer from '../components/MobileDrawer';
 import ReactFlow, { Background, type Node, type Edge, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import 'reactflow/dist/style.css';
@@ -297,33 +298,13 @@ export default function AdminDashboard() {
         setTimeout(() => setIsModalOpen(true), 300); // Automatically open project creation modal
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading projects...</div>;
-    if (error) return (
-        <div className="p-8 text-center">
-            <div className="text-red-500 mb-4">{error}</div>
-            <button onClick={loadEvents} className="btn-primary">Retry</button>
-        </div>
-    );
-
     const closeMobileSidebar = () => mobileSidebar?.close();
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex relative">
-            {mobileSidebar?.isOpen && (
-                <button
-                    type="button"
-                    className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-                    aria-label="Close menu"
-                    onClick={closeMobileSidebar}
-                />
-            )}
+    const sidebarPanelClass =
+        'w-full h-full bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 bg-white overflow-y-auto';
 
-            {/* Left Sidebar Menu */}
-            <div
-                className={`w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 shrink-0 bg-white z-50 h-screen overflow-y-auto transition-transform duration-300 ease-out
-                    fixed inset-y-0 left-0 lg:static lg:translate-x-0 lg:z-10 lg:sticky lg:top-0
-                    ${mobileSidebar?.isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-            >
+    const sidebarNav = (
+        <>
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3 mt-4">Menu</div>
 
                 <Link
@@ -418,7 +399,10 @@ export default function AdminDashboard() {
                                         return (
                                             <button
                                                 key={template.id}
-                                                onClick={() => handleTemplateClick(template.id)}
+                                                onClick={() => {
+                                                    handleTemplateClick(template.id);
+                                                    closeMobileSidebar();
+                                                }}
                                                 className="flex items-start gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group"
                                             >
                                                 <div className={`${template.iconBg} ${template.iconColor} p-1.5 rounded-lg group-hover:scale-110 transition flex-shrink-0`}>
@@ -454,11 +438,34 @@ export default function AdminDashboard() {
                     <Settings size={18} />
                     <span>Settings</span>
                 </Link>
+        </>
+    );
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex relative">
+            <MobileDrawer open={Boolean(mobileSidebar?.isOpen)} onClose={closeMobileSidebar}>
+                <div className={sidebarPanelClass}>{sidebarNav}</div>
+            </MobileDrawer>
+
+            {/* Left Sidebar Menu — desktop only */}
+            <div className={`hidden lg:flex ${sidebarPanelClass} w-64 shrink-0 z-10 h-screen sticky top-0`}>
+                {sidebarNav}
             </div>
 
             {/* Main Content Area */}
             <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen lg:h-screen w-full min-w-0">
                 <div className="max-w-7xl mx-auto">
+                    {loading && (
+                        <div className="p-8 text-center text-gray-500">Loading projects...</div>
+                    )}
+                    {error && !loading && (
+                        <div className="p-8 text-center">
+                            <div className="text-red-500 mb-4">{error}</div>
+                            <button onClick={loadEvents} className="btn-primary">Retry</button>
+                        </div>
+                    )}
+                    {!loading && !error && (
+                    <>
                     {/* Onboarding Modal */}
                     {showOnboarding && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -798,6 +805,8 @@ export default function AdminDashboard() {
                             </div>
                         )}
                     </div>
+                    </>
+                    )}
                 </div>
 
                 {/* Create Modal */}

@@ -37,6 +37,7 @@ import { templates, categories, getTemplatesByCategory, getCategoryCount } from 
 import { buildDefaultTemplateFlow } from '../data/templateFlows';
 import AIBuilder from '../components/flow-editor/AIBuilder';
 import UpgradeModal from '../components/UpgradeModal';
+import MobileDrawer from '../components/MobileDrawer';
 import type { PlanId } from '../data/pricingPlans';
 import { getCampaignLimit } from '../lib/billingLimits';
 import { shouldShowWatermarkForPlan } from '../lib/watermark';
@@ -2888,10 +2889,168 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
 
     const closeMobileNav = () => setMobileNavOpen(false);
 
+    const journeySidebarNav = (
+        <>
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu</div>
+
+            <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left">
+                <Workflow size={18} />
+                <span>Flow Editor</span>
+            </button>
+
+            <button
+                onClick={() => setIsTemplatesOpen(!isTemplatesOpen)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left w-full"
+            >
+                <div className="flex items-center gap-3">
+                    <LayoutTemplate size={18} />
+                    <span>Template Library</span>
+                </div>
+                {isTemplatesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+
+            <button
+                onClick={() => {
+                    setIsAIBuilderOpen(true);
+                    closeMobileNav();
+                }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition text-left w-full mb-2"
+            >
+                <Sparkles size={18} />
+                <span className="font-bold">AI Journey Builder</span>
+            </button>
+
+            {isTemplatesOpen && (
+                <div className="mb-2 animate-in slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2">
+                        <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search templates..."
+                                value={templateSearch}
+                                onChange={(e) => setTemplateSearch(e.target.value)}
+                                className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            />
+                            {templateSearch && (
+                                <button
+                                    onClick={() => setTemplateSearch('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="px-3 py-2 max-h-20 overflow-y-auto">
+                        <div className="flex flex-wrap gap-1">
+                            {categories.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setTemplateSearch('');
+                                    }}
+                                    className={`px-2 py-1 text-[10px] font-medium rounded-md transition ${selectedCategory === cat
+                                        ? 'bg-primary text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {cat} ({getCategoryCount(cat)})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="px-3 py-2 max-h-96 overflow-y-auto">
+                        <div className="flex flex-col gap-1">
+                            {(() => {
+                                let filteredTemplates = getTemplatesByCategory(selectedCategory);
+
+                                if (templateSearch) {
+                                    filteredTemplates = templates.filter(t =>
+                                        t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                                        t.description.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                                        t.category.toLowerCase().includes(templateSearch.toLowerCase())
+                                    );
+                                }
+
+                                if (filteredTemplates.length === 0) {
+                                    return (
+                                        <div className="text-center py-8 text-gray-400 text-sm">
+                                            No templates found
+                                        </div>
+                                    );
+                                }
+
+                                return filteredTemplates.map((template) => {
+                                    const Icon = template.icon;
+                                    return (
+                                        <button
+                                            key={template.id}
+                                            onClick={() => {
+                                                applyTemplate(template.id);
+                                                closeMobileNav();
+                                            }}
+                                            className="flex items-start gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group"
+                                        >
+                                            <div className={`${template.iconBg} ${template.iconColor} p-1.5 rounded-lg group-hover:scale-110 transition flex-shrink-0`}>
+                                                <Icon size={14} />
+                                            </div>
+                                            <div className="flex flex-col min-w-0 flex-1">
+                                                <span className="text-xs font-medium truncate">{template.name}</span>
+                                                <span className="text-[10px] text-gray-400 truncate">{template.description}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                });
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Link
+                to="/settings"
+                onClick={closeMobileNav}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
+            >
+                <Settings size={18} />
+                <span>Settings</span>
+            </Link>
+
+            <div className="h-px bg-gray-100 my-2"></div>
+
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Analytics</div>
+            <Link
+                to="/analytics"
+                onClick={closeMobileNav}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition"
+            >
+                <BarChart3 size={18} />
+                <span>Overview</span>
+            </Link>
+
+            <div className="mt-auto pt-4">
+                <button
+                    onClick={() => {
+                        setIsDeleteFlowModalOpen(true);
+                        closeMobileNav();
+                    }}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition w-full text-left font-medium"
+                >
+                    <Trash2 size={18} />
+                    <span>Delete Flow</span>
+                </button>
+            </div>
+        </>
+    );
+
     return (
         <JourneyContext.Provider value={{ duplicateNode }}>
             <div className="h-screen flex flex-col bg-background">
-                <div className="bg-surface border-b border-gray-100 px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 z-10 shadow-sm">
+                <div className="bg-surface border-b border-gray-100 px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 z-[60] relative shadow-sm">
                     <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                         <button
                             type="button"
@@ -2947,178 +3106,16 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     </div>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden relative">
-                    {mobileNavOpen && (
-                        <button
-                            type="button"
-                            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-                            aria-label="Close menu"
-                            onClick={closeMobileNav}
-                        />
-                    )}
+                <MobileDrawer open={mobileNavOpen} onClose={closeMobileNav}>
+                    <div className="h-full w-full bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 overflow-y-auto">
+                        {journeySidebarNav}
+                    </div>
+                </MobileDrawer>
 
-                    {/* Left Sidebar */}
-                    <div
-                        className={`w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 z-50 overflow-y-auto transition-transform duration-300 ease-out
-                            fixed inset-y-0 left-0 lg:static lg:translate-x-0 lg:z-10
-                            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-                    >
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu</div>
-
-                        <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left">
-                            <Workflow size={18} />
-                            <span>Flow Editor</span>
-                        </button>
-
-                        <button
-                            onClick={() => setIsTemplatesOpen(!isTemplatesOpen)}
-                            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left w-full"
-                        >
-                            <div className="flex items-center gap-3">
-                                <LayoutTemplate size={18} />
-                                <span>Template Library</span>
-                            </div>
-                            {isTemplatesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setIsAIBuilderOpen(true);
-                                closeMobileNav();
-                            }}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition text-left w-full mb-2"
-                        >
-                            <Sparkles size={18} />
-                            <span className="font-bold">AI Journey Builder</span>
-                        </button>
-
-                        {isTemplatesOpen && (
-                            <div className="mb-2 animate-in slide-in-from-top-2 duration-200">
-                                {/* Search Bar */}
-                                <div className="px-3 py-2">
-                                    <div className="relative">
-                                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search templates..."
-                                            value={templateSearch}
-                                            onChange={(e) => setTemplateSearch(e.target.value)}
-                                            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                                        />
-                                        {templateSearch && (
-                                            <button
-                                                onClick={() => setTemplateSearch('')}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Category Filter */}
-                                <div className="px-3 py-2 max-h-20 overflow-y-auto">
-                                    <div className="flex flex-wrap gap-1">
-                                        {categories.map((cat) => (
-                                            <button
-                                                key={cat}
-                                                onClick={() => {
-                                                    setSelectedCategory(cat);
-                                                    setTemplateSearch('');
-                                                }}
-                                                className={`px-2 py-1 text-[10px] font-medium rounded-md transition ${selectedCategory === cat
-                                                    ? 'bg-primary text-white'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                {cat} ({getCategoryCount(cat)})
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Templates Grid */}
-                                <div className="px-3 py-2 max-h-96 overflow-y-auto">
-                                    <div className="flex flex-col gap-1">
-                                        {(() => {
-                                            let filteredTemplates = getTemplatesByCategory(selectedCategory);
-
-                                            if (templateSearch) {
-                                                filteredTemplates = templates.filter(t =>
-                                                    t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
-                                                    t.description.toLowerCase().includes(templateSearch.toLowerCase()) ||
-                                                    t.category.toLowerCase().includes(templateSearch.toLowerCase())
-                                                );
-                                            }
-
-                                            if (filteredTemplates.length === 0) {
-                                                return (
-                                                    <div className="text-center py-8 text-gray-400 text-sm">
-                                                        No templates found
-                                                    </div>
-                                                );
-                                            }
-
-                                            return filteredTemplates.map((template) => {
-                                                const Icon = template.icon;
-                                                return (
-                                                    <button
-                                                        key={template.id}
-                                                        onClick={() => {
-                                                            applyTemplate(template.id);
-                                                            closeMobileNav();
-                                                        }}
-                                                        className="flex items-start gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group"
-                                                    >
-                                                        <div className={`${template.iconBg} ${template.iconColor} p-1.5 rounded-lg group-hover:scale-110 transition flex-shrink-0`}>
-                                                            <Icon size={14} />
-                                                        </div>
-                                                        <div className="flex flex-col min-w-0 flex-1">
-                                                            <span className="text-xs font-medium truncate">{template.name}</span>
-                                                            <span className="text-[10px] text-gray-400 truncate">{template.description}</span>
-                                                        </div>
-                                                    </button>
-                                                );
-                                            });
-                                        })()}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <Link
-                            to="/settings"
-                            onClick={closeMobileNav}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
-                        >
-                            <Settings size={18} />
-                            <span>Settings</span>
-                        </Link>
-
-                        <div className="h-px bg-gray-100 my-2"></div>
-
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Analytics</div>
-                        <Link
-                            to="/analytics"
-                            onClick={closeMobileNav}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition"
-                        >
-                            <BarChart3 size={18} />
-                            <span>Overview</span>
-                        </Link>
-
-                        <div className="mt-auto pt-4">
-                            <button
-                                onClick={() => {
-                                    setIsDeleteFlowModalOpen(true);
-                                    closeMobileNav();
-                                }}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition w-full text-left font-medium"
-                            >
-                                <Trash2 size={18} />
-                                <span>Delete Flow</span>
-                            </button>
-                        </div>
+                <div className="flex flex-1 overflow-hidden relative min-h-0">
+                    {/* Left Sidebar — desktop only */}
+                    <div className="hidden lg:flex w-64 bg-surface border-r border-gray-100 flex-col p-4 gap-2 z-10 overflow-y-auto shrink-0">
+                        {journeySidebarNav}
                     </div>
 
                     {/* Main Content (ReactFlow) */}
