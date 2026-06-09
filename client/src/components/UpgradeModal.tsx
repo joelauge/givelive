@@ -16,7 +16,7 @@ type Props = {
 const copy = {
     campaign: {
         title: 'Need another QR code?',
-        headline: (limit: number) => `Your free plan includes ${limit} QR code.`,
+        headline: () => 'Your free plan includes 1 free QR flow to capture up to 100 leads per month. Want more?',
         body: 'Upgrade to run separate campaigns for different events, locations, or offers — without starting over on what already works.',
     },
     publish: {
