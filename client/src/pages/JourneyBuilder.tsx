@@ -34,6 +34,7 @@ import { Undo, Globe, Sparkles } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { api, API_URL } from '../api';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
+import { buildDefaultTemplateFlow } from '../data/templateFlows';
 import AIBuilder from '../components/flow-editor/AIBuilder';
 import UpgradeModal from '../components/UpgradeModal';
 import type { PlanId } from '../data/pricingPlans';
@@ -1244,7 +1245,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Support Our Cause', logo: '', paddingTop: 40, paddingBottom: 40, backgroundColor: '#ffffff', textAlign: 'center' } },
                                 { id: 's2', type: 'text', content: { text: 'Your generosity helps us make a difference. Every contribution counts.', paddingTop: 20, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 18 } },
-                                { id: 's3', type: 'form', content: { fields: ['name', 'email', 'amount'], buttonText: 'Donate Now', buttonColor: '#000000', paddingTop: 20, paddingBottom: 40 } }
+                                { id: 's3', type: 'payment', content: { frequencies: ['one-time'], defaultAmount: 50, buttonText: 'Donate Now', buttonColor: '#000000', paddingTop: 20, paddingBottom: 40 } }
                             ]
                         },
                         type: 'default'
@@ -1402,7 +1403,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Welcome Home', logo: '', paddingTop: 40, paddingBottom: 20, backgroundColor: '#ffffff', textAlign: 'center' } },
-                                { id: 's2', type: 'video', content: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', paddingTop: 10, paddingBottom: 20, loop: false, autoplay: false } }, // Placeholder video
+                                { id: 's2', type: 'video', content: { url: '', paddingTop: 10, paddingBottom: 20, loop: false, autoplay: false } },
                                 { id: 's3', type: 'text', content: { text: 'We are so glad you are here. Fill out the form below to get connected.', paddingTop: 10, paddingBottom: 20, textAlign: 'center', color: '#333333', fontSize: 16 } },
                                 { id: 's4', type: 'form', content: { fields: ['name', 'email', 'phone', 'interests'], buttonText: 'Get Connected', buttonColor: '#2563eb', paddingTop: 20, paddingBottom: 40 } }
                             ]
@@ -1515,7 +1516,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             sections: [
                                 { id: 's1', type: 'header', content: { title: '2X Match Active!', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
                                 { id: 's2', type: 'text', content: { text: '🎉 Every dollar you give will be MATCHED dollar-for-dollar! Double your impact today.', paddingTop: 20, paddingBottom: 20, textAlign: 'center', fontSize: 18, color: '#059669' } },
-                                { id: 's3', type: 'form', content: { fields: ['name', 'email', 'amount'], buttonText: 'Double My Gift!', buttonColor: '#059669' } }
+                                { id: 's3', type: 'payment', content: { frequencies: ['one-time'], defaultAmount: 50, buttonText: 'Double My Gift!', buttonColor: '#059669' } }
                             ]
                         },
                         type: 'default'
@@ -1638,7 +1639,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Conference Agenda', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
                                 { id: 's2', type: 'text', content: { text: 'View the full schedule and save sessions to your personal agenda', paddingTop: 20, paddingBottom: 20, textAlign: 'center' } },
-                                { id: 's3', type: 'form', content: { fields: ['name', 'email', 'sessions'], buttonText: 'Save My Agenda', buttonColor: '#000000' } }
+                                { id: 's3', type: 'choice', content: { choices: [{ label: 'Morning Keynote' }, { label: 'Afternoon Workshop' }, { label: 'Evening Panel' }], paddingTop: 10, paddingBottom: 10 } },
+                                { id: 's4', type: 'form', content: { fields: ['name', 'email'], buttonText: 'Save My Agenda', buttonColor: '#000000' } }
                             ]
                         },
                         type: 'default'
@@ -1721,7 +1723,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Success!', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
-                                { id: 's2', type: 'text', content: { text: 'Check your email for the download link. We\'ve also sent you some bonus resources!', paddingTop: 20, paddingBottom: 40, textAlign: 'center' } }
+                                { id: 's2', type: 'text', content: { text: 'Your free guide is ready. Download below or check your email for a copy.', paddingTop: 20, paddingBottom: 20, textAlign: 'center' } },
+                                { id: 's3', type: 'download', content: { fileUrl: '', fileName: 'Free Guide.pdf', buttonText: 'Download Your Guide', buttonColor: '#059669', paddingTop: 20, paddingBottom: 40 } }
                             ]
                         },
                         type: 'default'
@@ -1857,7 +1860,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         position: { x: 250, y: 350 },
                         data: {
                             label: 'Welcome Email',
-                            type: 'sms',
+                            type: 'message',
                             messageType: 'email',
                             emailSubject: 'Welcome to the Workshop Series!',
                             emailMessage: 'Excited to have you! Here\'s what to expect over the next 4 weeks...'
@@ -1919,7 +1922,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Get Your Tickets', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
                                 { id: 's2', type: 'text', content: { text: 'Select your seats and secure your spot for an unforgettable night.', paddingTop: 20, paddingBottom: 20, textAlign: 'center' } },
-                                { id: 's3', type: 'payment', content: { frequencies: ['one-time'], defaultAmount: 50, buttonText: 'Buy Tickets', buttonColor: '#ec4899' } }
+                                { id: 's3', type: 'choice', content: { choices: [{ label: 'General Admission' }, { label: 'VIP' }], paddingTop: 10, paddingBottom: 10 } },
+                                { id: 's4', type: 'payment', content: { frequencies: ['one-time'], defaultAmount: 50, buttonText: 'Buy Tickets', buttonColor: '#ec4899' } }
                             ]
                         },
                         type: 'default'
@@ -2264,7 +2268,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         id: `${baseId}`,
                         position: { x: 250, y: 150 },
                         data: {
-                            label: 'Trivia Game',
+                            label: 'Trivia Signup',
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Trivia Challenge!', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
@@ -2276,7 +2280,20 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     },
                     {
                         id: `${baseId + 1}`,
-                        position: { x: 250, y: 350 },
+                        position: { x: 250, y: 300 },
+                        data: {
+                            label: 'Question 1',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'text', content: { text: 'Which planet is known as the Red Planet?', paddingTop: 30, paddingBottom: 20, textAlign: 'center', fontSize: 18 } },
+                                { id: 's2', type: 'choice', content: { choices: [{ label: 'Mars' }, { label: 'Venus' }, { label: 'Jupiter' }], paddingTop: 10, paddingBottom: 30 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 450 },
                         data: {
                             label: 'Results SMS',
                             type: 'sms',
@@ -2288,7 +2305,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
                 );
                 break;
 
@@ -2298,7 +2316,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         id: `${baseId}`,
                         position: { x: 250, y: 150 },
                         data: {
-                            label: 'Personality Quiz',
+                            label: 'Quiz Signup',
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'What\'s Your Type?', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
@@ -2310,7 +2328,20 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     },
                     {
                         id: `${baseId + 1}`,
-                        position: { x: 250, y: 350 },
+                        position: { x: 250, y: 300 },
+                        data: {
+                            label: 'Question 1',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'text', content: { text: 'At a party, you usually:', paddingTop: 30, paddingBottom: 20, textAlign: 'center', fontSize: 18 } },
+                                { id: 's2', type: 'choice', content: { choices: [{ label: 'Meet new people' }, { label: 'Stick with close friends' }, { label: 'Leave early' }], paddingTop: 10, paddingBottom: 30 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 450 },
                         data: {
                             label: 'Results Page',
                             type: 'page',
@@ -2324,7 +2355,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
                 );
                 break;
 
@@ -2334,7 +2366,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         id: `${baseId}`,
                         position: { x: 250, y: 150 },
                         data: {
-                            label: 'Challenge Start',
+                            label: 'Challenge Signup',
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'Leaderboard Challenge', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
@@ -2346,7 +2378,20 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                     },
                     {
                         id: `${baseId + 1}`,
-                        position: { x: 250, y: 350 },
+                        position: { x: 250, y: 300 },
+                        data: {
+                            label: 'Round 1',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'text', content: { text: 'Quick round — pick the best answer to earn points:', paddingTop: 30, paddingBottom: 20, textAlign: 'center', fontSize: 18 } },
+                                { id: 's2', type: 'choice', content: { choices: [{ label: 'Answer A (+10 pts)' }, { label: 'Answer B (+5 pts)' }, { label: 'Answer C (+0 pts)' }], paddingTop: 10, paddingBottom: 30 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 450 },
                         data: {
                             label: 'Score SMS',
                             type: 'sms',
@@ -2358,7 +2403,8 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
                 );
                 break;
 
@@ -2436,19 +2482,32 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         id: `${baseId}`,
                         position: { x: 250, y: 150 },
                         data: {
-                            label: 'Review Request',
+                            label: 'Quick Sign-in',
                             type: 'page',
                             sections: [
                                 { id: 's1', type: 'header', content: { title: 'We\'d love your feedback!', paddingTop: 40, paddingBottom: 20, textAlign: 'center' } },
-                                { id: 's2', type: 'text', content: { text: 'If you enjoyed your experience, please leave us a review on Google. It helps us a lot!', paddingTop: 20, paddingBottom: 20, textAlign: 'center', fontSize: 16 } },
-                                { id: 's3', type: 'link', content: { url: 'https://g.page/r/...', label: '⭐⭐⭐⭐⭐ Leave a Google Review', style: 'button', buttonColor: '#ea4335', textAlign: 'center' } }
+                                { id: 's2', type: 'text', content: { text: 'Tell us who you are, then we\'ll send you to leave a Google review.', paddingTop: 20, paddingBottom: 20, textAlign: 'center', fontSize: 16 } },
+                                { id: 's3', type: 'form', content: { fields: ['name', 'email'], buttonText: 'Continue', buttonColor: '#2563eb', paddingTop: 20, paddingBottom: 40 } }
                             ]
                         },
                         type: 'default'
                     },
                     {
                         id: `${baseId + 1}`,
-                        position: { x: 250, y: 350 },
+                        position: { x: 250, y: 300 },
+                        data: {
+                            label: 'Review Request',
+                            type: 'page',
+                            sections: [
+                                { id: 's1', type: 'text', content: { text: 'If you enjoyed your experience, please leave us a review on Google. It helps us a lot!', paddingTop: 30, paddingBottom: 20, textAlign: 'center', fontSize: 16 } },
+                                { id: 's2', type: 'link', content: { url: 'https://g.page/r/...', label: '⭐⭐⭐⭐⭐ Leave a Google Review', style: 'button', buttonColor: '#ea4335', textAlign: 'center', paddingTop: 10, paddingBottom: 30 } }
+                            ]
+                        },
+                        type: 'default'
+                    },
+                    {
+                        id: `${baseId + 2}`,
+                        position: { x: 250, y: 450 },
                         data: {
                             label: 'Thank You SMS',
                             type: 'sms',
@@ -2460,17 +2519,37 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                 );
                 newEdges.push(
                     { id: `e${startNodeId}-${baseId}`, source: startNodeId, target: `${baseId}`, markerEnd: { type: MarkerType.ArrowClosed } },
-                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } }
+                    { id: `e${baseId}-${baseId + 1}`, source: `${baseId}`, target: `${baseId + 1}`, markerEnd: { type: MarkerType.ArrowClosed } },
+                    { id: `e${baseId + 1}-${baseId + 2}`, source: `${baseId + 1}`, target: `${baseId + 2}`, markerEnd: { type: MarkerType.ArrowClosed } }
                 );
                 break;
+
+            default: {
+                const fallbackTemplate = templates.find(t => t.id === templateName);
+                if (fallbackTemplate) {
+                    const flow = buildDefaultTemplateFlow(fallbackTemplate, startNodeId, baseId);
+                    newNodes.push(...(flow.nodes as Node<NodeData>[]));
+                    newEdges.push(...flow.edges);
+                }
+                break;
+            }
         }
 
         setNodes((nds) => {
-            const startNode = nds.find(n => n.type === 'start') || {
+            const existingStart = nds.find(n => n.type === 'start') || {
                 id: 'start',
                 type: 'start',
-                data: { label: 'Start', type: 'start' },
+                data: { label: 'Start (QR Scan)', type: 'start' },
                 position: { x: 250, y: 50 }
+            };
+            const startNode = {
+                ...existingStart,
+                data: {
+                    ...existingStart.data,
+                    label: 'Start (QR Scan)',
+                    type: 'start',
+                    triggerType: existingStart.data?.triggerType || 'qr',
+                },
             };
             return [startNode, ...newNodes];
         });

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "generate:llms": "node scripts/generate-llms.mjs",
+    "verify:templates": "node scripts/verify-templates.mjs",
     "prebuild": "npm run generate:llms",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

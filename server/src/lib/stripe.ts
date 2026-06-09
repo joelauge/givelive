@@ -7,7 +7,7 @@ export function getStripe(): Stripe | null {
     if (!key) return null;
     if (!stripeClient) {
         stripeClient = new Stripe(key, {
-            apiVersion: '2026-02-25.clover',
+            apiVersion: '2025-12-15.clover',
         });
     }
     return stripeClient;
