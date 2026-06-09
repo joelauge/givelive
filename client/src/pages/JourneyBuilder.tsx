@@ -20,7 +20,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, ChevronDown, ChevronRight, Clock, CreditCard, Mail, GitBranch, Trash2, Search, X, Edit, Check, Copy, Users, Zap, Activity, Terminal, ShoppingBag, MessageCircle, Instagram, Facebook, Video } from 'lucide-react';
+import { Save, Plus, ArrowLeft, LayoutTemplate, Settings, Workflow, BarChart3, QrCode, Heart, MessageSquare, ChevronDown, ChevronRight, Clock, CreditCard, Mail, GitBranch, Trash2, Search, X, Edit, Check, Copy, Users, Zap, Activity, Terminal, ShoppingBag, MessageCircle, Instagram, Facebook, Video, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -1008,6 +1008,7 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
 
     const [saving, setSaving] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(true);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [templateSearch, setTemplateSearch] = useState('');
     const [flowName, setFlowName] = useState('Untitled Flow');
@@ -2885,25 +2886,35 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
         setSelectedNodeId(newNodeId);
     };
 
+    const closeMobileNav = () => setMobileNavOpen(false);
+
     return (
         <JourneyContext.Provider value={{ duplicateNode }}>
             <div className="h-screen flex flex-col bg-background">
-                <div className="bg-surface border-b border-gray-100 p-4 flex justify-between items-center z-10 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <Link to="/admin" className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-50 text-gray-500 transition">
+                <div className="bg-surface border-b border-gray-100 px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 z-10 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                        <button
+                            type="button"
+                            onClick={() => setMobileNavOpen((open) => !open)}
+                            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition shrink-0"
+                            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+                        >
+                            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
+                        <Link to="/admin" className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-50 text-gray-500 transition shrink-0">
                             <ArrowLeft size={20} />
                         </Link>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                             <Logo size="small" />
-                            <div className="h-6 w-px bg-gray-200"></div>
-                            <div>
-                                <h1 className="text-lg font-bold text-primary">Journey Builder</h1>
-                                <p className="text-xs text-gray-400">Editing Flow</p>
+                            <div className="hidden sm:block h-6 w-px bg-gray-200"></div>
+                            <div className="min-w-0">
+                                <h1 className="text-base sm:text-lg font-bold text-primary truncate">Journey Builder</h1>
+                                <p className="text-xs text-gray-400 hidden sm:block">Editing Flow</p>
                             </div>
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                    <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0">
+                        <div className="hidden md:flex bg-gray-50 p-1 rounded-xl border border-gray-100 shrink-0">
                             <button onClick={() => addNode('page')} className="px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm text-sm font-medium text-gray-600 transition flex items-center gap-2">
                                 <Plus size={14} /> Page
                             </button>
@@ -2917,28 +2928,41 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                                 <Clock size={14} /> Delay
                             </button>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 shrink-0">
                             <button
                                 onClick={handlePublish}
                                 disabled={saving}
-                                className="bg-[#FCD34D] hover:bg-[#FBBF24] text-slate-900 font-bold py-2 px-4 rounded-full text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                className="bg-[#FCD34D] hover:bg-[#FBBF24] text-slate-900 font-bold py-2 px-3 sm:px-4 rounded-full text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
-                                <Globe size={16} /> {saving ? 'Publishing...' : 'Publish Live'}
+                                <Globe size={16} /> <span className="hidden sm:inline">{saving ? 'Publishing...' : 'Publish Live'}</span><span className="sm:hidden">{saving ? '...' : 'Publish'}</span>
                             </button>
                             <button
                                 onClick={handleSaveClick}
                                 disabled={saving}
-                                className="btn-primary py-2 px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="btn-primary py-2 px-3 sm:px-4 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Save size={16} /> {saving ? 'Saving...' : 'Save Flow'}
+                                <Save size={16} /> <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save Flow'}</span><span className="sm:hidden">{saving ? '...' : 'Save'}</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 overflow-hidden relative">
+                    {mobileNavOpen && (
+                        <button
+                            type="button"
+                            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                            aria-label="Close menu"
+                            onClick={closeMobileNav}
+                        />
+                    )}
+
                     {/* Left Sidebar */}
-                    <div className="w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 z-10 overflow-y-auto">
+                    <div
+                        className={`w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 z-50 overflow-y-auto transition-transform duration-300 ease-out
+                            fixed inset-y-0 left-0 lg:static lg:translate-x-0 lg:z-10
+                            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+                    >
                         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu</div>
 
                         <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left">
@@ -2958,7 +2982,10 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         </button>
 
                         <button
-                            onClick={() => setIsAIBuilderOpen(true)}
+                            onClick={() => {
+                                setIsAIBuilderOpen(true);
+                                closeMobileNav();
+                            }}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition text-left w-full mb-2"
                         >
                             <Sparkles size={18} />
@@ -3037,7 +3064,10 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                                                 return (
                                                     <button
                                                         key={template.id}
-                                                        onClick={() => applyTemplate(template.id)}
+                                                        onClick={() => {
+                                                            applyTemplate(template.id);
+                                                            closeMobileNav();
+                                                        }}
                                                         className="flex items-start gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left group"
                                                     >
                                                         <div className={`${template.iconBg} ${template.iconColor} p-1.5 rounded-lg group-hover:scale-110 transition flex-shrink-0`}>
@@ -3056,7 +3086,11 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                             </div>
                         )}
 
-                        <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left">
+                        <Link
+                            to="/settings"
+                            onClick={closeMobileNav}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
+                        >
                             <Settings size={18} />
                             <span>Settings</span>
                         </Link>
@@ -3064,14 +3098,21 @@ export default function JourneyBuilder({ previewMode = false, templateId: propTe
                         <div className="h-px bg-gray-100 my-2"></div>
 
                         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">Analytics</div>
-                        <Link to="/analytics" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                        <Link
+                            to="/analytics"
+                            onClick={closeMobileNav}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition"
+                        >
                             <BarChart3 size={18} />
                             <span>Overview</span>
                         </Link>
 
                         <div className="mt-auto pt-4">
                             <button
-                                onClick={() => setIsDeleteFlowModalOpen(true)}
+                                onClick={() => {
+                                    setIsDeleteFlowModalOpen(true);
+                                    closeMobileNav();
+                                }}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition w-full text-left font-medium"
                             >
                                 <Trash2 size={18} />

@@ -1,8 +1,26 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
+import { Menu, X } from 'lucide-react';
 import Logo from './Logo';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import Modal from './Modal';
+import { MobileSidebarContext, MobileSidebarProvider } from '../contexts/MobileSidebarContext';
+
+function MobileMenuButton() {
+    const context = useContext(MobileSidebarContext);
+    if (!context?.enabled) return null;
+
+    return (
+        <button
+            type="button"
+            onClick={context.toggle}
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+            aria-label={context.isOpen ? 'Close menu' : 'Open menu'}
+        >
+            {context.isOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+    );
+}
 
 export default function Layout() {
     const location = useLocation();
@@ -39,12 +57,16 @@ export default function Layout() {
     };
 
     return (
+        <MobileSidebarProvider>
         <div className="min-h-screen flex flex-col bg-background font-sans text-primary">
             {/* Header */}
             {!isHomePage ? (
                 <header className="bg-surface border-b border-gray-100 sticky top-0 z-40">
-                    <div className="w-full px-6 h-16 flex items-center justify-between">
-                        <Logo />
+                    <div className="w-full px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <MobileMenuButton />
+                            <Logo size="small" />
+                        </div>
                         <div className="flex items-center gap-4">
                             <SignedOut>
                                 <SignInButton mode="modal">
@@ -81,13 +103,13 @@ export default function Layout() {
 
             {/* Footer - Hide on Home since it has its own */}
             {!isHomePage && (
-                <footer className="bg-surface border-t border-gray-100 py-8 mt-auto">
-                    <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <footer className="bg-surface border-t border-gray-100 py-3 md:py-8 mt-auto">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
                         <div className="flex items-center gap-2 opacity-80">
-                            <Logo size="small" />
-                            <span className="text-sm text-gray-400 ml-2">© 2024 GiveLive</span>
+                            <Logo size="small" className="hidden sm:inline-block" />
+                            <span className="text-xs md:text-sm text-gray-400 sm:ml-2">© 2024 GiveLive</span>
                         </div>
-                        <div className="flex gap-6 text-sm text-gray-500">
+                        <div className="hidden sm:flex gap-6 text-sm text-gray-500">
                             <a href="#" className="hover:text-primary transition">Privacy</a>
                             <a href="#" className="hover:text-primary transition">Terms</a>
                             <a href="#" className="hover:text-primary transition">Support</a>
@@ -164,5 +186,6 @@ export default function Layout() {
                 )}
             </Modal>
         </div>
+        </MobileSidebarProvider>
     );
 }

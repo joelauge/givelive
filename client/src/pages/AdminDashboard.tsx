@@ -9,6 +9,7 @@ import type { PlanId } from '../data/pricingPlans';
 import QRCode from 'react-qr-code';
 import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
+import { useRegisterMobileSidebar } from '../contexts/MobileSidebarContext';
 import ReactFlow, { Background, type Node, type Edge, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import 'reactflow/dist/style.css';
@@ -88,6 +89,7 @@ export default function AdminDashboard() {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [templateSearch, setTemplateSearch] = useState('');
     const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
+    const mobileSidebar = useRegisterMobileSidebar();
     const [planId, setPlanId] = useState<PlanId>('free');
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -303,13 +305,32 @@ export default function AdminDashboard() {
         </div>
     );
 
+    const closeMobileSidebar = () => mobileSidebar?.close();
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex relative">
+            {mobileSidebar?.isOpen && (
+                <button
+                    type="button"
+                    className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                    aria-label="Close menu"
+                    onClick={closeMobileSidebar}
+                />
+            )}
+
             {/* Left Sidebar Menu */}
-            <div className="w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 shrink-0 bg-white z-10 h-screen sticky top-0 overflow-y-auto">
+            <div
+                className={`w-64 bg-surface border-r border-gray-100 flex flex-col p-4 gap-2 shrink-0 bg-white z-50 h-screen overflow-y-auto transition-transform duration-300 ease-out
+                    fixed inset-y-0 left-0 lg:static lg:translate-x-0 lg:z-10 lg:sticky lg:top-0
+                    ${mobileSidebar?.isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+            >
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-3 mt-4">Menu</div>
 
-                <Link to="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left mb-2">
+                <Link
+                    to="/admin"
+                    onClick={closeMobileSidebar}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 text-primary font-medium transition text-left mb-2"
+                >
                     <Grid size={18} />
                     <span>My Projects</span>
                 </Link>
@@ -418,20 +439,25 @@ export default function AdminDashboard() {
 
                 <Link
                     to="/analytics"
+                    onClick={closeMobileSidebar}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
                 >
                     <BarChart3 size={18} />
                     <span>Analytics</span>
                 </Link>
 
-                <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left mt-auto mb-4">
+                <Link
+                    to="/settings"
+                    onClick={closeMobileSidebar}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left mt-auto mb-4"
+                >
                     <Settings size={18} />
                     <span>Settings</span>
                 </Link>
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 p-8 overflow-y-auto h-screen">
+            <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen lg:h-screen w-full min-w-0">
                 <div className="max-w-7xl mx-auto">
                     {/* Onboarding Modal */}
                     {showOnboarding && (
@@ -481,16 +507,16 @@ export default function AdminDashboard() {
                         </div>
                     )}
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-12">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 sm:mb-12">
                         <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 sm:mb-2">
                                 My Projects
                             </h1>
-                            <p className="text-gray-600 text-lg">Manage your QR Events and Projects</p>
+                            <p className="text-gray-600 text-sm sm:text-lg">Manage your QR Events and Projects</p>
                         </div>
                         <button
                             onClick={openCreateFlow}
-                            className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
+                            className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black text-white px-5 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
                         >
                             <span className="text-xl">+</span> Create Project
                         </button>
