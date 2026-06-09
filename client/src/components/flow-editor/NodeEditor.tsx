@@ -6,6 +6,7 @@ import MessageNodeEditor from './MessageNodeEditor';
 import DelayNodeEditor from './DelayNodeEditor';
 import IntegrationNodeEditor from './IntegrationNodeEditor';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { useResizable } from '../../hooks/useResizable';
 
 interface NodeEditorProps {
     node: Node | null;
@@ -30,6 +31,16 @@ export default function NodeEditor({
     showWatermark = false,
     eventId,
 }: NodeEditorProps) {
+    // Panel is right-anchored, so dragging the left-edge handle leftward grows it (invert)
+    const { size: panelWidth, isResizing, startResize } = useResizable({
+        axis: 'x',
+        invert: true,
+        initial: 400,
+        min: 340,
+        getMax: () => Math.min(Math.round(window.innerWidth * 0.7), 880),
+        storageKey: 'givelive.nodeEditorWidth',
+    });
+
     if (!node) return null;
 
     const handleUpdate = (newData: any) => {
@@ -39,7 +50,23 @@ export default function NodeEditor({
     const isStartNode = node.type === 'start' || node.data?.type === 'start';
 
     return (
-        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl border-l border-gray-100 z-50 flex flex-col animate-in slide-in-from-right duration-300">
+        <div
+            style={{ width: panelWidth }}
+            className="fixed right-0 top-0 h-full max-w-full bg-white shadow-2xl border-l border-gray-100 z-50 flex flex-col animate-in slide-in-from-right duration-300"
+        >
+            {/* Resize handle — drag to widen/narrow the panel */}
+            <div
+                onPointerDown={startResize}
+                className="absolute -left-1.5 top-0 h-full w-3 cursor-col-resize group z-20 touch-none"
+                title="Drag to resize"
+            >
+                <div
+                    className={`absolute left-1 top-1/2 -translate-y-1/2 h-16 w-1.5 rounded-full transition-colors ${
+                        isResizing ? 'bg-primary' : 'bg-gray-300 group-hover:bg-primary/70'
+                    }`}
+                />
+            </div>
+
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-3">
                     <div className="font-bold text-gray-900">

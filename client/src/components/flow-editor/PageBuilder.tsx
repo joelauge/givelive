@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, Type, Video, LayoutTemplate, Trash2, Play, ListChecks, Layout, Columns, MoveVertical, DollarSign, Link as LinkIcon, FileDown } from 'lucide-react';
 import PropertiesPanel from './PropertiesPanel';
 import GiveLiveWatermark from '../GiveLiveWatermark';
+import { useResizable } from '../../hooks/useResizable';
 
 interface PageBuilderProps {
     data: any;
@@ -139,10 +140,22 @@ export default function PageBuilder({ data, onUpdate, showWatermark = false, eve
 
     const selectedSection = sections.find(s => s.id === selectedSectionId);
 
+    // Vertical split between the settings area and the page preview below it
+    const { size: settingsMaxHeight, isResizing: isSplitResizing, startResize: startSplitResize } = useResizable({
+        axis: 'y',
+        initial: Math.round(window.innerHeight * 0.55),
+        min: 140,
+        getMax: () => window.innerHeight - 220,
+        storageKey: 'givelive.pageBuilderSettingsHeight',
+    });
+
     return (
         <div className="flex h-full flex-col">
             {/* Toolbar or Properties Panel */}
-            <div className="border-b border-gray-100 bg-white sticky top-0 z-10 h-auto max-h-[60vh] overflow-y-auto transition-all custom-scrollbar">
+            <div
+                style={{ maxHeight: settingsMaxHeight }}
+                className="bg-white sticky top-0 z-10 h-auto overflow-y-auto custom-scrollbar shrink-0"
+            >
                 {selectedSection ? (
                     <PropertiesPanel
                         section={selectedSection}
@@ -261,6 +274,19 @@ export default function PageBuilder({ data, onUpdate, showWatermark = false, eve
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Split resize handle — drag to show more settings or more preview */}
+            <div
+                onPointerDown={startSplitResize}
+                className="relative h-3 shrink-0 bg-white border-y border-gray-100 cursor-row-resize flex items-center justify-center group touch-none z-10"
+                title="Drag to resize"
+            >
+                <div
+                    className={`h-1 w-12 rounded-full transition-colors ${
+                        isSplitResizing ? 'bg-primary' : 'bg-gray-300 group-hover:bg-primary/70'
+                    }`}
+                />
             </div>
 
             {/* Content Area */}
