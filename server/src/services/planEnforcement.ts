@@ -1,16 +1,21 @@
 import { query } from '../db';
 import { getCampaignLimitForPlan } from '../config/planLimits';
 import { getOrCreateOrganization } from './organizationBilling';
+import { ensureAnalyticsSchema } from '../db/ensureAnalyticsSchema';
 
 export async function countPublishedCampaigns(
     orgId: string,
     excludeEventId?: string
 ): Promise<number> {
+    await ensureAnalyticsSchema();
     const result = await query(
         `SELECT COUNT(*)::int AS count
          FROM events
          WHERE org_id = $1
-           AND COALESCE((flow_data->>'isPublished')::boolean, false) = true
+           AND (
+             COALESCE(is_published, false) = true
+             OR COALESCE((flow_data->>'isPublished')::boolean, false) = true
+           )
            AND ($2::uuid IS NULL OR id != $2::uuid)`,
         [orgId, excludeEventId ?? null]
     );

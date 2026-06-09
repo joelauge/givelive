@@ -123,6 +123,8 @@ export default async function journeyRoutes(server: FastifyInstance) {
     // Publish Journey (Bulk replace)
     server.post<{ Params: { eventId: string }; Body: { nodes: any[]; edges: any[] } }>('/journey/:eventId/publish', async (request, reply) => {
         try {
+            await ensureAnalyticsSchema();
+
             const { eventId } = request.params;
             const access = await requireEventAccess(request, reply, eventId);
             if (!access) return;
@@ -227,9 +229,12 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 }
             }
 
-            await ensureAnalyticsSchema();
             await query(
-                'UPDATE events SET is_published = true, updated_at = NOW() WHERE id = $1',
+                `UPDATE events SET
+                    is_published = true,
+                    updated_at = NOW(),
+                    flow_data = jsonb_set(COALESCE(flow_data, '{}'::jsonb), '{isPublished}', 'true'::jsonb)
+                 WHERE id = $1`,
                 [eventId]
             );
 

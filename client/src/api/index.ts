@@ -91,7 +91,9 @@ export const api = {
             throw err;
         }
         if (!res.ok) {
-            const message = body.error || 'Failed to publish journey';
+            const message = body.details
+                ? `${body.error || 'Failed to publish journey'}: ${body.details}`
+                : (body.error || 'Failed to publish journey');
             const err = new Error(message) as Error & { validationErrors?: string[] };
             err.validationErrors = body.validationErrors;
             throw err;
