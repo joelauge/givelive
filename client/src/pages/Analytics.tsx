@@ -322,6 +322,7 @@ export default function Analytics() {
                                             <thead className="bg-gray-50 border-b border-gray-100">
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Flow</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
                                                     <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Scans</th>
                                                     <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Leads</th>
                                                     <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Syncs</th>
@@ -337,8 +338,19 @@ export default function Analytics() {
                                                         <td className="px-4 py-3">
                                                             <div className="font-medium text-gray-900">{flow.event_name}</div>
                                                             <div className="text-xs text-gray-400">
-                                                                {flow.is_published ? 'Live' : 'Draft'} · {flow.flow_publishes} publish{flow.flow_publishes === 1 ? '' : 'es'}
+                                                                {flow.flow_publishes} publish{flow.flow_publishes === 1 ? '' : 'es'}
                                                             </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {flow.is_published ? (
+                                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                                                    Published
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                                                    Draft
+                                                                </span>
+                                                            )}
                                                         </td>
                                                         <td className="px-4 py-3 text-right font-medium">{flow.scans}</td>
                                                         <td className="px-4 py-3 text-right font-medium">{flow.lead_captures}</td>

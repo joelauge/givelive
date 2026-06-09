@@ -106,7 +106,10 @@ export async function getOrgFlowMetrics(orgId: string): Promise<{
         `SELECT
             e.id AS event_id,
             e.name AS event_name,
-            COALESCE(e.is_published, false) AS is_published,
+            (
+                COALESCE(e.is_published, false) = true
+                OR COALESCE((e.flow_data->>'isPublished')::boolean, false) = true
+            ) AS is_published,
             COUNT(ae.id) FILTER (WHERE ae.action = 'scan')::int AS scans,
             COUNT(ae.id) FILTER (WHERE ae.action = 'lead_capture')::int AS lead_captures,
             COUNT(ae.id) FILTER (WHERE ae.action = 'integration_sync')::int AS integration_syncs,
@@ -117,7 +120,7 @@ export async function getOrgFlowMetrics(orgId: string): Promise<{
          FROM events e
          LEFT JOIN analytics_events ae ON ae.event_id = e.id
          WHERE e.org_id = $1
-         GROUP BY e.id, e.name, e.is_published
+         GROUP BY e.id, e.name, e.is_published, e.flow_data
          ORDER BY scans DESC, e.name ASC`,
         [orgId]
     );

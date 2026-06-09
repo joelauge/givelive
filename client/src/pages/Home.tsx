@@ -1,5 +1,6 @@
 import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldCheck, Users, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
 import { SITE, usePageSeo } from '../lib/seo';
@@ -44,9 +45,16 @@ export default function Home() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                            <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
-                                Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
+                            <SignedOut>
+                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
+                                    Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </SignedOut>
+                            <SignedIn>
+                                <Link to="/admin" className="h-14 px-8 rounded-full bg-white text-primary font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center gap-2 group">
+                                    Your Account <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </SignedIn>
                             <Link
                                 to="/how-to"
                                 className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
@@ -314,9 +322,16 @@ export default function Home() {
                     <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">Join high-growth brands, churches, real-estate agents, content creators and web companies who use GiveLive to automate customer acquisition through QR flows.</p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link to="/admin" className="h-16 px-10 rounded-full bg-white text-primary font-bold text-xl hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl shadow-white/10 flex items-center gap-2">
-                            Get Started for Free <ArrowRight size={24} />
-                        </Link>
+                        <SignedOut>
+                            <Link to="/admin" className="h-16 px-10 rounded-full bg-white text-primary font-bold text-xl hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl shadow-white/10 flex items-center gap-2">
+                                Get Started for Free <ArrowRight size={24} />
+                            </Link>
+                        </SignedOut>
+                        <SignedIn>
+                            <Link to="/admin" className="h-16 px-10 rounded-full bg-white text-primary font-bold text-xl hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl shadow-white/10 flex items-center gap-2">
+                                Your Account <ArrowRight size={24} />
+                            </Link>
+                        </SignedIn>
                         <Link
                             to="/pricing"
                             className="h-16 px-10 rounded-full bg-white/5 text-white border border-white/20 font-bold text-xl hover:bg-white/10 hover:scale-105 transition-all duration-300 flex items-center gap-2"
