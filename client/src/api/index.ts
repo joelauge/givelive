@@ -147,11 +147,59 @@ export const api = {
     syncLead: async (data: { userId: string; nodeId: string }) => {
         const res = await fetch(`${API_URL}/journey/sync-lead`, {
             method: 'POST',
-            headers: await buildAuthHeaders(),
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to sync lead');
         return res.json();
+    },
+
+    getEventStats: async (eventId: string) => {
+        const res = await fetch(`${API_URL}/analytics/${eventId}/stats`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 401 || res.status === 403) throw new Error('Unauthorized');
+        if (!res.ok) throw new Error('Failed to load event stats');
+        return res.json() as Promise<{
+            scans: number;
+            lead_captures: number;
+            integration_syncs: number;
+            flow_publishes: number;
+            donations_total: number;
+            active_users: number;
+            conversions: number;
+        }>;
+    },
+
+    getOrgAnalytics: async () => {
+        const res = await fetch(`${API_URL}/analytics/org/overview`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 401 || res.status === 403) throw new Error('Unauthorized');
+        if (!res.ok) throw new Error('Failed to load account analytics');
+        return res.json() as Promise<{
+            totals: {
+                scans: number;
+                lead_captures: number;
+                integration_syncs: number;
+                flow_publishes: number;
+                donations_total: number;
+                flow_count: number;
+                published_count: number;
+                conversion_rate: number;
+            };
+            flows: Array<{
+                event_id: string;
+                event_name: string;
+                is_published: boolean;
+                scans: number;
+                lead_captures: number;
+                integration_syncs: number;
+                flow_publishes: number;
+                donations_total: number;
+                conversion_rate: number;
+            }>;
+        }>;
     },
 
     getEventUsers: async (eventId: string) => {

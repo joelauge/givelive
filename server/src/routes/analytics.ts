@@ -1,32 +1,26 @@
 import { FastifyInstance } from 'fastify';
 import { query } from '../db';
+import { requireAuth } from '../lib/auth';
+import { requireEventAccess } from '../lib/eventAccess';
+import { getEventMetrics, getOrgFlowMetrics, trackAnalyticsEvent } from '../services/analytics';
 
 interface AnalyticsBody {
     event_id: string;
     user_id?: string;
     node_id?: string;
-    action: string; // 'view', 'click', 'dropoff', 'scan'
-    metadata?: any;
+    action: string;
+    metadata?: Record<string, unknown>;
 }
 
 export default async function analyticsRoutes(server: FastifyInstance) {
     server.post<{ Body: AnalyticsBody }>('/analytics/track', async (request, reply) => {
         try {
             const { event_id, user_id, node_id, action, metadata } = request.body;
+            if (!event_id || !action) {
+                return reply.code(400).send({ error: 'event_id and action are required' });
+            }
 
-            // For now, we'll just log this to console or maybe a separate table if we had one.
-            // In a real app, this might go to a time-series DB or just a 'analytics_events' table.
-            // Let's assume we just log it for MVP.
-
-            server.log.info({
-                type: 'ANALYTICS',
-                event_id,
-                user_id,
-                node_id,
-                action,
-                metadata
-            });
-
+            await trackAnalyticsEvent({ event_id, user_id, node_id, action, metadata });
             return { success: true };
         } catch (err) {
             server.log.error(err);
@@ -34,20 +28,47 @@ export default async function analyticsRoutes(server: FastifyInstance) {
         }
     });
 
-    // Endpoint to get stats (simplified)
     server.get<{ Params: { eventId: string } }>('/analytics/:eventId/stats', async (request, reply) => {
         try {
             const { eventId } = request.params;
+            const access = await requireEventAccess(request, reply, eventId);
+            if (!access) return;
 
-            // Mock stats
-            const stats = {
-                scans: 150,
-                conversions: 45,
-                donations_total: 1250.00,
-                active_users: 12
+            const stats = await getEventMetrics(eventId);
+            const conversions =
+                stats.scans > 0
+                    ? Math.round((stats.lead_captures / stats.scans) * 1000) / 10
+                    : 0;
+
+            return {
+                ...stats,
+                conversions,
             };
+        } catch (err) {
+            server.log.error(err);
+            reply.code(500).send({ error: 'Internal Server Error' });
+        }
+    });
 
-            return stats;
+    server.get('/analytics/org/overview', async (request, reply) => {
+        try {
+            const userId = await requireAuth(request, reply);
+            if (!userId) return;
+
+            const data = await getOrgFlowMetrics(userId);
+            const totals = data.totals;
+            const conversion_rate =
+                totals.scans > 0
+                    ? Math.round((totals.lead_captures / totals.scans) * 1000) / 10
+                    : 0;
+
+            return {
+                ...data,
+                totals: {
+                    ...totals,
+                    conversion_rate,
+                },
+            };
         } catch (err) {
             server.log.error(err);
             reply.code(500).send({ error: 'Internal Server Error' });
@@ -83,7 +104,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
                 sent: parseInt(stats.sent || '0'),
                 clicked: parseInt(stats.clicked || '0'),
                 replies: parseInt(stats.replies || '0'),
-                revenue: parseFloat(revenueRes.rows[0]?.revenue || '0')
+                revenue: parseFloat(revenueRes.rows[0]?.revenue || '0'),
             };
         } catch (err) {
             server.log.error(err);

@@ -65,5 +65,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
 );
 
 CREATE INDEX IF NOT EXISTS idx_analytics_events_node ON analytics_events(node_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_event ON analytics_events(event_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_event_action ON analytics_events(event_id, action);
 CREATE INDEX IF NOT EXISTS idx_analytics_events_action ON analytics_events(action);
 CREATE INDEX IF NOT EXISTS idx_analytics_events_date ON analytics_events(created_at);

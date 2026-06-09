@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { query } from '../db';
 import { ensureUserProfilesSchema } from '../db/ensureUserProfiles';
 import { requireEventAccess } from '../lib/eventAccess';
+import { trackAnalyticsEvent } from '../services/analytics';
 
 interface UpdateProfileBody {
     event_id: string;
@@ -73,6 +74,26 @@ export default async function userRoutes(server: FastifyInstance) {
                 'INSERT INTO form_submissions (user_id, event_id, node_id, form_data, session_id) VALUES ($1, $2, $3, $4, $5)',
                 [userId, event_id, node_id || 'unknown', JSON.stringify(form_data), session_id || null]
             );
+
+            const hasLeadData = Boolean(
+                form_data?.email ||
+                    form_data?.phone ||
+                    form_data?.name ||
+                    form_data?.first_name ||
+                    form_data?.last_name
+            );
+            if (hasLeadData) {
+                await trackAnalyticsEvent({
+                    event_id,
+                    user_id: userId,
+                    node_id: node_id || null,
+                    action: 'lead_capture',
+                    metadata: {
+                        is_new_user: isNewUser,
+                        fields: Object.keys(form_data || {}),
+                    },
+                });
+            }
 
             // Merge new data into profile
             if (!isNewUser) {

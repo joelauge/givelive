@@ -416,6 +416,14 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
+                <Link
+                    to="/analytics"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
+                >
+                    <BarChart3 size={18} />
+                    <span>Analytics</span>
+                </Link>
+
                 <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left mt-auto mb-4">
                     <Settings size={18} />
                     <span>Settings</span>

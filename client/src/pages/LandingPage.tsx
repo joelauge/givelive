@@ -316,7 +316,10 @@ export default function LandingPage() {
         }
 
         // --- NEW: Handle Integration Nodes ---
-        const integrationTypes = ['hubspot', 'salesforce', 'fub', 'mailchimp', 'constant_contact'];
+        const integrationTypes = [
+            'hubspot', 'salesforce', 'fub', 'mailchimp', 'constant_contact', 'brevo',
+            'zapier', 'make', 'n8n',
+        ];
         if (integrationTypes.includes(nextType)) {
             try {
                 console.log(`[Journey] Executing integration: ${nextType}`);

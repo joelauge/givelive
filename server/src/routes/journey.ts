@@ -4,6 +4,7 @@ import { IntegrationService } from '../services/integrations';
 import { validatePublishFlow } from '../lib/journeyValidation';
 import { checkPublishLimit } from '../services/planEnforcement';
 import { requireEventAccess } from '../lib/eventAccess';
+import { trackAnalyticsEvent } from '../services/analytics';
 
 function socialTriggersEnabledFromEnv(): boolean {
     return process.env.SHOW_SOCIAL_TRIGGERS === 'true';
@@ -103,6 +104,14 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 'INSERT INTO user_progress (user_id, event_id, current_node_id) VALUES ($1, $2, $3) RETURNING *',
                 [user.id, event_id, rootNodeId]
             );
+
+            await trackAnalyticsEvent({
+                event_id,
+                user_id: user.id,
+                node_id: rootNodeId,
+                action: 'scan',
+                metadata: { source: phone_number ? 'sms_link' : 'qr_or_link' },
+            });
 
             return { user, progress: progressResult.rows[0] };
         } catch (err) {
@@ -217,6 +226,20 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 }
             }
 
+            await query(
+                'UPDATE events SET is_published = true, updated_at = NOW() WHERE id = $1',
+                [eventId]
+            );
+
+            await trackAnalyticsEvent({
+                event_id: eventId,
+                action: 'flow_published',
+                metadata: {
+                    node_count: nodes.length,
+                    org_id: orgId,
+                },
+            });
+
             return { success: true, message: 'Journey published successfully' };
         } catch (err: any) {
             server.log.error(err);
@@ -265,6 +288,17 @@ export default async function journeyRoutes(server: FastifyInstance) {
 
             // 3. Sync
             const result = await IntegrationService.syncLead(node.type, config, user);
+
+            if (result?.success === true) {
+                await trackAnalyticsEvent({
+                    event_id: node.event_id,
+                    user_id: userId,
+                    node_id: nodeId,
+                    action: 'integration_sync',
+                    metadata: { platform: node.type },
+                });
+            }
+
             return result;
         } catch (err: any) {
             server.log.error(err);

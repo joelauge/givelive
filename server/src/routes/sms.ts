@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import { query } from '../db';
 import { sendEmail } from '../services/email';
 import { appendSmsWatermark, shouldShowWatermarkForEvent } from '../services/watermark';
+import { trackAnalyticsEvent } from '../services/analytics';
 
 interface SMSBody {
     to: string;
@@ -106,6 +107,13 @@ export default async function smsRoutes(server: FastifyInstance) {
             if (nodeId && eventId) {
                 const user = await getOrCreateUser(to, eventId);
                 await updateProgress(user.id, eventId, nodeId);
+                await trackAnalyticsEvent({
+                    event_id: eventId,
+                    user_id: user.id,
+                    node_id: nodeId,
+                    action: 'sent',
+                    metadata: { channel: 'sms' },
+                });
             }
 
             return result;
