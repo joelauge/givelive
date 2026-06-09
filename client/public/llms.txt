@@ -135,6 +135,7 @@ Markdown versions of key pages are available at `{path}.md` (e.g. https://giveli
 
 ## Articles
 
+- [QR Code Statistics Every Marketer Should Know in 2026](https://givelive.app/articles/qr-code-statistics-every-marketer-should-know-in.md): Explore vital QR code statistics for 2026, including scan rates and conversion benchmarks, to optimize your acquisition strategies.
 - [The 5-Minute Rule: Why Speed-to-Lead Decides Who Wins the Deal](https://givelive.app/articles/speed-to-lead-5-minute-rule.md): Lead conversion drops up to 8x after the first five minutes. Here's the research behind speed-to-lead, why most teams still respond in hours, and how to automate a sub-minute response with QR flows.
 
 ## Legal

@@ -4,85 +4,179 @@
     {
       "topic": "QR code statistics every marketer should know in 2026: scan rates, adoption, and conversion benchmarks",
       "angle": "Data-driven roundup that positions QR flows as a mainstream acquisition channel, with practical takeaways after each stat.",
-      "tags": ["qr codes", "statistics", "marketing"],
-      "relatedTemplateIds": ["lead-magnet", "feedback-survey"],
-      "status": "pending"
+      "tags": [
+        "qr codes",
+        "statistics",
+        "marketing"
+      ],
+      "relatedTemplateIds": [
+        "lead-magnet",
+        "feedback-survey"
+      ],
+      "status": "done",
+      "completedAt": "2026-06-09",
+      "slug": "qr-code-statistics-every-marketer-should-know-in"
     },
     {
       "topic": "How churches are replacing connection cards with QR codes (and why visitors prefer it)",
       "angle": "Practical guide for church communications teams, contrasting paper workflows with automated digital ones.",
-      "tags": ["churches", "lead capture", "automation"],
-      "relatedTemplateIds": ["new-member", "small-groups", "simple-donation"],
+      "tags": [
+        "churches",
+        "lead capture",
+        "automation"
+      ],
+      "relatedTemplateIds": [
+        "new-member",
+        "small-groups",
+        "simple-donation"
+      ],
       "status": "pending"
     },
     {
       "topic": "The complete guide to open house lead capture for real estate agents",
       "angle": "Step-by-step playbook from sign placement to CRM follow-up, emphasizing speed-to-lead and per-listing attribution.",
-      "tags": ["real estate", "lead capture", "open house"],
-      "relatedTemplateIds": ["open-house", "real-estate-lead", "google-review"],
+      "tags": [
+        "real estate",
+        "lead capture",
+        "open house"
+      ],
+      "relatedTemplateIds": [
+        "open-house",
+        "real-estate-lead",
+        "google-review"
+      ],
       "status": "pending"
     },
     {
       "topic": "Why your Google review strategy is backwards (and how QR codes fix it)",
       "angle": "Contrarian take: unhappy customers review unprompted, happy ones need a frictionless in-the-moment ask.",
-      "tags": ["reviews", "restaurants", "retail"],
-      "relatedTemplateIds": ["google-review", "feedback-survey"],
+      "tags": [
+        "reviews",
+        "restaurants",
+        "retail"
+      ],
+      "relatedTemplateIds": [
+        "google-review",
+        "feedback-survey"
+      ],
       "status": "pending"
     },
     {
       "topic": "Event check-in without the line: a playbook for self-service QR registration",
       "angle": "Operational guide for event organizers covering signage, flow design, and post-event automation.",
-      "tags": ["events", "check-in", "automation"],
-      "relatedTemplateIds": ["event-checkin", "nps-survey", "early-bird"],
+      "tags": [
+        "events",
+        "check-in",
+        "automation"
+      ],
+      "relatedTemplateIds": [
+        "event-checkin",
+        "nps-survey",
+        "early-bird"
+      ],
       "status": "pending"
     },
     {
       "topic": "Matching gift campaigns: the psychology and mechanics of doubling every donation",
       "angle": "Nonprofit fundraising deep-dive on urgency, multiplied impact framing, and automated donor updates.",
-      "tags": ["nonprofits", "fundraising", "donations"],
-      "relatedTemplateIds": ["matching-campaign", "simple-donation", "charity-raffle"],
+      "tags": [
+        "nonprofits",
+        "fundraising",
+        "donations"
+      ],
+      "relatedTemplateIds": [
+        "matching-campaign",
+        "simple-donation",
+        "charity-raffle"
+      ],
       "status": "pending"
     },
     {
       "topic": "From followers to owned audience: why creators need QR codes at live events",
       "angle": "Platform-risk argument: algorithms change, email lists don't. Live appearances are peak capture moments.",
-      "tags": ["creators", "audience building", "email marketing"],
-      "relatedTemplateIds": ["fan-meetup", "personality-quiz", "webinar-registration"],
+      "tags": [
+        "creators",
+        "audience building",
+        "email marketing"
+      ],
+      "relatedTemplateIds": [
+        "fan-meetup",
+        "personality-quiz",
+        "webinar-registration"
+      ],
       "status": "pending"
     },
     {
       "topic": "The restaurant marketing flywheel: reviews, lists, and repeat visits from one QR code",
       "angle": "Show how a single table-tent QR can feed three growth loops simultaneously.",
-      "tags": ["restaurants", "loyalty", "reviews"],
-      "relatedTemplateIds": ["google-review", "raffle-entry", "trivia-quiz"],
+      "tags": [
+        "restaurants",
+        "loyalty",
+        "reviews"
+      ],
+      "relatedTemplateIds": [
+        "google-review",
+        "raffle-entry",
+        "trivia-quiz"
+      ],
       "status": "pending"
     },
     {
       "topic": "Webinar no-show rates are brutal. Here's the reminder sequence that fixes them",
       "angle": "Tactical breakdown of a registration-to-attendance automation sequence with timing recommendations.",
-      "tags": ["webinars", "automation", "email marketing"],
-      "relatedTemplateIds": ["webinar-registration", "masterclass", "workshop-series"],
+      "tags": [
+        "webinars",
+        "automation",
+        "email marketing"
+      ],
+      "relatedTemplateIds": [
+        "webinar-registration",
+        "masterclass",
+        "workshop-series"
+      ],
       "status": "pending"
     },
     {
       "topic": "Recurring giving 101: how to turn one-time donors into monthly partners",
       "angle": "Nonprofit/church guide on the economics of recurring revenue and reducing signup friction.",
-      "tags": ["fundraising", "recurring giving", "churches"],
-      "relatedTemplateIds": ["monthly-giving", "simple-donation"],
+      "tags": [
+        "fundraising",
+        "recurring giving",
+        "churches"
+      ],
+      "relatedTemplateIds": [
+        "monthly-giving",
+        "simple-donation"
+      ],
       "status": "pending"
     },
     {
       "topic": "Print isn't dead, it's a trigger: connecting physical marketing to digital journeys",
       "angle": "Strategic piece on treating every printed asset as the first step of an automated funnel.",
-      "tags": ["print marketing", "qr codes", "strategy"],
-      "relatedTemplateIds": ["lead-magnet", "waitlist-signup"],
+      "tags": [
+        "print marketing",
+        "qr codes",
+        "strategy"
+      ],
+      "relatedTemplateIds": [
+        "lead-magnet",
+        "waitlist-signup"
+      ],
       "status": "pending"
     },
     {
       "topic": "NPS surveys people actually answer: timing, friction, and the in-the-moment ask",
       "angle": "Research-backed piece on why response timing matters more than survey design.",
-      "tags": ["surveys", "nps", "customer feedback"],
-      "relatedTemplateIds": ["nps-survey", "feedback-survey", "share-testimonial"],
+      "tags": [
+        "surveys",
+        "nps",
+        "customer feedback"
+      ],
+      "relatedTemplateIds": [
+        "nps-survey",
+        "feedback-survey",
+        "share-testimonial"
+      ],
       "status": "pending"
     }
   ]
