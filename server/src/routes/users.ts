@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { query } from '../db';
 import { ensureUserProfilesSchema } from '../db/ensureUserProfiles';
 import { requireEventAccess } from '../lib/eventAccess';
+import { validateEmail, validatePhone } from '../lib/leadValidation';
 import { trackAnalyticsEvent } from '../services/analytics';
 
 interface UpdateProfileBody {
@@ -19,7 +20,40 @@ export default async function userRoutes(server: FastifyInstance) {
     server.post<{ Body: UpdateProfileBody }>('/users/profile', async (request, reply) => {
         try {
             await ensureUserProfilesSchema();
-            const { event_id, user_id, phone_number, email, form_data, node_id, session_id } = request.body;
+            const { event_id, user_id, node_id, session_id } = request.body;
+            let { phone_number, email, form_data } = request.body;
+            form_data = form_data || {};
+
+            // Server-side backstop: reject malformed email/phone shapes and
+            // normalize valid ones (clients validate first; this catches bots
+            // and direct API calls).
+            const fieldErrors: Record<string, string> = {};
+
+            const rawEmail = form_data.email ?? email;
+            if (rawEmail) {
+                const result = validateEmail(String(rawEmail));
+                if (!result.valid) {
+                    fieldErrors.email = result.message;
+                } else {
+                    if (form_data.email) form_data.email = result.normalized;
+                    if (email) email = result.normalized;
+                }
+            }
+
+            const rawPhone = form_data.phone ?? phone_number;
+            if (rawPhone) {
+                const result = validatePhone(String(rawPhone));
+                if (!result.valid) {
+                    fieldErrors.phone = result.message;
+                } else {
+                    if (form_data.phone) form_data.phone = result.normalized;
+                    if (phone_number) phone_number = result.normalized;
+                }
+            }
+
+            if (Object.keys(fieldErrors).length > 0) {
+                return reply.code(400).send({ error: 'validation', fields: fieldErrors });
+            }
 
             let userId = user_id;
             let isNewUser = false;

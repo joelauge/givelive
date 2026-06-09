@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { CreditCard } from 'lucide-react';
 import PaymentSection from './PaymentSection';
 import GiveLiveWatermark from './GiveLiveWatermark';
+import { validateLeadField } from '../lib/leadValidation';
 
 interface NodeRendererProps {
     node: any;
-    onNext: (action?: string) => void;
+    onNext: (action?: string | Record<string, any>) => void;
     isSubmitting?: boolean;
     eventId?: string;
     userId?: string;
@@ -25,8 +26,34 @@ export default function NodeRenderer({
     const type = data?.type || node.type; // Robust type detection
 
     const [formState, setFormState] = useState<any>({});
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [showMockCheckout, setShowMockCheckout] = useState(false);
     const [processing, setProcessing] = useState(false);
+
+    const validateField = (field: string, value: string): string | null => {
+        const result = validateLeadField(field, value ?? '');
+        if (!result) return null;
+        return result.valid ? null : result.message;
+    };
+
+    /** Validate all shaped fields; returns normalized form data or null if invalid. */
+    const validateForm = (fields: string[]): Record<string, any> | null => {
+        const errors: Record<string, string> = {};
+        const normalized: Record<string, any> = { ...formState };
+
+        for (const field of fields) {
+            const result = validateLeadField(field, formState[field] ?? '');
+            if (!result) continue;
+            if (result.valid) {
+                normalized[field] = result.normalized;
+            } else {
+                errors[field] = result.message;
+            }
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0 ? normalized : null;
+    };
 
     if (!data) return <div>Loading...</div>;
 
@@ -193,6 +220,9 @@ export default function NodeRenderer({
                             const handleSubmit = (e: React.FormEvent) => {
                                 e.preventDefault();
 
+                                const normalized = validateForm(content.fields || []);
+                                if (!normalized) return;
+
                                 if (isDonation) {
                                     // Check for payment gateway
                                     const stripeConnected = Boolean(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -205,8 +235,8 @@ export default function NodeRenderer({
                                     }
                                 }
 
-                                // Pass form data to next handler
-                                onNext(formState);
+                                // Pass normalized form data to next handler
+                                onNext(normalized);
                             };
 
                             return (
@@ -228,13 +258,43 @@ export default function NodeRenderer({
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <input
-                                                        type={field === 'email' ? 'email' : 'text'}
-                                                        placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                                                        className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
-                                                        required
-                                                        onChange={e => setFormState({ ...formState, [field]: e.target.value })}
-                                                    />
+                                                    <>
+                                                        <input
+                                                            type={field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'}
+                                                            inputMode={field === 'email' ? 'email' : field === 'phone' ? 'tel' : undefined}
+                                                            autoComplete={field === 'email' ? 'email' : field === 'phone' ? 'tel' : field === 'name' ? 'name' : undefined}
+                                                            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                                            className={`w-full p-3 rounded-xl border bg-gray-50 focus:bg-white focus:ring-2 outline-none transition ${
+                                                                formErrors[field]
+                                                                    ? 'border-red-400 focus:ring-red-200 focus:border-red-400'
+                                                                    : 'border-gray-200 focus:ring-primary/20 focus:border-primary'
+                                                            }`}
+                                                            required
+                                                            aria-invalid={Boolean(formErrors[field])}
+                                                            onChange={e => {
+                                                                setFormState({ ...formState, [field]: e.target.value });
+                                                                if (formErrors[field]) {
+                                                                    setFormErrors(prev => {
+                                                                        const next = { ...prev };
+                                                                        delete next[field];
+                                                                        return next;
+                                                                    });
+                                                                }
+                                                            }}
+                                                            onBlur={e => {
+                                                                if (!e.target.value) return;
+                                                                const message = validateField(field, e.target.value);
+                                                                if (message) {
+                                                                    setFormErrors(prev => ({ ...prev, [field]: message }));
+                                                                }
+                                                            }}
+                                                        />
+                                                        {formErrors[field] && (
+                                                            <p className="mt-1.5 text-xs text-red-500 font-medium" role="alert">
+                                                                {formErrors[field]}
+                                                            </p>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         ))}
