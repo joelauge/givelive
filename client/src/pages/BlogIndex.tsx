@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ArrowRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { templates, categories } from '../data/templateLibrary';
 import { usePageSeo } from '../lib/seo';
+import TemplateCard from '../components/TemplateCard';
 
 export default function BlogIndex() {
     usePageSeo({
@@ -89,71 +89,5 @@ export default function BlogIndex() {
                 </div>
             </footer>
         </div>
-    );
-}
-
-function TemplateCard({ template }: { template: any }) {
-    const [imageError, setImageError] = useState(false);
-    const [imageAttempt, setImageAttempt] = useState(0); // 0: specific.png, 1: specific.jpg, 2: category.png, 3: category.jpg
-
-    const getImageUrl = () => {
-        const baseName = template.id.replace(/-/g, '_');
-        const catName = template.category.toLowerCase().replace(/\s+/g, '_');
-
-        switch (imageAttempt) {
-            case 0: return `/assets/blog_illustration_${baseName}.png`;
-            case 1: return `/assets/blog_illustration_${baseName}.jpg`;
-            case 2: return `/assets/blog_illustration_${catName}.png`;
-            case 3: return `/assets/blog_illustration_${catName}.jpg`;
-            default: return '';
-        }
-    };
-
-    const handleImageError = () => {
-        if (imageAttempt < 3) {
-            setImageAttempt(prev => prev + 1);
-        } else {
-            setImageError(true);
-        }
-    };
-
-    return (
-        <Link
-            to={`/blog/${template.id}`}
-            className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-        >
-            <div className={`h-48 ${template.iconBg} flex items-center justify-center relative overflow-hidden`}>
-                {!imageError ? (
-                    <img
-                        key={imageAttempt} // Force re-render on error to try next URL
-                        src={getImageUrl()}
-                        alt={template.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        onError={handleImageError}
-                    />
-                ) : (
-                    <template.icon size={64} className={`${template.iconColor} opacity-50 group-hover:scale-110 transition-transform duration-500`} />
-                )}
-
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <div className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm shadow-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        View Template <ArrowRight size={14} />
-                    </div>
-                </div>
-            </div>
-            <div className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 border border-gray-100 px-2 py-1 rounded-full">
-                        {template.category}
-                    </span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-                    {template.name}
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
-                    {template.description}
-                </p>
-            </div>
-        </Link>
     );
 }

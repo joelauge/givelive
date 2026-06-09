@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
+import TemplateCard from '../components/TemplateCard';
+import { templates } from '../data/templateLibrary';
 import { SITE, usePageSeo } from '../lib/seo';
 
 export default function Home() {
@@ -64,8 +66,14 @@ export default function Home() {
                                 </span>
                                 How To
                             </Link>
-                            <Link to="/admin" className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group">
-                                Free Templates
+                            <Link
+                                to="/blog"
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                            >
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                    <BookOpen className="w-4 h-4" />
+                                </span>
+                                Template Guides
                             </Link>
                             <Link
                                 to="/pricing"
@@ -311,6 +319,43 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Template blog guides */}
+            <section className="py-24 md:py-32 bg-gray-50 border-t border-gray-100">
+                <div className="container mx-auto px-4">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl md:text-5xl font-bold font-display text-gray-900 mb-6">
+                            Free QR flow templates &amp; guides
+                        </h2>
+                        <p className="text-xl text-gray-500 leading-relaxed mb-8">
+                            Every template includes a step-by-step article on how to use it for fundraising, lead capture, tickets, raffles, and more.
+                        </p>
+                        <Link
+                            to="/blog"
+                            className="inline-flex items-center gap-2 h-12 px-6 rounded-full bg-primary text-white font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                        >
+                            Browse all template guides
+                            <ArrowRight size={18} />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {templates.map((template) => (
+                            <TemplateCard key={template.id} template={template} />
+                        ))}
+                    </div>
+
+                    <div className="mt-12 text-center">
+                        <Link
+                            to="/admin"
+                            className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
+                        >
+                            Start building from a template
+                            <ArrowRight size={18} />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
             {/* Big CTA */}
             <section className="py-24 bg-primary relative overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl">
@@ -374,7 +419,8 @@ export default function Home() {
                         <ul className="space-y-2">
                             <li><a href="#" className="hover:text-white transition">About Us</a></li>
                             <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                            <li><Link to="/admin" className="hover:text-white transition">Free Templates</Link></li>
+                            <li><Link to="/blog" className="hover:text-white transition">Template Guides</Link></li>
+                            <li><Link to="/admin" className="hover:text-white transition">Start Building</Link></li>
                             <li><a href="#" className="hover:text-white transition">Contact</a></li>
                         </ul>
                     </div>
