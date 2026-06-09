@@ -47,7 +47,8 @@ async function resolveSmtpConfig(): Promise<SmtpConfig | null> {
 }
 
 export default async function demoRoutes(fastify: FastifyInstance) {
-    fastify.post('/api/request-demo', async (request, reply) => {
+    // Registered with the '/api' prefix in index.ts → served at /api/request-demo
+    fastify.post('/request-demo', async (request, reply) => {
         const { name, email, organization } = request.body as {
             name?: string;
             email?: string;
