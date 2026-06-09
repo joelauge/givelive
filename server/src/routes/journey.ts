@@ -4,6 +4,7 @@ import { IntegrationService } from '../services/integrations';
 import { validatePublishFlow } from '../lib/journeyValidation';
 import { checkPublishLimit } from '../services/planEnforcement';
 import { requireEventAccess } from '../lib/eventAccess';
+import { ensureAnalyticsSchema } from '../db/ensureAnalyticsSchema';
 import { trackAnalyticsEvent } from '../services/analytics';
 
 function socialTriggersEnabledFromEnv(): boolean {
@@ -226,6 +227,7 @@ export default async function journeyRoutes(server: FastifyInstance) {
                 }
             }
 
+            await ensureAnalyticsSchema();
             await query(
                 'UPDATE events SET is_published = true, updated_at = NOW() WHERE id = $1',
                 [eventId]

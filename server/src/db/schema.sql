@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS events (
   date TIMESTAMP WITH TIME ZONE,
   qr_url TEXT,
   root_node_id UUID, -- Circular dependency with journey_nodes, might need to be nullable initially
+  is_published BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

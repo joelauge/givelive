@@ -1,4 +1,5 @@
 import { query } from '../db';
+import { ensureAnalyticsSchema } from '../db/ensureAnalyticsSchema';
 
 export type AnalyticsAction =
     | 'scan'
@@ -19,6 +20,7 @@ export async function trackAnalyticsEvent(params: {
 }): Promise<void> {
     const { event_id, action, user_id, node_id, metadata } = params;
     try {
+        await ensureAnalyticsSchema();
         await query(
             `INSERT INTO analytics_events (event_id, user_id, node_id, action, metadata)
              VALUES ($1, $2, $3, $4, $5)`,

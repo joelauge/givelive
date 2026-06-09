@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { query } from '../db';
 import { requireAuth } from '../lib/auth';
 import { requireEventAccess } from '../lib/eventAccess';
+import { ensureAnalyticsSchema } from '../db/ensureAnalyticsSchema';
 import { getEventMetrics, getOrgFlowMetrics, trackAnalyticsEvent } from '../services/analytics';
 
 interface AnalyticsBody {
@@ -30,6 +31,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
 
     server.get<{ Params: { eventId: string } }>('/analytics/:eventId/stats', async (request, reply) => {
         try {
+            await ensureAnalyticsSchema();
             const { eventId } = request.params;
             const access = await requireEventAccess(request, reply, eventId);
             if (!access) return;
@@ -52,6 +54,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
 
     server.get('/analytics/org/overview', async (request, reply) => {
         try {
+            await ensureAnalyticsSchema();
             const userId = await requireAuth(request, reply);
             if (!userId) return;
 

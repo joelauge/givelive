@@ -46,6 +46,7 @@ import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
 import embedRoutes from './routes/embed';
 import { ensureUserProfilesSchema } from './db/ensureUserProfiles';
+import { ensureAnalyticsSchema } from './db/ensureAnalyticsSchema';
 import aiRoutes from './routes/ai';
 import webhookRoutes from './routes/webhooks';
 import { integrationRoutes } from './routes/integrations';
@@ -108,6 +109,10 @@ export const createApp = () => {
 
     ensureUserProfilesSchema().catch((err) => {
         server.log.error({ err }, 'Failed to ensure user profiles schema');
+    });
+
+    ensureAnalyticsSchema().catch((err) => {
+        server.log.error({ err }, 'Failed to ensure analytics schema');
     });
 
     server.register(eventRoutes, { prefix: '/api' });
