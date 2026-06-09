@@ -13,6 +13,9 @@ import BlogIndex from './pages/BlogIndex';
 import BlogPost from './pages/BlogPost';
 import HowTo from './pages/HowTo';
 import Pricing from './pages/Pricing';
+import UseCaseIndex from './pages/UseCaseIndex';
+import UseCasePage from './pages/UseCasePage';
+import ArticlePage from './pages/ArticlePage';
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 function App() {
@@ -21,7 +24,10 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<BlogIndex />} />
+        <Route path="/blog/articles/:slug" element={<ArticlePage />} />
         <Route path="/blog/:templateId" element={<BlogPost />} />
+        <Route path="/use-cases" element={<UseCaseIndex />} />
+        <Route path="/use-cases/:slug" element={<UseCasePage />} />
         <Route path="/how-to" element={<HowTo />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/template-preview/:templateId" element={<JourneyBuilder previewMode={true} />} />

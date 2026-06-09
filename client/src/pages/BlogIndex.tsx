@@ -1,8 +1,18 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Calendar, Search } from 'lucide-react';
 import { templates, categories } from '../data/templateLibrary';
+import articles from '../data/articles.json';
 import { usePageSeo } from '../lib/seo';
 import TemplateCard from '../components/TemplateCard';
+
+function formatDate(iso: string): string {
+    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+}
 
 export default function BlogIndex() {
     usePageSeo({
@@ -78,6 +88,43 @@ export default function BlogIndex() {
                             <h3 className="text-lg font-bold text-gray-900">No templates found</h3>
                             <p className="text-gray-500">Try adjusting your search or category filter</p>
                         </div>
+                    )}
+
+                    {/* Articles */}
+                    {articles.length > 0 && (
+                        <section className="mt-24 border-t border-gray-200 pt-16">
+                            <div className="text-center max-w-2xl mx-auto mb-12">
+                                <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
+                                    Latest <span className="text-primary">Articles</span>
+                                </h2>
+                                <p className="text-gray-500">
+                                    Playbooks, research, and tactics on QR marketing and automated follow-up.
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {articles.map((article) => (
+                                    <Link
+                                        key={article.slug}
+                                        to={`/blog/articles/${article.slug}`}
+                                        className="group flex flex-col bg-white rounded-2xl border border-gray-100 p-6 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300"
+                                    >
+                                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-400 mb-3">
+                                            <Calendar size={12} /> {formatDate(article.date)}
+                                        </span>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors leading-snug">
+                                            {article.title}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">
+                                            {article.description}
+                                        </p>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary">
+                                            Read article
+                                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                        </span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
                     )}
                 </div>
             </main>

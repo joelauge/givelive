@@ -1,39 +1,94 @@
 import { FastifyInstance } from 'fastify';
 import nodemailer from 'nodemailer';
+import { query } from '../db';
+
+const DEMO_INBOX = process.env.DEMO_REQUEST_EMAIL || 'hello@givelive.app';
+
+type SmtpConfig = {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    fromName: string;
+    fromEmail: string;
+};
+
+/** Prefer the admin-configured email settings, fall back to SMTP env vars. */
+async function resolveSmtpConfig(): Promise<SmtpConfig | null> {
+    try {
+        const res = await query('SELECT value FROM settings WHERE key = $1', ['email_config']);
+        const cfg = res.rows[0]?.value;
+        if (cfg?.host && cfg?.user) {
+            return {
+                host: cfg.host,
+                port: parseInt(cfg.port) || 587,
+                user: cfg.user,
+                pass: cfg.pass,
+                fromName: cfg.fromName || 'GiveLive',
+                fromEmail: cfg.fromEmail || DEMO_INBOX,
+            };
+        }
+    } catch {
+        // settings table unavailable; fall through to env config
+    }
+
+    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+        return {
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS || '',
+            fromName: 'GiveLive',
+            fromEmail: process.env.SMTP_FROM || DEMO_INBOX,
+        };
+    }
+
+    return null;
+}
 
 export default async function demoRoutes(fastify: FastifyInstance) {
     fastify.post('/api/request-demo', async (request, reply) => {
-        const { name, email, organization } = request.body as { name: string, email: string, organization: string };
+        const { name, email, organization } = request.body as {
+            name?: string;
+            email?: string;
+            organization?: string;
+        };
 
         if (!name || !email) {
             return reply.status(400).send({ error: 'Name and email are required' });
         }
 
-        // Configure transporter (using environment variables)
-        // For development/testing without real SMTP, this might fail or need a mock
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.example.com',
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
+        // Always persist the request so it survives email outages.
+        try {
+            await query(
+                'INSERT INTO demo_requests (name, email, organization) VALUES ($1, $2, $3)',
+                [name, email, organization || null]
+            );
+        } catch (err) {
+            fastify.log.error({ err }, 'Failed to persist demo request');
+        }
+
+        const config = await resolveSmtpConfig();
+        if (!config) {
+            fastify.log.warn('Demo request received but no SMTP configuration found');
+            // The request is stored; treat as success for the visitor.
+            return reply.send({ success: true, message: 'Demo request received' });
+        }
 
         try {
-            // Send email
-            await transporter.sendMail({
-                from: '"GiveLive Demo Request" <no-reply@givelive.co>',
-                to: 'demo@givelive.co',
-                subject: `New Demo Request from ${name}`,
-                text: `
-Name: ${name}
-Email: ${email}
-Organization: ${organization || 'N/A'}
+            const transporter = nodemailer.createTransport({
+                host: config.host,
+                port: config.port,
+                secure: config.port === 465,
+                auth: { user: config.user, pass: config.pass },
+            });
 
-Requesting a demo of the GiveLive platform.
-                `,
+            await transporter.sendMail({
+                from: `"${config.fromName}" <${config.fromEmail}>`,
+                to: DEMO_INBOX,
+                replyTo: email,
+                subject: `New Demo Request from ${name}`,
+                text: `Name: ${name}\nEmail: ${email}\nOrganization: ${organization || 'N/A'}\n\nRequesting a demo of the GiveLive platform.`,
                 html: `
 <h2>New Demo Request</h2>
 <p><strong>Name:</strong> ${name}</p>
@@ -45,11 +100,9 @@ Requesting a demo of the GiveLive platform.
 
             return reply.send({ success: true, message: 'Demo request sent successfully' });
         } catch (error) {
-            console.error('Error sending email:', error);
-            // In dev, if SMTP is not configured, we might still want to return success to the UI 
-            // but log the error. Or return 500. 
-            // For this task, let's return 500 but log that it might be due to missing creds.
-            return reply.status(500).send({ error: 'Failed to send email. Please check server logs.' });
+            fastify.log.error({ err: error }, 'Error sending demo request email');
+            // Stored in DB above, so the lead is not lost.
+            return reply.send({ success: true, message: 'Demo request received' });
         }
     });
 }

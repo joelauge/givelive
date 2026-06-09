@@ -1,13 +1,18 @@
-import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, Globe2, ShieldCheck, Users, Tag } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Workflow, BarChart3, QrCode, Zap, BookOpen, CalendarCheck, ShieldCheck, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 
 import logoWhite from '../assets/givelive_logo_white.svg';
+import DemoRequestModal from '../components/DemoRequestModal';
+import NewsletterSignup from '../components/NewsletterSignup';
 import TemplateCard from '../components/TemplateCard';
 import { templates } from '../data/templateLibrary';
 import { SITE, usePageSeo } from '../lib/seo';
 
 export default function Home() {
+    const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
     usePageSeo({
         title: SITE.defaultTitle,
         description: SITE.defaultDescription,
@@ -84,6 +89,16 @@ export default function Home() {
                                 </span>
                                 Pricing
                             </Link>
+                            <button
+                                type="button"
+                                onClick={() => setIsDemoModalOpen(true)}
+                                className="h-14 px-8 rounded-full bg-white/5 text-white border border-white/10 font-bold text-lg hover:bg-white/10 hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center gap-3 group"
+                            >
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+                                    <CalendarCheck className="w-4 h-4" />
+                                </span>
+                                Book a Demo
+                            </button>
                         </div>
                     </div>
 
@@ -247,7 +262,7 @@ export default function Home() {
             </section>
 
             {/* Value Props / Features */}
-            <section className="py-24 md:py-32 bg-white relative">
+            <section id="features" className="py-24 md:py-32 bg-white relative scroll-mt-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-20">
                         <h2 className="text-3xl md:text-5xl font-bold font-display text-gray-900 mb-6">Everything you need to automate growth</h2>
@@ -391,6 +406,19 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Newsletter */}
+            <section className="py-16 bg-primary-light border-t border-white/5">
+                <div className="container mx-auto px-4 max-w-2xl text-center">
+                    <h2 className="text-2xl md:text-3xl font-bold font-display text-white mb-3">
+                        Get weekly QR marketing playbooks
+                    </h2>
+                    <p className="text-gray-400 mb-8">
+                        Template breakdowns, automation recipes, and acquisition tactics — straight from the team building GiveLive.
+                    </p>
+                    <NewsletterSignup source="home" variant="dark" />
+                </div>
+            </section>
+
             {/* Footer */}
             <footer className="bg-primary-light border-t border-white/5 py-12 text-gray-400 text-sm">
                 <div className="container mx-auto px-4 grid md:grid-cols-4 gap-8">
@@ -399,29 +427,31 @@ export default function Home() {
                             <img src={logoWhite} alt="GiveLive" className="h-8 w-auto" />
                         </Link>
                         <p className="max-w-xs mb-6">Empowering brands and marketers with the acquisition technology they need to scale.</p>
-                        <div className="flex gap-4">
-                            {/* Social icons placeholders */}
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition cursor-pointer"><Globe2 size={18} /></div>
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition cursor-pointer"><Users size={18} /></div>
-                        </div>
                     </div>
                     <div>
                         <h4 className="font-bold text-white mb-4">Product</h4>
                         <ul className="space-y-2">
-                            <li><a href="#" className="hover:text-white transition">Features</a></li>
+                            <li><a href="#features" className="hover:text-white transition">Features</a></li>
                             <li><Link to="/pricing" className="hover:text-white transition">Pricing</Link></li>
-                            <li><a href="#" className="hover:text-white transition">Case Studies</a></li>
                             <li><Link to="/how-to" className="hover:text-white transition">How To</Link></li>
+                            <li><Link to="/blog" className="hover:text-white transition">Template Guides</Link></li>
+                            <li><Link to="/use-cases" className="hover:text-white transition">Use Cases</Link></li>
                         </ul>
                     </div>
                     <div>
                         <h4 className="font-bold text-white mb-4">Company</h4>
                         <ul className="space-y-2">
-                            <li><a href="#" className="hover:text-white transition">About Us</a></li>
-                            <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                            <li><Link to="/blog" className="hover:text-white transition">Template Guides</Link></li>
                             <li><Link to="/admin" className="hover:text-white transition">Start Building</Link></li>
-                            <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                            <li>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDemoModalOpen(true)}
+                                    className="hover:text-white transition"
+                                >
+                                    Book a Demo
+                                </button>
+                            </li>
+                            <li><a href="mailto:hello@givelive.app" className="hover:text-white transition">Contact</a></li>
                         </ul>
                     </div>
                 </div>
@@ -433,6 +463,8 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
+
+            <DemoRequestModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
         </div>
     );
 }

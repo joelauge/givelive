@@ -47,6 +47,8 @@ import userRoutes from './routes/users';
 import embedRoutes from './routes/embed';
 import { ensureUserProfilesSchema } from './db/ensureUserProfiles';
 import { ensureAnalyticsSchema } from './db/ensureAnalyticsSchema';
+import { ensureMarketingSchema } from './db/ensureMarketingSchema';
+import marketingRoutes from './routes/marketing';
 import aiRoutes from './routes/ai';
 import webhookRoutes from './routes/webhooks';
 import { integrationRoutes } from './routes/integrations';
@@ -115,6 +117,10 @@ export const createApp = () => {
         server.log.error({ err }, 'Failed to ensure analytics schema');
     });
 
+    ensureMarketingSchema().catch((err) => {
+        server.log.error({ err }, 'Failed to ensure marketing schema');
+    });
+
     if (process.env.STRIPE_SECRET_KEY?.trim()) {
         import('./lib/stripe').then(({ getStripe }) => {
             const stripe = getStripe();
@@ -134,6 +140,7 @@ export const createApp = () => {
     server.register(userRoutes, { prefix: '/api' });
     server.register(embedRoutes, { prefix: '/api' });
     server.register(demoRoutes, { prefix: '/api' });
+    server.register(marketingRoutes, { prefix: '/api' });
     server.register(donationRoutes, { prefix: '/api' });
     server.register(billingRoutes, { prefix: '/api' });
     server.register(uploadRoutes, { prefix: '/api' });

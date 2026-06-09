@@ -9,6 +9,8 @@ import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
 import type { PlanId } from '../data/pricingPlans';
 import { getTemplateOgImageUrl, usePageSeo } from '../lib/seo';
+import ShareButtons from '../components/ShareButtons';
+import NewsletterSignup from '../components/NewsletterSignup';
 
 export default function BlogPost() {
     const { templateId } = useParams();
@@ -129,6 +131,12 @@ export default function BlogPost() {
                                     {creating ? 'Setting up...' : 'Use this free template'}
                                 </button>
                             </div>
+
+                            <ShareButtons
+                                title={`Free ${template.name} Template — GiveLive`}
+                                url={`/blog/${template.id}`}
+                                className="justify-center mt-8"
+                            />
                         </div>
 
                         {/* Illustration */}
@@ -195,6 +203,24 @@ export default function BlogPost() {
                             <button onClick={handleUseTemplate} disabled={creating} className="bg-primary text-white px-8 py-3 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition disabled:opacity-70 disabled:cursor-wait">
                                 {creating ? 'Setting up...' : 'Start with this template'}
                             </button>
+                        </div>
+
+                        <div className="mt-12 not-prose flex items-center justify-between flex-wrap gap-6 border-t border-gray-100 pt-8">
+                            <ShareButtons
+                                title={`Free ${template.name} Template — GiveLive`}
+                                url={`/blog/${template.id}`}
+                            />
+                            <Link to="/blog" className="text-sm font-medium text-primary hover:underline">
+                                Browse all template guides →
+                            </Link>
+                        </div>
+
+                        <div className="mt-12 not-prose bg-surface border border-gray-100 rounded-3xl p-8">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Get weekly QR marketing playbooks</h3>
+                            <p className="text-gray-500 text-sm mb-6">
+                                Template breakdowns, automation recipes, and acquisition tactics in your inbox.
+                            </p>
+                            <NewsletterSignup source={`blog:${template.id}`} />
                         </div>
                     </div>
                 </div>

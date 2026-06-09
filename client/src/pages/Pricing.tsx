@@ -1,19 +1,24 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     ArrowLeft,
     ArrowRight,
     Bot,
+    CalendarCheck,
     Check,
     Mail,
     Sparkles,
     Zap,
 } from 'lucide-react';
+import DemoRequestModal from '../components/DemoRequestModal';
 import Logo from '../components/Logo';
 import PlanCheckoutButton from '../components/PlanCheckoutButton';
 import { aiFollowUpAddon, pricingPlans } from '../data/pricingPlans';
 import { usePageSeo } from '../lib/seo';
 
 export default function Pricing() {
+    const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
     usePageSeo({
         title: 'Pricing',
         description:
@@ -116,6 +121,16 @@ export default function Pricing() {
                                 </ul>
 
                                 <PlanCheckoutButton plan={plan} highlighted={plan.highlighted} />
+                                {plan.id === 'enterprise' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDemoModalOpen(true)}
+                                        className="mt-3 w-full h-11 rounded-full border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                                    >
+                                        <CalendarCheck size={16} />
+                                        Book a demo
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -229,13 +244,23 @@ export default function Pricing() {
                         </Link>
                         <Link
                             to="/how-to"
-                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition"
+                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center"
                         >
                             Read How To
                         </Link>
+                        <button
+                            type="button"
+                            onClick={() => setIsDemoModalOpen(true)}
+                            className="h-12 px-8 rounded-full border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition flex items-center gap-2"
+                        >
+                            <CalendarCheck size={18} />
+                            Book a demo
+                        </button>
                     </div>
                 </div>
             </section>
+
+            <DemoRequestModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
         </div>
     );
 }

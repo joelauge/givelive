@@ -22,7 +22,6 @@ export const categories = [
     'Tickets',
     'Raffles',
     'Quiz Games',
-    'School',
     'Real Estate'
 ];
 

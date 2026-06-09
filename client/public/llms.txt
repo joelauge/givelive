@@ -12,6 +12,7 @@ Markdown versions of key pages are available at `{path}.md` (e.g. https://giveli
 - [Pricing](https://givelive.app/pricing.md): Free, Starter, Growth, Pro, and Enterprise plans with limits
 - [How to use GiveLive](https://givelive.app/how-to.md): Step-by-step guide from first QR to publish and analytics
 - [Free template library](https://givelive.app/blog.md): Browse all pre-built QR flow templates
+- [Use cases by industry](https://givelive.app/use-cases): How each industry uses QR flows
 
 ## Templates
 
@@ -81,6 +82,60 @@ Markdown versions of key pages are available at `{path}.md` (e.g. https://giveli
 - [Event Ticket](https://givelive.app/blog/event-ticket.md): Standard ticket sales (Tickets)
 - [Early Bird](https://givelive.app/blog/early-bird.md): Discount ticket with countdown (Tickets)
 - [Group Tickets](https://givelive.app/blog/group-tickets.md): Group discount booking (Tickets)
+
+## Use Cases
+
+### Churches & Ministries
+
+- [QR New Visitor Welcome Flows for Churches](https://givelive.app/use-cases/new-member-for-churches.md): Replace paper connection cards with a QR welcome flow: capture visitor info, send an instant welcome text, and route people to next steps automatically.
+- [QR Code Giving for Churches: Scan-to-Give Donations](https://givelive.app/use-cases/simple-donation-for-churches.md): Let your congregation give in seconds with a QR donation flow — mobile-optimized checkout, instant thank-you messages, and automatic records.
+- [Recurring Giving Signup Flows for Churches](https://givelive.app/use-cases/monthly-giving-for-churches.md): Grow predictable giving with a QR recurring-donation flow — members set up monthly gifts once, on their phone, in under two minutes.
+- [QR Small Group Signup Flows for Churches](https://givelive.app/use-cases/small-groups-for-churches.md): Fill your small groups with a QR signup flow — members browse groups, register on their phone, and leaders get rosters automatically.
+- [QR Baptism Signup Flows for Churches](https://givelive.app/use-cases/get-baptised-for-churches.md): Make responding to a baptism call effortless: a QR signup flow that captures decisions in the moment and routes them to your pastoral team.
+
+### Creators, Coaches & Educators
+
+- [QR Webinar Registration Flows for Coaches & Creators](https://givelive.app/use-cases/webinar-registration-for-creators-coaches.md): Fill webinars from podcasts, social bios, and live appearances with QR registration flows — automated confirmations and show-up reminders included.
+- [QR Masterclass Funnels for Coaches & Course Creators](https://givelive.app/use-cases/masterclass-for-creators-coaches.md): Sell premium masterclasses through QR flows on slides, merch, and cards — positioning, mobile checkout, and automated onboarding in one funnel.
+- [QR Workshop Series Signup Flows for Educators](https://givelive.app/use-cases/workshop-series-for-creators-coaches.md): Enroll students in multi-session workshops with one QR signup — series scheduling, session reminders, and completion follow-ups automated.
+- [QR Fan Meetup & Community Flows for Creators](https://givelive.app/use-cases/fan-meetup-for-creators-coaches.md): Turn followers into a community you own with QR meetup registration — capture superfans at live events and keep them engaged afterward.
+- [QR Personality Quiz Funnels for Creators & Coaches](https://givelive.app/use-cases/personality-quiz-for-creators-coaches.md): Grow your list with a shareable QR personality quiz — fun for your audience, segmentation data for you, and automated results delivery.
+
+### Event Organizers & Conferences
+
+- [QR Event Check-In Flows for Organizers](https://givelive.app/use-cases/event-checkin-for-event-organizers.md): Replace registration lines with QR self check-in — attendees check in on their phone and your post-event follow-up runs automatically.
+- [QR Networking & Contact Exchange Flows for Events](https://givelive.app/use-cases/networking-event-for-event-organizers.md): Help attendees connect and capture every participant's contact info with a QR networking flow — no badge scanners or business cards needed.
+- [QR Conference Agenda & Session Flows](https://givelive.app/use-cases/conference-agenda-for-event-organizers.md): Give attendees a live mobile agenda via QR code — session selection, room changes, and speaker info without printing a single program.
+- [Early-Bird Ticket Flows with QR Codes for Events](https://givelive.app/use-cases/early-bird-for-event-organizers.md): Drive early ticket sales with countdown-powered QR flows — urgency pricing, instant mobile checkout, and automated price-change announcements.
+- [QR NPS & Post-Event Survey Flows for Organizers](https://givelive.app/use-cases/nps-survey-for-event-organizers.md): Measure event satisfaction with QR NPS surveys completed before attendees leave — higher response rates and testimonials while the energy is high.
+
+### Nonprofits & Charities
+
+- [QR Code Donation Flows for Nonprofits](https://givelive.app/use-cases/simple-donation-for-nonprofits.md): Capture donations anywhere your supporters are — events, mailers, posters — with a mobile-first QR donation flow and automated thank-you receipts.
+- [Matching Gift Campaign Flows for Nonprofits](https://givelive.app/use-cases/matching-campaign-for-nonprofits.md): Run urgency-driven matching campaigns with QR flows that show match progress, double donor impact, and automate every receipt and update.
+- [QR Charity Raffle Flows for Nonprofit Fundraising](https://givelive.app/use-cases/charity-raffle-for-nonprofits.md): Run a compliant, friction-free charity raffle with QR entry, integrated donations, and automatic winner notification — no paper tickets.
+- [QR Gala & Fundraising Event Ticket Flows for Nonprofits](https://givelive.app/use-cases/event-ticket-for-nonprofits.md): Sell gala and fundraiser tickets through a QR flow — mobile checkout, instant confirmations, and every attendee captured for post-event stewardship.
+- [QR Story Collection Flows for Nonprofits](https://givelive.app/use-cases/share-testimonial-for-nonprofits.md): Collect beneficiary and volunteer stories with a QR video testimonial flow — authentic content for your appeals, grants, and social channels.
+
+### Real Estate Agents & Teams
+
+- [QR Code Open House Sign-In for Real Estate Agents](https://givelive.app/use-cases/open-house-for-real-estate-agents.md): Replace the paper sign-in sheet with a QR open house flow: capture verified visitor contacts, trigger instant follow-up, and sync every lead to your CRM.
+- [Speed-to-Lead QR Flows for Real Estate Teams](https://givelive.app/use-cases/real-estate-lead-for-real-estate-agents.md): Respond to every new real estate inquiry in under a minute with automated QR-triggered follow-up — texts, emails, and CRM entries with zero manual work.
+- [QR Lead Magnet Funnels for Real Estate Marketing](https://givelive.app/use-cases/lead-magnet-for-real-estate-agents.md): Offer home valuation guides, buyer checklists, and neighborhood reports through a QR code — capture emails and nurture prospects automatically.
+- [QR Google Review Flows for Real Estate Agents](https://givelive.app/use-cases/google-review-for-real-estate-agents.md): Ask happy buyers and sellers for Google reviews at the closing table with a QR code — route satisfied clients to Google and concerns to you.
+- [QR Buyer Feedback Surveys for Open Houses & Showings](https://givelive.app/use-cases/feedback-survey-for-real-estate-agents.md): Collect honest buyer feedback after every showing with a QR survey — and capture the contact info of every interested visitor automatically.
+
+### Restaurants & Retail
+
+- [QR Google Review Flows for Restaurants & Retail](https://givelive.app/use-cases/google-review-for-restaurants-retail.md): Get more Google reviews from happy customers with a QR review flow on receipts and table tents — and intercept complaints before they go public.
+- [QR Customer Feedback Surveys for Restaurants & Stores](https://givelive.app/use-cases/feedback-survey-for-restaurants-retail.md): Collect real-time customer feedback with QR surveys at the table or register — spot problems same-day and build a contact list while you're at it.
+- [QR Giveaway & Raffle Flows for Restaurants & Retail](https://givelive.app/use-cases/raffle-entry-for-restaurants-retail.md): Turn foot traffic into a marketing list with QR giveaway entries — customers enter to win on their phone and you keep every contact.
+- [QR Trivia & Engagement Games for Restaurants & Bars](https://givelive.app/use-cases/trivia-quiz-for-restaurants-retail.md): Run table-side trivia through a QR code — entertain guests, extend dwell time, and capture contacts for your next promotion.
+- [QR Waitlist & Launch Signup Flows for Retail & Hospitality](https://givelive.app/use-cases/waitlist-signup-for-restaurants-retail.md): Build hype for openings, seasonal menus, and product drops with QR waitlist flows — capture demand in person and notify everyone at launch.
+
+## Articles
+
+- [The 5-Minute Rule: Why Speed-to-Lead Decides Who Wins the Deal](https://givelive.app/articles/speed-to-lead-5-minute-rule.md): Lead conversion drops up to 8x after the first five minutes. Here's the research behind speed-to-lead, why most teams still respond in hours, and how to automate a sub-minute response with QR flows.
 
 ## Legal
 
