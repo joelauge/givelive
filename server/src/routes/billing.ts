@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { requireStripe } from '../lib/stripe';
+import { getStripe, requireStripe } from '../lib/stripe';
 import { type BillablePlanId, billablePlans } from '../config/billingPlans';
 import {
     ensureBillingPriceCache,
@@ -24,9 +24,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http
 
 export default async function billingRoutes(server: FastifyInstance) {
     /** Current plan + Stripe connection for an org (Clerk user id) */
-    server.get<{ Querystring: { org_id: string } }>('/billing/status', async (request, reply) => {
+    server.get<{ Querystring: { org_id: string; email?: string } }>(
+        '/billing/status',
+        async (request, reply) => {
         try {
-            const { org_id } = request.query;
+            const { org_id, email } = request.query;
             if (!org_id) {
                 return reply.code(400).send({ error: 'org_id is required' });
             }
@@ -35,7 +37,18 @@ export default async function billingRoutes(server: FastifyInstance) {
             if (!userId) return;
 
             await ensureBillingSchema();
-            const org = await getOrCreateOrganization(org_id);
+            await getOrCreateOrganization(org_id);
+
+            const stripe = getStripe();
+            let org = await getOrganization(org_id);
+            if (stripe && org) {
+                org =
+                    (await syncOrganizationBillingFromStripe(org_id, { email })) || org;
+            }
+
+            if (!org) {
+                return reply.code(404).send({ error: 'Organization not found' });
+            }
 
             return {
                 orgId: org.id,
@@ -49,7 +62,8 @@ export default async function billingRoutes(server: FastifyInstance) {
             server.log.error(err);
             reply.code(500).send({ error: err.message || 'Failed to load billing status' });
         }
-    });
+    }
+    );
 
     /** Whether org can publish another live QR flow (excludes current event when re-publishing) */
     server.get<{ Querystring: { org_id: string; event_id: string } }>(
@@ -105,9 +119,9 @@ export default async function billingRoutes(server: FastifyInstance) {
     );
 
     /** Sync plan from Stripe customer subscriptions (fallback after checkout) */
-    server.post<{ Body: { org_id: string } }>('/billing/sync', async (request, reply) => {
+    server.post<{ Body: { org_id: string; email?: string } }>('/billing/sync', async (request, reply) => {
         try {
-            const { org_id } = request.body;
+            const { org_id, email } = request.body;
             if (!org_id) {
                 return reply.code(400).send({ error: 'org_id is required' });
             }
@@ -115,7 +129,7 @@ export default async function billingRoutes(server: FastifyInstance) {
             const userId = await requireOrgAccess(request, reply, org_id);
             if (!userId) return;
 
-            const org = await syncOrganizationBillingFromStripe(org_id);
+            const org = await syncOrganizationBillingFromStripe(org_id, { email });
             if (!org) {
                 return reply.code(404).send({ error: 'Organization not found' });
             }

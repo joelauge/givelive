@@ -232,8 +232,10 @@ export const api = {
         return res.json();
     },
 
-    getBillingStatus: async (orgId: string) => {
-        const res = await fetch(`${API_URL}/billing/status?org_id=${encodeURIComponent(orgId)}`, {
+    getBillingStatus: async (orgId: string, email?: string) => {
+        const params = new URLSearchParams({ org_id: orgId });
+        if (email) params.set('email', email);
+        const res = await fetch(`${API_URL}/billing/status?${params.toString()}`, {
             headers: await buildAuthHeaders(),
         });
         if (!res.ok) throw new Error('Failed to load billing status');
@@ -274,11 +276,11 @@ export const api = {
         return body;
     },
 
-    syncBilling: async (orgId: string) => {
+    syncBilling: async (orgId: string, email?: string) => {
         const res = await fetch(`${API_URL}/billing/sync`, {
             method: 'POST',
             headers: await buildAuthHeaders(),
-            body: JSON.stringify({ org_id: orgId }),
+            body: JSON.stringify({ org_id: orgId, email }),
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || 'Failed to sync billing');

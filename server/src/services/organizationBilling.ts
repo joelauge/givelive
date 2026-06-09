@@ -1,5 +1,6 @@
 import { query } from '../db';
 import { getStripe } from '../lib/stripe';
+import { planIdFromStripeProductId } from '../config/billingPlans';
 import { ensureBillingPriceCache, resolvePlanIdFromPriceId } from './billingPriceResolver';
 
 const SCHEMA_SQL = `
@@ -113,18 +114,39 @@ export async function findOrganizationByStripeCustomer(
     return result.rows[0] || null;
 }
 
+type SubscriptionItemLike = {
+    price?: { id?: string; product?: string | { id?: string } } | string;
+};
+
+function planFromPriceObject(
+    price: { id?: string; product?: string | { id?: string } } | undefined
+): string | null {
+    if (!price?.id) return null;
+
+    const mapped = resolvePlanIdFromPriceId(price.id);
+    if (mapped === 'ai_followup_addon') return 'ai_followup_addon';
+    if (['starter', 'growth', 'pro'].includes(mapped)) return mapped;
+
+    const productId =
+        typeof price.product === 'string' ? price.product : price.product?.id;
+    if (productId) {
+        return planIdFromStripeProductId(productId);
+    }
+    return null;
+}
+
 /** Map active Stripe subscription items to plan_id + AI add-on flag */
 export function resolvePlanFromSubscriptionItems(
-    items: { price?: { id?: string } | string }[]
+    items: SubscriptionItemLike[]
 ): { plan_id: string; ai_followup_addon: boolean } {
     let plan_id = 'free';
     let ai_followup_addon = false;
 
     for (const item of items) {
-        const priceId =
-            typeof item.price === 'string' ? item.price : item.price?.id;
-        if (!priceId) continue;
-        const mapped = resolvePlanIdFromPriceId(priceId);
+        const price =
+            typeof item.price === 'string' ? { id: item.price } : item.price;
+        const mapped = planFromPriceObject(price);
+        if (!mapped) continue;
         if (mapped === 'ai_followup_addon') {
             ai_followup_addon = true;
         } else if (['starter', 'growth', 'pro'].includes(mapped)) {
@@ -133,6 +155,38 @@ export function resolvePlanFromSubscriptionItems(
     }
 
     return { plan_id, ai_followup_addon };
+}
+
+/** Find Stripe customer when org row is missing stripe_customer_id (e.g. webhook lag). */
+export async function discoverStripeCustomerForOrg(
+    orgId: string,
+    email?: string
+): Promise<string | null> {
+    const stripe = getStripe();
+    if (!stripe) return null;
+
+    try {
+        const search = await stripe.customers.search({
+            query: `metadata['org_id']:'${orgId}'`,
+            limit: 1,
+        });
+        if (search.data[0]?.id) {
+            return search.data[0].id;
+        }
+    } catch {
+        // Customer Search may be unavailable; fall through to email lookup.
+    }
+
+    if (email) {
+        const list = await stripe.customers.list({ email, limit: 10 });
+        const match =
+            list.data.find((c) => c.metadata?.org_id === orgId) ||
+            list.data.find((c) => c.metadata?.org_id) ||
+            list.data[0];
+        if (match?.id) return match.id;
+    }
+
+    return null;
 }
 
 function resolvePlanFromMetadataAndItems(
@@ -151,7 +205,8 @@ function resolvePlanFromMetadataAndItems(
 
 /** Pull active subscription state from Stripe and persist to organizations. */
 export async function syncOrganizationBillingFromStripe(
-    orgId: string
+    orgId: string,
+    opts?: { email?: string }
 ): Promise<OrganizationRow | null> {
     const stripe = getStripe();
     if (!stripe) return getOrganization(orgId);
@@ -160,10 +215,19 @@ export async function syncOrganizationBillingFromStripe(
     await ensureBillingPriceCache(stripe);
 
     const org = await getOrganization(orgId);
-    if (!org?.stripe_customer_id) return org;
+    if (!org) return null;
+
+    let customerId = org.stripe_customer_id;
+    if (!customerId) {
+        customerId = await discoverStripeCustomerForOrg(orgId, opts?.email);
+        if (customerId) {
+            await updateOrganizationPlan(orgId, { stripe_customer_id: customerId });
+        }
+    }
+    if (!customerId) return org;
 
     const subscriptions = await stripe.subscriptions.list({
-        customer: org.stripe_customer_id,
+        customer: customerId,
         status: 'all',
         limit: 10,
     });
@@ -205,11 +269,17 @@ export async function confirmCheckoutSession(
         expand: ['subscription', 'subscription.items.data.price'],
     });
 
-    if (session.metadata?.org_id !== orgId) {
-        throw new Error('Checkout session does not belong to this account');
-    }
     if (session.mode !== 'subscription') {
         throw new Error('Not a subscription checkout session');
+    }
+
+    const sessionOrgId = session.metadata?.org_id;
+    if (sessionOrgId && sessionOrgId !== orgId) {
+        throw new Error('Checkout session does not belong to this account');
+    }
+
+    if (session.status !== 'complete') {
+        throw new Error('Checkout session is not complete yet');
     }
 
     const customerId =

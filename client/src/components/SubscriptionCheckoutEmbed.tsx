@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
@@ -16,6 +16,7 @@ type Props = {
 
 export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon }: Props) {
     const { user } = useUser();
+    const checkoutSessionIdRef = useRef<string | null>(null);
 
     const options = useMemo(
         () => ({
@@ -23,17 +24,29 @@ export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon }: Pr
                 if (!user?.id) {
                     throw new Error('Sign in to subscribe');
                 }
-                const { clientSecret } = await api.createBillingCheckout({
+                const { clientSecret, sessionId } = await api.createBillingCheckout({
                     org_id: user.id,
                     plan_id: planId,
                     email: user.primaryEmailAddress?.emailAddress ?? undefined,
                     name: user.fullName ?? undefined,
                     include_ai_addon: includeAiAddon,
                 });
+                checkoutSessionIdRef.current = sessionId;
                 if (!clientSecret) {
                     throw new Error('Checkout is unavailable');
                 }
                 return clientSecret;
+            },
+            onComplete: () => {
+                const params = new URLSearchParams({
+                    billing: 'success',
+                    plan: planId,
+                });
+                const sessionId = checkoutSessionIdRef.current;
+                if (sessionId) {
+                    params.set('session_id', sessionId);
+                }
+                window.location.href = `/settings?${params.toString()}`;
             },
         }),
         [user, planId, includeAiAddon]

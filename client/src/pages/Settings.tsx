@@ -134,8 +134,10 @@ export default function Settings() {
         const billingResult = searchParams.get('billing');
         const sessionId = searchParams.get('session_id');
 
+        const userEmail = user.primaryEmailAddress?.emailAddress;
+
         const loadBilling = async () => {
-            const data = await api.getBillingStatus(user.id);
+            const data = await api.getBillingStatus(user.id, userEmail);
             setBilling({
                 planId: data.planId,
                 aiFollowUpAddon: data.aiFollowUpAddon,
@@ -148,11 +150,11 @@ export default function Settings() {
                 await api.confirmBillingCheckout(user.id, sessionId);
                 return;
             }
-            await api.syncBilling(user.id);
-            const status = await api.getBillingStatus(user.id);
+            await api.syncBilling(user.id, userEmail);
+            const status = await api.getBillingStatus(user.id, userEmail);
             if (status.planId === 'free') {
                 await new Promise((resolve) => setTimeout(resolve, 1500));
-                await api.syncBilling(user.id);
+                await api.syncBilling(user.id, userEmail);
             }
         };
 
@@ -165,7 +167,7 @@ export default function Settings() {
                 } catch (err) {
                     console.error('Post-checkout billing sync failed', err);
                     try {
-                        await api.syncBilling(user.id);
+                        await api.syncBilling(user.id, userEmail);
                     } catch (retryErr) {
                         console.error(retryErr);
                     }

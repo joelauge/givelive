@@ -76,3 +76,12 @@ export function planIdFromPriceId(priceId: string): string {
     if (aiPrice === priceId) return 'ai_followup_addon';
     return 'unknown';
 }
+
+/** Resolve plan from Stripe Product ID (works without price cache / env overrides). */
+export function planIdFromStripeProductId(productId: string): string | null {
+    for (const plan of billablePlans) {
+        if (plan.stripeProductId === productId) return plan.id;
+    }
+    if (aiFollowUpAddon.stripeProductId === productId) return 'ai_followup_addon';
+    return null;
+}
