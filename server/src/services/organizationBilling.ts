@@ -1,5 +1,6 @@
 import { query } from '../db';
-import { resolvePlanIdFromPriceId } from './billingPriceResolver';
+import { getStripe } from '../lib/stripe';
+import { ensureBillingPriceCache, resolvePlanIdFromPriceId } from './billingPriceResolver';
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS organizations (
@@ -132,4 +133,114 @@ export function resolvePlanFromSubscriptionItems(
     }
 
     return { plan_id, ai_followup_addon };
+}
+
+function resolvePlanFromMetadataAndItems(
+    metaPlanId: string | undefined,
+    items: { price?: { id?: string } | string }[]
+): { plan_id: string; ai_followup_addon: boolean } {
+    const fromItems = resolvePlanFromSubscriptionItems(items);
+    const plan_id =
+        fromItems.plan_id !== 'free'
+            ? fromItems.plan_id
+            : ['starter', 'growth', 'pro'].includes(metaPlanId || '')
+              ? metaPlanId!
+              : 'free';
+    return { plan_id, ai_followup_addon: fromItems.ai_followup_addon };
+}
+
+/** Pull active subscription state from Stripe and persist to organizations. */
+export async function syncOrganizationBillingFromStripe(
+    orgId: string
+): Promise<OrganizationRow | null> {
+    const stripe = getStripe();
+    if (!stripe) return getOrganization(orgId);
+
+    await ensureBillingSchema();
+    await ensureBillingPriceCache(stripe);
+
+    const org = await getOrganization(orgId);
+    if (!org?.stripe_customer_id) return org;
+
+    const subscriptions = await stripe.subscriptions.list({
+        customer: org.stripe_customer_id,
+        status: 'all',
+        limit: 10,
+    });
+
+    const active = subscriptions.data.find((sub) =>
+        ['active', 'trialing'].includes(sub.status)
+    );
+
+    if (!active) {
+        return org;
+    }
+
+    const { plan_id, ai_followup_addon } = resolvePlanFromMetadataAndItems(
+        active.metadata?.plan_id,
+        active.items.data
+    );
+
+    await updateOrganizationPlan(orgId, {
+        plan_id: plan_id !== 'free' ? plan_id : 'starter',
+        stripe_subscription_id: active.id,
+        ai_followup_addon,
+    });
+
+    return getOrganization(orgId);
+}
+
+/** Apply a completed Checkout Session immediately (don't wait for webhooks). */
+export async function confirmCheckoutSession(
+    orgId: string,
+    sessionId: string
+): Promise<OrganizationRow | null> {
+    const stripe = getStripe();
+    if (!stripe) throw new Error('STRIPE_SECRET_KEY is not configured');
+
+    await ensureBillingSchema();
+    await ensureBillingPriceCache(stripe);
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['subscription', 'subscription.items.data.price'],
+    });
+
+    if (session.metadata?.org_id !== orgId) {
+        throw new Error('Checkout session does not belong to this account');
+    }
+    if (session.mode !== 'subscription') {
+        throw new Error('Not a subscription checkout session');
+    }
+
+    const customerId =
+        typeof session.customer === 'string' ? session.customer : session.customer?.id;
+
+    let subscriptionId: string | null = null;
+    let items: { price?: { id?: string } | string }[] = [];
+
+    const subscription = session.subscription;
+    if (subscription && typeof subscription !== 'string') {
+        subscriptionId = subscription.id;
+        items = subscription.items.data;
+    } else if (typeof subscription === 'string') {
+        subscriptionId = subscription;
+        const sub = await stripe.subscriptions.retrieve(subscription, {
+            expand: ['items.data.price'],
+        });
+        items = sub.items.data;
+    }
+
+    const { plan_id, ai_followup_addon } = resolvePlanFromMetadataAndItems(
+        session.metadata?.plan_id,
+        items
+    );
+
+    await updateOrganizationPlan(orgId, {
+        plan_id: plan_id !== 'free' ? plan_id : session.metadata?.plan_id || 'starter',
+        stripe_customer_id: customerId || undefined,
+        stripe_subscription_id: subscriptionId,
+        ai_followup_addon,
+    });
+
+    return getOrganization(orgId);
 }

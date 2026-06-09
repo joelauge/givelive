@@ -126,26 +126,59 @@ export default function Settings() {
         }
 
         fetchStatus();
-
-        if (searchParams.get('billing') === 'success') {
-            setShowSuccess('Subscription updated successfully!');
-            setTimeout(() => setShowSuccess(null), 6000);
-            window.history.replaceState(null, '', '/settings');
-        }
     }, []);
 
     useEffect(() => {
         if (!user?.id) return;
-        api.getBillingStatus(user.id)
-            .then((data) =>
-                setBilling({
-                    planId: data.planId,
-                    aiFollowUpAddon: data.aiFollowUpAddon,
-                    hasSubscription: data.hasSubscription,
-                })
-            )
-            .catch(console.error);
-    }, [user?.id, searchParams.get('billing')]);
+
+        const billingResult = searchParams.get('billing');
+        const sessionId = searchParams.get('session_id');
+
+        const loadBilling = async () => {
+            const data = await api.getBillingStatus(user.id);
+            setBilling({
+                planId: data.planId,
+                aiFollowUpAddon: data.aiFollowUpAddon,
+                hasSubscription: data.hasSubscription,
+            });
+        };
+
+        const syncAfterCheckout = async () => {
+            if (sessionId) {
+                await api.confirmBillingCheckout(user.id, sessionId);
+                return;
+            }
+            await api.syncBilling(user.id);
+            const status = await api.getBillingStatus(user.id);
+            if (status.planId === 'free') {
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+                await api.syncBilling(user.id);
+            }
+        };
+
+        const run = async () => {
+            if (billingResult === 'success') {
+                setShowSuccess('Subscription updated successfully!');
+                setTimeout(() => setShowSuccess(null), 6000);
+                try {
+                    await syncAfterCheckout();
+                } catch (err) {
+                    console.error('Post-checkout billing sync failed', err);
+                    try {
+                        await api.syncBilling(user.id);
+                    } catch (retryErr) {
+                        console.error(retryErr);
+                    }
+                }
+                await loadBilling();
+                window.history.replaceState(null, '', '/settings');
+                return;
+            }
+            await loadBilling();
+        };
+
+        run().catch(console.error);
+    }, [user?.id, searchParams]);
 
     const handleManageBilling = async () => {
         if (!user?.id) return;

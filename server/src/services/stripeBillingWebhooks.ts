@@ -38,12 +38,16 @@ export async function handleBillingStripeEvent(
                 return true;
             }
 
+            const metaPlan = session.metadata?.plan_id;
             await updateOrganizationPlan(orgId, {
                 stripe_customer_id: customerId,
                 stripe_subscription_id:
                     typeof session.subscription === 'string'
                         ? session.subscription
                         : session.subscription?.id || null,
+                ...( ['starter', 'growth', 'pro'].includes(metaPlan || '')
+                    ? { plan_id: metaPlan }
+                    : {}),
             });
 
             log.info(`[Billing] Checkout completed for org ${orgId}`);

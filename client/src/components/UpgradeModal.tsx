@@ -57,12 +57,7 @@ export default function UpgradeModal({ isOpen, onClose, limit = 1, reason = 'cam
                     <ArrowLeft size={16} />
                     Back to plans
                 </button>
-                <SubscriptionCheckoutEmbed
-                    planId="starter"
-                    onComplete={() => {
-                        window.location.href = '/settings?billing=success&plan=starter';
-                    }}
-                />
+                <SubscriptionCheckoutEmbed planId="starter" />
             </CheckoutOverlay>
         );
     }

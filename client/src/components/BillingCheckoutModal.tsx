@@ -17,12 +17,7 @@ export default function BillingCheckoutModal({ isOpen, onClose, planId, planName
             onClose={onClose}
             title={planName ? `Subscribe to ${planName}` : 'Complete checkout'}
         >
-            <SubscriptionCheckoutEmbed
-                planId={planId}
-                onComplete={() => {
-                    window.location.href = `/settings?billing=success&plan=${planId}`;
-                }}
-            />
+            <SubscriptionCheckoutEmbed planId={planId} />
         </CheckoutOverlay>
     );
 }

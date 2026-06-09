@@ -263,6 +263,28 @@ export const api = {
         return body as { clientSecret: string; sessionId: string };
     },
 
+    confirmBillingCheckout: async (orgId: string, sessionId: string) => {
+        const res = await fetch(`${API_URL}/billing/confirm-session`, {
+            method: 'POST',
+            headers: await buildAuthHeaders(),
+            body: JSON.stringify({ org_id: orgId, session_id: sessionId }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to confirm checkout');
+        return body;
+    },
+
+    syncBilling: async (orgId: string) => {
+        const res = await fetch(`${API_URL}/billing/sync`, {
+            method: 'POST',
+            headers: await buildAuthHeaders(),
+            body: JSON.stringify({ org_id: orgId }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to sync billing');
+        return body;
+    },
+
     createBillingPortal: async (orgId: string) => {
         const res = await fetch(`${API_URL}/billing/portal`, {
             method: 'POST',

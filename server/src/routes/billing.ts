@@ -9,9 +9,11 @@ import {
     warmBillingPriceCache,
 } from '../services/billingPriceResolver';
 import {
+    confirmCheckoutSession,
     ensureBillingSchema,
     getOrCreateOrganization,
     getOrganization,
+    syncOrganizationBillingFromStripe,
     updateOrganizationPlan,
 } from '../services/organizationBilling';
 import { handleBillingStripeEvent } from '../services/stripeBillingWebhooks';
@@ -70,6 +72,65 @@ export default async function billingRoutes(server: FastifyInstance) {
             }
         }
     );
+
+    /** Confirm a completed Checkout Session and refresh org plan (post-payment redirect) */
+    server.post<{ Body: { org_id: string; session_id: string } }>(
+        '/billing/confirm-session',
+        async (request, reply) => {
+            try {
+                const { org_id, session_id } = request.body;
+                if (!org_id || !session_id) {
+                    return reply.code(400).send({ error: 'org_id and session_id are required' });
+                }
+
+                const userId = await requireOrgAccess(request, reply, org_id);
+                if (!userId) return;
+
+                const org = await confirmCheckoutSession(org_id, session_id);
+                if (!org) {
+                    return reply.code(404).send({ error: 'Organization not found' });
+                }
+
+                return {
+                    orgId: org.id,
+                    planId: org.plan_id,
+                    aiFollowUpAddon: org.ai_followup_addon,
+                    hasSubscription: Boolean(org.stripe_subscription_id),
+                };
+            } catch (err: any) {
+                server.log.error(err);
+                reply.code(500).send({ error: err.message || 'Failed to confirm checkout session' });
+            }
+        }
+    );
+
+    /** Sync plan from Stripe customer subscriptions (fallback after checkout) */
+    server.post<{ Body: { org_id: string } }>('/billing/sync', async (request, reply) => {
+        try {
+            const { org_id } = request.body;
+            if (!org_id) {
+                return reply.code(400).send({ error: 'org_id is required' });
+            }
+
+            const userId = await requireOrgAccess(request, reply, org_id);
+            if (!userId) return;
+
+            const org = await syncOrganizationBillingFromStripe(org_id);
+            if (!org) {
+                return reply.code(404).send({ error: 'Organization not found' });
+            }
+
+            return {
+                orgId: org.id,
+                planId: org.plan_id,
+                aiFollowUpAddon: org.ai_followup_addon,
+                hasSubscription: Boolean(org.stripe_subscription_id),
+            };
+        } catch (err: any) {
+            server.log.error(err);
+            reply.code(500).send({ error: err.message || 'Failed to sync billing' });
+        }
+    });
 
     /** Create Stripe Checkout for a paid plan */
     server.post<{

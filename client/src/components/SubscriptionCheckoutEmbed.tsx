@@ -12,10 +12,9 @@ type PlanId = 'starter' | 'growth' | 'pro';
 type Props = {
     planId: PlanId;
     includeAiAddon?: boolean;
-    onComplete?: () => void;
 };
 
-export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon, onComplete }: Props) {
+export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon }: Props) {
     const { user } = useUser();
 
     const options = useMemo(
@@ -36,9 +35,8 @@ export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon, onCo
                 }
                 return clientSecret;
             },
-            onComplete,
         }),
-        [user, planId, includeAiAddon, onComplete]
+        [user, planId, includeAiAddon]
     );
 
     if (!isPlatformStripeConfigured || !stripePromise) {
