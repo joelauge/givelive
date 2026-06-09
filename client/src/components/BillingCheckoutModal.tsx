@@ -1,4 +1,4 @@
-import Modal from './Modal';
+import CheckoutOverlay from './CheckoutOverlay';
 import SubscriptionCheckoutEmbed from './SubscriptionCheckoutEmbed';
 
 type PlanId = 'starter' | 'growth' | 'pro';
@@ -12,11 +12,10 @@ type Props = {
 
 export default function BillingCheckoutModal({ isOpen, onClose, planId, planName }: Props) {
     return (
-        <Modal
+        <CheckoutOverlay
             isOpen={isOpen}
             onClose={onClose}
             title={planName ? `Subscribe to ${planName}` : 'Complete checkout'}
-            maxWidth="max-w-2xl"
         >
             <SubscriptionCheckoutEmbed
                 planId={planId}
@@ -24,6 +23,6 @@ export default function BillingCheckoutModal({ isOpen, onClose, planId, planName
                     window.location.href = `/settings?billing=success&plan=${planId}`;
                 }}
             />
-        </Modal>
+        </CheckoutOverlay>
     );
 }

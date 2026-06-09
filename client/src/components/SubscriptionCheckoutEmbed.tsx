@@ -51,7 +51,7 @@ export default function SubscriptionCheckoutEmbed({ planId, includeAiAddon, onCo
 
     return (
         <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
-            <EmbeddedCheckout className="w-full min-h-[480px]" />
+            <EmbeddedCheckout className="w-full" />
         </EmbeddedCheckoutProvider>
     );
 }
