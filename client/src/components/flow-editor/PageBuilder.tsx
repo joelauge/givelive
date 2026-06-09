@@ -155,10 +155,10 @@ export default function PageBuilder({ data, onUpdate, showWatermark = false, eve
                         <div className="mb-4">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Page Name</label>
                             <input
-                                value={data.label || 'New Page'}
+                                value={data.label ?? ''}
                                 onChange={(e) => onUpdate({ label: e.target.value })}
                                 className="w-full p-2 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
-                                placeholder="Page Name"
+                                placeholder="New Page"
                             />
                         </div>
 

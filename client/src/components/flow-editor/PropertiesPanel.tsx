@@ -487,9 +487,10 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                                 <div>
                                     <label className="text-[10px] text-gray-400">Text</label>
                                     <input
-                                        value={section.content.buttonText || 'Submit'}
+                                        value={section.content.buttonText ?? ''}
                                         onChange={(e) => onUpdate({ buttonText: e.target.value })}
                                         className="input-field"
+                                        placeholder="Submit"
                                     />
                                 </div>
                                 <div>
@@ -699,9 +700,10 @@ export default function PropertiesPanel({ section, onUpdate, onDone, onCancel }:
                                         <div>
                                             <label className="text-[10px] text-gray-400">Text</label>
                                             <input
-                                                value={section.content.buttonText || 'Donate Now'}
+                                                value={section.content.buttonText ?? ''}
                                                 onChange={(e) => onUpdate({ buttonText: e.target.value })}
                                                 className="input-field"
+                                                placeholder="Donate Now"
                                             />
                                         </div>
                                         <div>

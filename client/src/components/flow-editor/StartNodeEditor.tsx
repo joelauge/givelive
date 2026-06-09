@@ -162,7 +162,7 @@ export default function StartNodeEditor({ data, onUpdate }: StartNodeEditorProps
             <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Flow Name</label>
                 <input
-                    value={data.label || 'Start'}
+                    value={data.label ?? ''}
                     onChange={(e) => onUpdate({ ...data, label: e.target.value })}
                     className="w-full p-2 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
                     placeholder="Flow Name"
