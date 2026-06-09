@@ -15,8 +15,8 @@
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
     "@clerk/clerk-react": "^5.57.1",
-    "@stripe/react-stripe-js": "^5.4.1",
-    "@stripe/stripe-js": "^8.5.3",
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.8.0",
     "antd": "^6.1.4",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",

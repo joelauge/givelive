@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser, SignInButton } from '@clerk/clerk-react';
-import { api } from '../api';
+import BillingCheckoutModal from './BillingCheckoutModal';
 import type { PricingPlan } from '../data/pricingPlans';
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 
 export default function PlanCheckoutButton({ plan, highlighted }: Props) {
     const { isSignedIn, user } = useUser();
-    const [loading, setLoading] = useState(false);
+    const [checkoutOpen, setCheckoutOpen] = useState(false);
 
     const buttonClass = `block w-full py-3.5 rounded-full font-bold text-center transition disabled:opacity-60 ${
         highlighted
@@ -46,25 +46,6 @@ export default function PlanCheckoutButton({ plan, highlighted }: Props) {
         );
     }
 
-    const startCheckout = async () => {
-        if (!user?.id) return;
-        setLoading(true);
-        try {
-            const { url } = await api.createBillingCheckout({
-                org_id: user.id,
-                plan_id: plan.id as 'starter' | 'growth' | 'pro',
-                email: user.primaryEmailAddress?.emailAddress ?? undefined,
-                name: user.fullName ?? undefined,
-            });
-            window.location.href = url;
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Checkout failed';
-            alert(message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     if (!isSignedIn) {
         return (
             <SignInButton mode="modal" forceRedirectUrl="/pricing">
@@ -76,8 +57,21 @@ export default function PlanCheckoutButton({ plan, highlighted }: Props) {
     }
 
     return (
-        <button type="button" onClick={startCheckout} disabled={loading} className={buttonClass}>
-            {loading ? 'Redirecting…' : plan.cta}
-        </button>
+        <>
+            <button
+                type="button"
+                onClick={() => setCheckoutOpen(true)}
+                disabled={!user?.id}
+                className={buttonClass}
+            >
+                {plan.cta}
+            </button>
+            <BillingCheckoutModal
+                isOpen={checkoutOpen}
+                onClose={() => setCheckoutOpen(false)}
+                planId={plan.id as 'starter' | 'growth' | 'pro'}
+                planName={plan.name}
+            />
+        </>
     );
 }

@@ -128,10 +128,10 @@ export default async function billingRoutes(server: FastifyInstance) {
 
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
+                ui_mode: 'embedded',
                 customer: customerId,
                 line_items: lineItems,
-                success_url: `${FRONTEND_URL}/settings?billing=success&plan=${plan_id}`,
-                cancel_url: `${FRONTEND_URL}/pricing?billing=canceled`,
+                return_url: `${FRONTEND_URL}/settings?billing=success&plan=${plan_id}&session_id={CHECKOUT_SESSION_ID}`,
                 metadata: { org_id, plan_id },
                 subscription_data: {
                     metadata: { org_id, plan_id },
@@ -139,7 +139,11 @@ export default async function billingRoutes(server: FastifyInstance) {
                 allow_promotion_codes: true,
             });
 
-            return { url: session.url, sessionId: session.id };
+            if (!session.client_secret) {
+                return reply.code(500).send({ error: 'Failed to create checkout session' });
+            }
+
+            return { clientSecret: session.client_secret, sessionId: session.id };
         } catch (err: any) {
             server.log.error(err);
             reply.code(500).send({ error: err.message || 'Failed to create checkout session' });

@@ -260,7 +260,7 @@ export const api = {
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || 'Failed to start checkout');
-        return body as { url: string; sessionId: string };
+        return body as { clientSecret: string; sessionId: string };
     },
 
     createBillingPortal: async (orgId: string) => {
