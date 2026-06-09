@@ -11,6 +11,7 @@ import type { PlanId } from '../data/pricingPlans';
 import { getTemplateOgImageUrl, usePageSeo } from '../lib/seo';
 import ShareButtons from '../components/ShareButtons';
 import NewsletterSignup from '../components/NewsletterSignup';
+import GuidePromo from '../components/GuidePromo';
 
 export default function BlogPost() {
     const { templateId } = useParams();
@@ -214,6 +215,8 @@ export default function BlogPost() {
                                 Browse all template guides →
                             </Link>
                         </div>
+
+                        <GuidePromo className="mt-12 not-prose" />
 
                         <div className="mt-12 not-prose bg-surface border border-gray-100 rounded-3xl p-8">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Get weekly QR marketing playbooks</h3>

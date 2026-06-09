@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, Check } from 'lucide-react';
 import { API_URL } from '../api';
+import { marketingFlows } from '../data/marketingFlows';
 
 type Props = {
     /** Where the signup happened, for attribution (e.g. "home", "blog:simple-donation") */
@@ -87,7 +88,15 @@ export default function NewsletterSignup({ source, variant = 'light', className 
                 </p>
             )}
             <p className={`mt-3 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                Weekly QR marketing playbooks. No spam, unsubscribe anytime.
+                Weekly QR marketing playbooks. No spam, unsubscribe anytime.{' '}
+                <a
+                    href={marketingFlows.newsletterUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`underline ${isDark ? 'hover:text-gray-300' : 'hover:text-gray-600'}`}
+                >
+                    Or join via our live GiveLive flow →
+                </a>
             </p>
         </form>
     );

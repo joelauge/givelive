@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import GuidePromo from '../components/GuidePromo';
 import NewsletterSignup from '../components/NewsletterSignup';
 import ShareButtons from '../components/ShareButtons';
 import TemplateCard from '../components/TemplateCard';
@@ -135,6 +136,8 @@ export default function ArticlePage() {
                         </div>
                     </section>
                 )}
+
+                <GuidePromo className="mt-16" />
 
                 <section className="mt-16 bg-surface border border-gray-100 rounded-3xl p-8">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Get weekly QR marketing playbooks</h3>

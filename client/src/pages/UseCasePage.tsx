@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, Check, ChevronRight, Sparkles } from 'lucide-react';
+import GuidePromo from '../components/GuidePromo';
 import NewsletterSignup from '../components/NewsletterSignup';
 import ShareButtons from '../components/ShareButtons';
 import { getRelatedUseCases, getUseCase } from '../data/useCases';
@@ -202,6 +203,7 @@ export default function UseCasePage() {
             {/* Newsletter */}
             <section className="py-16">
                 <div className="max-w-2xl mx-auto px-4 sm:px-6">
+                    <GuidePromo className="mb-8" />
                     <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Get weekly QR marketing playbooks</h3>
                         <p className="text-gray-500 text-sm mb-6">
