@@ -1,10 +1,33 @@
 [
   {
+    "slug": "qr-code-statistics-every-marketer-should-know-in",
+    "title": "QR Code Statistics Every Marketer Should Know in 2026",
+    "description": "Explore vital QR code statistics for 2026, including scan rates and conversion benchmarks, to optimize your acquisition strategies.",
+    "date": "2026-06-09",
+    "tags": [
+      "qr codes",
+      "statistics",
+      "marketing"
+    ],
+    "relatedTemplateIds": [
+      "lead-magnet",
+      "feedback-survey"
+    ]
+  },
+  {
     "slug": "speed-to-lead-5-minute-rule",
     "title": "The 5-Minute Rule: Why Speed-to-Lead Decides Who Wins the Deal",
     "description": "Lead conversion drops up to 8x after the first five minutes. Here's the research behind speed-to-lead, why most teams still respond in hours, and how to automate a sub-minute response with QR flows.",
     "date": "2026-06-09",
-    "tags": ["lead capture", "automation", "speed-to-lead"],
-    "relatedTemplateIds": ["real-estate-lead", "lead-magnet", "event-checkin"]
+    "tags": [
+      "lead capture",
+      "automation",
+      "speed-to-lead"
+    ],
+    "relatedTemplateIds": [
+      "real-estate-lead",
+      "lead-magnet",
+      "event-checkin"
+    ]
   }
 ]
