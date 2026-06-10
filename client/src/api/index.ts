@@ -297,4 +297,51 @@ export const api = {
         if (!res.ok) throw new Error(body.error || 'Failed to open billing portal');
         return body as { url: string };
     },
+
+    getMailMessages: async (limit = 50, offset = 0) => {
+        const res = await fetch(`${API_URL}/mail/messages?limit=${limit}&offset=${offset}`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 403) throw new Error('Forbidden');
+        if (!res.ok) throw new Error('Failed to load inbox');
+        return res.json();
+    },
+
+    getMailMessage: async (id: string) => {
+        const res = await fetch(`${API_URL}/mail/messages/${id}`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (!res.ok) throw new Error('Failed to load message');
+        return res.json();
+    },
+
+    setMailMessageRead: async (id: string, isRead: boolean) => {
+        const res = await fetch(`${API_URL}/mail/messages/${id}`, {
+            method: 'PATCH',
+            headers: await buildAuthHeaders(),
+            body: JSON.stringify({ is_read: isRead }),
+        });
+        if (!res.ok) throw new Error('Failed to update message');
+        return res.json();
+    },
+
+    deleteMailMessage: async (id: string) => {
+        const res = await fetch(`${API_URL}/mail/messages/${id}`, {
+            method: 'DELETE',
+            headers: await buildAuthHeaders(),
+        });
+        if (!res.ok) throw new Error('Failed to delete message');
+        return res.json();
+    },
+
+    replyToMailMessage: async (id: string, text: string) => {
+        const res = await fetch(`${API_URL}/mail/messages/${id}/reply`, {
+            method: 'POST',
+            headers: await buildAuthHeaders(),
+            body: JSON.stringify({ text }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to send reply');
+        return body;
+    },
 };

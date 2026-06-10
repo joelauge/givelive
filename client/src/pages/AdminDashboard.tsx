@@ -7,7 +7,7 @@ import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
 import type { PlanId } from '../data/pricingPlans';
 import QRCode from 'react-qr-code';
-import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X } from 'lucide-react';
+import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X, Inbox } from 'lucide-react';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
 import { useRegisterMobileSidebar } from '../contexts/MobileSidebarContext';
 import MobileDrawer from '../components/MobileDrawer';
@@ -131,6 +131,18 @@ export default function AdminDashboard() {
     }, []);
 
     const [claimingLegacy, setClaimingLegacy] = useState(false);
+    const [mailAccess, setMailAccess] = useState(false);
+    const [mailUnread, setMailUnread] = useState(0);
+
+    // Only platform operators get a 200 here; everyone else keeps a clean sidebar.
+    useEffect(() => {
+        api.getMailMessages(1, 0)
+            .then((data) => {
+                setMailAccess(true);
+                setMailUnread(data.unreadCount || 0);
+            })
+            .catch(() => setMailAccess(false));
+    }, []);
 
     const loadEvents = async () => {
         try {
@@ -431,6 +443,22 @@ export default function AdminDashboard() {
                     <BarChart3 size={18} />
                     <span>Analytics</span>
                 </Link>
+
+                {mailAccess && (
+                    <Link
+                        to="/mail"
+                        onClick={closeMobileSidebar}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
+                    >
+                        <Inbox size={18} />
+                        <span>Mail</span>
+                        {mailUnread > 0 && (
+                            <span className="ml-auto bg-primary text-white text-xs font-bold rounded-full px-2 py-0.5">
+                                {mailUnread}
+                            </span>
+                        )}
+                    </Link>
+                )}
 
                 <Link
                     to="/settings"

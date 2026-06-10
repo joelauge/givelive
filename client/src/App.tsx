@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
+import MailInbox from './pages/MailInbox';
 import Privacy from './pages/Privacy';
 import TermsOfService from './pages/TermsOfService';
 import BlogIndex from './pages/BlogIndex';
@@ -78,6 +79,19 @@ function App() {
           <>
             <SignedIn>
               <Analytics />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/mail"
+        element={
+          <>
+            <SignedIn>
+              <MailInbox />
             </SignedIn>
             <SignedOut>
               <RedirectToSignIn />

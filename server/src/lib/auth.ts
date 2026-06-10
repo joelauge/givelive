@@ -38,6 +38,29 @@ export async function requireAuth(
     return userId;
 }
 
+/**
+ * Restrict a route to platform operators (comma-separated Clerk user IDs in
+ * PLATFORM_ADMIN_IDS). Regular signed-in customers get a 403.
+ */
+export async function requirePlatformAdmin(
+    request: FastifyRequest,
+    reply: FastifyReply
+): Promise<string | null> {
+    const userId = await requireAuth(request, reply);
+    if (!userId) return null;
+
+    const allowed = (process.env.PLATFORM_ADMIN_IDS || '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+    if (!allowed.includes(userId)) {
+        reply.code(403).send({ error: 'Forbidden' });
+        return null;
+    }
+    return userId;
+}
+
 export async function requireOrgAccess(
     request: FastifyRequest,
     reply: FastifyReply,
