@@ -49,6 +49,7 @@ import { ensureUserProfilesSchema } from './db/ensureUserProfiles';
 import { ensureAnalyticsSchema } from './db/ensureAnalyticsSchema';
 import { ensureMarketingSchema } from './db/ensureMarketingSchema';
 import marketingRoutes from './routes/marketing';
+import contentApprovalRoutes from './routes/contentApproval';
 import aiRoutes from './routes/ai';
 import webhookRoutes from './routes/webhooks';
 import { integrationRoutes } from './routes/integrations';
@@ -141,6 +142,7 @@ export const createApp = () => {
     server.register(embedRoutes, { prefix: '/api' });
     server.register(demoRoutes, { prefix: '/api' });
     server.register(marketingRoutes, { prefix: '/api' });
+    server.register(contentApprovalRoutes, { prefix: '/api' });
     server.register(donationRoutes, { prefix: '/api' });
     server.register(billingRoutes, { prefix: '/api' });
     server.register(uploadRoutes, { prefix: '/api' });

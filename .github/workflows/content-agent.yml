@@ -40,6 +40,7 @@ jobs:
           echo "title=$TITLE" >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: 'content: add weekly article — ${{ steps.article.outputs.title }}'
@@ -61,3 +62,17 @@ jobs:
             - [ ] Verify internal template links resolve
             - [ ] Merge to publish (deploys with the next release)
           labels: content
+
+      - name: Send approval email
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          CONTENT_APPROVAL_SECRET: ${{ secrets.CONTENT_APPROVAL_SECRET }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          ARTICLE_TITLE: ${{ steps.article.outputs.title }}
+        run: |
+          payload=$(node -e "console.log(JSON.stringify({ prNumber: Number(process.env.PR_NUMBER), title: process.env.ARTICLE_TITLE, prUrl: process.env.PR_URL }))")
+          curl --fail-with-body -sS -X POST https://www.givelive.app/api/content/notify \
+            -H "Content-Type: application/json" \
+            -H "x-agent-secret: $CONTENT_APPROVAL_SECRET" \
+            -d "$payload"
