@@ -31,6 +31,37 @@ interface MailDetail extends MailListItem {
     to_addresses: string[];
 }
 
+/** Force every link inside the sandboxed email iframe to open in a new tab. */
+function withNewTabLinks(html: string): string {
+    const base = '<base target="_blank">';
+    if (/<head[^>]*>/i.test(html)) {
+        return html.replace(/<head[^>]*>/i, (match) => `${match}${base}`);
+    }
+    return `${base}${html}`;
+}
+
+const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/g;
+
+/** Render plain-text email content with clickable links that open in a new tab. */
+function linkifyText(text: string) {
+    // String.split with a capturing group puts URL matches at odd indexes.
+    return text.split(URL_RE).map((part, i) =>
+        i % 2 === 1 ? (
+            <a
+                key={i}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline break-all"
+            >
+                {part}
+            </a>
+        ) : (
+            part
+        )
+    );
+}
+
 function formatTime(iso: string | null): string {
     if (!iso) return '';
     const date = new Date(iso);
@@ -261,13 +292,15 @@ export default function MailInbox() {
                                     {selected.html_body ? (
                                         <iframe
                                             title="Email content"
-                                            sandbox=""
-                                            srcDoc={selected.html_body}
+                                            // Scripts stay blocked; popups are allowed so links
+                                            // can open in a new, unsandboxed tab.
+                                            sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                            srcDoc={withNewTabLinks(selected.html_body)}
                                             className="w-full min-h-[420px] bg-white"
                                         />
                                     ) : (
                                         <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 p-6">
-                                            {selected.text_body || '(empty message)'}
+                                            {selected.text_body ? linkifyText(selected.text_body) : '(empty message)'}
                                         </pre>
                                     )}
                                 </div>
