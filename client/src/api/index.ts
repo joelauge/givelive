@@ -344,4 +344,66 @@ export const api = {
         if (!res.ok) throw new Error(body.error || 'Failed to send reply');
         return body;
     },
+
+    getAdminAccess: async () => {
+        const res = await fetch(`${API_URL}/admin/access`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 403 || res.status === 401) throw new Error('Forbidden');
+        if (!res.ok) throw new Error('Failed to check admin access');
+        return res.json() as Promise<{ admin: boolean; clerkConfigured: boolean }>;
+    },
+
+    getAdminStats: async () => {
+        const res = await fetch(`${API_URL}/admin/stats`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 403) throw new Error('Forbidden');
+        if (!res.ok) throw new Error('Failed to load admin stats');
+        return res.json();
+    },
+
+    getAdminCustomers: async (search = '', limit = 25, offset = 0) => {
+        const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+        if (search.trim()) params.set('search', search.trim());
+        const res = await fetch(`${API_URL}/admin/customers?${params.toString()}`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 403) throw new Error('Forbidden');
+        if (!res.ok) throw new Error('Failed to load customers');
+        return res.json();
+    },
+
+    getAdminCustomer: async (id: string) => {
+        const res = await fetch(`${API_URL}/admin/customers/${id}`, {
+            headers: await buildAuthHeaders(),
+        });
+        if (res.status === 403) throw new Error('Forbidden');
+        if (!res.ok) throw new Error('Failed to load customer');
+        return res.json();
+    },
+
+    updateAdminCustomerPlan: async (
+        id: string,
+        data: { planId?: string; aiFollowUpAddon?: boolean; note?: string }
+    ) => {
+        const res = await fetch(`${API_URL}/admin/customers/${id}/plan`, {
+            method: 'PATCH',
+            headers: await buildAuthHeaders(),
+            body: JSON.stringify(data),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to update plan');
+        return body;
+    },
+
+    resetAdminCustomerLeads: async (id: string) => {
+        const res = await fetch(`${API_URL}/admin/customers/${id}/reset-leads`, {
+            method: 'POST',
+            headers: await buildAuthHeaders(),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Failed to reset leads');
+        return body;
+    },
 };

@@ -7,7 +7,7 @@ import UpgradeModal from '../components/UpgradeModal';
 import { canCreateCampaign, getCampaignLimit } from '../lib/billingLimits';
 import type { PlanId } from '../data/pricingPlans';
 import QRCode from 'react-qr-code';
-import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X, Inbox } from 'lucide-react';
+import { BarChart3, Calendar, Clock, LayoutGrid, Grid, List, Copy, LayoutTemplate, MessageSquare, Heart, GitBranch, Users, Mail, Zap, Activity, Terminal, QrCode, Settings, ChevronDown, ChevronRight, Search, X, Inbox, ShieldCheck } from 'lucide-react';
 import { templates, categories, getTemplatesByCategory, getCategoryCount } from '../data/templateLibrary';
 import { useRegisterMobileSidebar } from '../contexts/MobileSidebarContext';
 import MobileDrawer from '../components/MobileDrawer';
@@ -133,6 +133,7 @@ export default function AdminDashboard() {
     const [claimingLegacy, setClaimingLegacy] = useState(false);
     const [mailAccess, setMailAccess] = useState(false);
     const [mailUnread, setMailUnread] = useState(0);
+    const [adminAccess, setAdminAccess] = useState(false);
 
     // Only platform operators get a 200 here; everyone else keeps a clean sidebar.
     useEffect(() => {
@@ -142,6 +143,10 @@ export default function AdminDashboard() {
                 setMailUnread(data.unreadCount || 0);
             })
             .catch(() => setMailAccess(false));
+
+        api.getAdminAccess()
+            .then((data) => setAdminAccess(Boolean(data.admin)))
+            .catch(() => setAdminAccess(false));
     }, []);
 
     const loadEvents = async () => {
@@ -457,6 +462,17 @@ export default function AdminDashboard() {
                                 {mailUnread}
                             </span>
                         )}
+                    </Link>
+                )}
+
+                {adminAccess && (
+                    <Link
+                        to="/admin-console"
+                        onClick={closeMobileSidebar}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-primary transition text-left"
+                    >
+                        <ShieldCheck size={18} />
+                        <span>Admin</span>
                     </Link>
                 )}
 

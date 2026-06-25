@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import MailInbox from './pages/MailInbox';
+import AdminConsole from './pages/AdminConsole';
 import Privacy from './pages/Privacy';
 import TermsOfService from './pages/TermsOfService';
 import BlogIndex from './pages/BlogIndex';
@@ -92,6 +93,19 @@ function App() {
           <>
             <SignedIn>
               <MailInbox />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/admin-console"
+        element={
+          <>
+            <SignedIn>
+              <AdminConsole />
             </SignedIn>
             <SignedOut>
               <RedirectToSignIn />
