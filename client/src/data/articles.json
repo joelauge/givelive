@@ -1,5 +1,21 @@
 [
   {
+    "slug": "replace-connection-cards-with-qr-codes-a-guide",
+    "title": "Replace Connection Cards with QR Codes: A Guide for Churches",
+    "description": "Learn how churches can enhance visitor engagement by replacing traditional connection cards with QR codes and automated digital workflows.",
+    "date": "2026-08-24",
+    "tags": [
+      "churches",
+      "lead capture",
+      "automation"
+    ],
+    "relatedTemplateIds": [
+      "new-member",
+      "small-groups",
+      "simple-donation"
+    ]
+  },
+  {
     "slug": "qr-code-statistics-every-marketer-should-know-in",
     "title": "QR Code Statistics Every Marketer Should Know in 2026",
     "description": "Explore vital QR code statistics for 2026, including scan rates and conversion benchmarks, to optimize your acquisition strategies.",
