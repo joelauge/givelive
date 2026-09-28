@@ -30,7 +30,9 @@
         "small-groups",
         "simple-donation"
       ],
-      "status": "pending"
+      "status": "done",
+      "completedAt": "2026-09-28",
+      "slug": "replacing-connection-cards-with-qr-codes-a-churchs"
     },
     {
       "topic": "The complete guide to open house lead capture for real estate agents",
