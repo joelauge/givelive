@@ -30,7 +30,9 @@
         "small-groups",
         "simple-donation"
       ],
-      "status": "pending"
+      "status": "done",
+      "completedAt": "2026-10-05",
+      "slug": "how-churches-are-transforming-connection-cards-with-qr"
     },
     {
       "topic": "The complete guide to open house lead capture for real estate agents",
